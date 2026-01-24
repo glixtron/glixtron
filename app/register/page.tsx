@@ -73,14 +73,19 @@ export default function RegisterPage() {
       setTimeout(async () => {
         try {
           const { signIn } = await import('next-auth/react')
-          await signIn('credentials', {
+          const result = await signIn('credentials', {
             email: formData.email.trim().toLowerCase(),
             password: formData.password,
             redirect: false
           })
 
-          // Redirect to profile after successful login
-          router.push('/profile')
+          if (result?.error) {
+            // If auto-login fails, redirect to login page with success message
+            router.push('/login?message=Registration successful! Please login.')
+          } else {
+            // Redirect to welcome page after successful login
+            router.push('/welcome')
+          }
         } catch (loginError) {
           // If auto-login fails, redirect to login page
           router.push('/login?message=Registration successful! Please login.')
@@ -232,8 +237,7 @@ export default function RegisterPage() {
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         title="Registration Successful!"
-        message="Thank you for choosing Glixtron! Your account has been created successfully. You can now sign in and start your career journey."
-        redirectTo="/login"
+        message="Thank you for choosing Glixtron! Your account has been created successfully. We're logging you in automatically..."
       />
     </div>
   )

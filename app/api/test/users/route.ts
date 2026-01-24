@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, getAllUsers, findUserByEmail } from '@/lib/supabase-client'
+import { createUser, getAllUsers, findUserByEmail } from '@/lib/database-persistent'
 
 /**
  * GET /api/test/users
@@ -13,8 +13,8 @@ export async function GET() {
       id: user.id,
       email: user.email,
       name: user.name,
-      emailVerified: user.email_verified,
-      createdAt: user.created_at,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
       image: user.image
     }))
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
         id: testUser!.id,
         email: testUser!.email,
         name: testUser!.name,
-        emailVerified: testUser!.email_verified,
+        emailVerified: testUser!.emailVerified,
         hasPassword: !!testUser!.password
       },
       verification: {

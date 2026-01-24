@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, findUserByEmail, validatePassword } from '@/lib/supabase-client'
+import { createUser, findUserByEmail, validatePassword } from '@/lib/database-persistent'
 
 export async function POST(request: NextRequest) {
   try {
