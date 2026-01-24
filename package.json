@@ -29,7 +29,11 @@
     "mammoth": "^1.6.0",
     "ml-distance": "^4.0.1",
     "@supabase/supabase-js": "^2.26.0",
-    "cheerio": "^1.0.0-rc.12"
+    "cheerio": "^1.2.0",
+    "@exodus/bytes": "^1.9.0"
+  },
+  "resolutions": {
+    "whatwg-encoding": "npm:@exodus/bytes@^1.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

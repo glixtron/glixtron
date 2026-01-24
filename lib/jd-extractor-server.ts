@@ -77,10 +77,10 @@ function formatJobDescription(title: string, company: string, location: string, 
  */
 function isValidURL(url: string): boolean {
   // Basic URL validation without using URL constructor
-  return url && 
+  return !!(url && 
          typeof url === 'string' && 
          (url.startsWith('http://') || url.startsWith('https://')) &&
-         url.length > 10
+         url.length > 10)
 }
 
 /**

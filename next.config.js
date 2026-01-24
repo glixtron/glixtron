@@ -24,6 +24,10 @@ const nextConfig = {
       {
         module: /undici/,
         message: /deprecated/,
+      },
+      {
+        module: /encoding-sniffer/,
+        message: /whatwg-encoding/,
       }
     ]
     
