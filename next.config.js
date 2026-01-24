@@ -13,6 +13,18 @@ const nextConfig = {
         module: /whatwg-encoding/,
         message: /Use @exodus\/bytes instead/,
       },
+      {
+        module: /cheerio/,
+        message: /whatwg-encoding/,
+      },
+      {
+        module: /node-fetch/,
+        message: /deprecated/,
+      },
+      {
+        module: /undici/,
+        message: /deprecated/,
+      }
     ]
     
     return config
