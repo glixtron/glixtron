@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllUsers } from '@/lib/database-persistent'
+import { getAllUsers } from '@/lib/supabase-client'
 
 /**
  * GET /api/admin/users
@@ -13,8 +13,11 @@ export async function GET(request: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name,
-      emailVerified: user.emailVerified,
-      createdAt: user.createdAt,
+      emailVerified: user.email_verified,
+      createdAt: user.created_at,
+      image: user.image,
+      bio: user.bio,
+      location: user.location,
       hasPassword: !!user.password
     }))
 

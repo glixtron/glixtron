@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, getAllUsers, findUserByEmail } from '@/lib/database-persistent'
+import { createUser, getAllUsers, findUserByEmail } from '@/lib/supabase-client'
 
 /**
  * GET /api/test/users
@@ -13,8 +13,9 @@ export async function GET() {
       id: user.id,
       email: user.email,
       name: user.name,
-      emailVerified: user.emailVerified,
-      hasPassword: !!user.password
+      emailVerified: user.email_verified,
+      createdAt: user.created_at,
+      image: user.image
     }))
 
     return NextResponse.json({
@@ -47,16 +48,16 @@ export async function POST(request: NextRequest) {
     })
 
     // Verify the user was created by trying to find them
-    const verification = await findUserByEmail(testUser.email)
+    const verification = await findUserByEmail(testUser!.email)
 
     return NextResponse.json({
       success: true,
       user: {
-        id: testUser.id,
-        email: testUser.email,
-        name: testUser.name,
-        emailVerified: testUser.emailVerified,
-        hasPassword: !!testUser.password
+        id: testUser!.id,
+        email: testUser!.email,
+        name: testUser!.name,
+        emailVerified: testUser!.email_verified,
+        hasPassword: !!testUser!.password
       },
       verification: {
         found: !!verification,

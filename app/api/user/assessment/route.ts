@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config' 
-import { saveAssessmentData, getAssessmentData } from '@/lib/database'
+import { saveAssessment, getAssessment } from '@/lib/supabase-client'
 
 /**
  * GET /api/user/assessment
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    const assessment = await getAssessmentData(session.user.id)
+    const assessment = await getAssessment(session.user.id)
     
     return NextResponse.json({
       success: true,
@@ -58,16 +58,16 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const assessment = await saveAssessmentData(session.user.id, {
-      coreSkills,
-      softSkills,
-      remotePreference,
-      startupPreference
+    const result = await saveAssessment(session.user.id, {
+      coreSkills: coreSkills || [],
+      softSkills: softSkills || [],
+      remotePreference: remotePreference || 50,
+      startupPreference: startupPreference || 50
     })
     
     return NextResponse.json({
       success: true,
-      assessment
+      assessment: result
     })
   } catch (error: any) {
     console.error('Error saving assessment:', error)

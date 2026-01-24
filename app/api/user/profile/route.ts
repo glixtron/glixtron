@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config'
-import { findUserById, updateUser } from '@/lib/database-persistent'
+import { findUserById, getAllUserData, updateUser } from '@/lib/supabase-client'
 
 /**
  * GET /api/user/profile
@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest) {
       location,
       phone,
       website,
-      socialLinks,
+      social_links: socialLinks,
       preferences
     })
     

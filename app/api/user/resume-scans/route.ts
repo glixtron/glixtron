@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config'
-import { saveResumeScan, getResumeScans, deleteResumeScan } from '@/lib/database'
+import { saveResumeScan, getResumeScans, deleteResumeScan } from '@/lib/supabase-client'
 
 /**
  * GET /api/user/resume-scans

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, findUserByEmail } from '@/lib/database-persistent'
+import { createUser, findUserByEmail } from '@/lib/supabase-client'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,28 +35,36 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await findUserByEmail(email.toLowerCase())
+    const existingUser = await findUserByEmail(email)
     if (existingUser) {
       return NextResponse.json(
-        { error: 'A user with this email already exists' },
-        { status: 409 }
+        { error: 'User with this email already exists' },
+        { status: 400 }
       )
     }
     
-    const user = await createUser({ 
-      email: email.toLowerCase().trim(),
-      name: name.trim(),
-      password: password 
+    // Create new user using Supabase
+    const user = await createUser({
+      email,
+      name,
+      password
     })
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Failed to create user' },
+        { status: 500 }
+      )
+    }
     
     return NextResponse.json({
       success: true,
-      message: 'Registration successful! Thank you for choosing Glixtron.',
+      message: 'User registered successfully!',
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        emailVerified: user.emailVerified
+        createdAt: user.created_at
       }
     })
   } catch (error: any) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config'
-import { saveResumeText, getResumeText } from '@/lib/database'
+import { saveResumeText, getResumeText } from '@/lib/supabase-client'
 
 /**
  * GET /api/user/resume-text
