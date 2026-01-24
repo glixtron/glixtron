@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  // Fix workspace root warning
+  outputFileTracingRoot: __dirname,
+  
   // Suppress warnings in production
   serverExternalPackages: ['@supabase/supabase-js'],
   

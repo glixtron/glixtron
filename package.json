@@ -17,6 +17,10 @@
     "prebuild": "echo '🔨 Building application...' 2>/dev/null || true",
     "postbuild": "echo '✅ Build completed successfully' 2>/dev/null || true"
   },
+  "engines": {
+    "node": "20.x",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
     "next": "^15.1.0",
     "react": "^18.3.1",

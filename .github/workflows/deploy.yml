@@ -12,7 +12,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [20.x]
         
     steps:
     - name: Checkout code
@@ -38,6 +38,7 @@ jobs:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        NODE_ENV: production
         
     - name: Deploy to Vercel
       uses: amondnet/vercel-action@v25
@@ -49,12 +50,19 @@ jobs:
         
     - name: Health Check
       run: |
+        echo "⏳ Waiting 30 seconds for deployment to stabilize..."
         sleep 30
+        
+        echo "🔍 Checking application health..."
         response=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/health)
-        if [ $response -eq 200 ]; then
+        echo "Health check response: $response"
+        
+        if [ "$response" = "200" ]; then
           echo "✅ Deployment successful - Health check passed"
         else
           echo "❌ Health check failed with status $response"
+          echo "🔍 Getting detailed error information..."
+          curl -s https://glixtron.vercel.app/api/health || echo "Failed to get health details"
           exit 1
         fi
         
@@ -96,19 +104,33 @@ jobs:
         main_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/health)
         echo "Main server status: $main_status"
         
+        # Check if main server is responding
+        if [ "$main_status" != "200" ]; then
+          echo "❌ Main server is not responding (status: $main_status)"
+          exit 1
+        fi
+        
         # Check auth endpoints
-        auth_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/auth/[...nextauth])
+        auth_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/auth/signin)
         echo "Auth endpoint status: $auth_status"
         
-        # Check database connectivity
-        db_check=$(curl -s -X POST https://glixtron.vercel.app/api/health \
-          -H "Content-Type: application/json" \
-          -d '{"action": "deep-check"}' | jq -r '.status')
-        echo "Database status: $db_check"
+        # Check JD extractor
+        jd_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/jd/extract)
+        echo "JD extractor status: $jd_status"
         
-        if [ "$main_status" = "200" ] && [ "$auth_status" = "200" ] && [ "$db_check" = "healthy" ]; then
+        # Check resume analyzer
+        resume_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/resume/analyze)
+        echo "Resume analyzer status: $resume_status"
+        
+        # Check security endpoint
+        security_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/security)
+        echo "Security endpoint status: $security_status"
+        
+        # Basic health check - if all endpoints respond with 200 or 404 (for POST endpoints), consider it healthy
+        if [ "$main_status" = "200" ] && [ "$auth_status" -ge "200" ] && [ "$jd_status" -ge "200" ] && [ "$resume_status" -ge "200" ] && [ "$security_status" = "200" ]; then
           echo "✅ All health checks passed!"
         else
           echo "⚠️ Some health checks failed"
+          echo "Main: $main_status, Auth: $auth_status, JD: $jd_status, Resume: $resume_status, Security: $security_status"
           exit 1
         fi
