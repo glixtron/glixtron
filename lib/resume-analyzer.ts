@@ -1,5 +1,5 @@
 import { analyzeKeywordsAdvanced, extractSkillsAdvanced, findSimilarSkills } from './nlp-analyzer-browser'
-import { extractJDFromURL as extractJDFromURLNew } from './jd-extractor'
+import { extractJDFromURL as extractJDFromURLNew } from '@/lib/jd-extractor-server'
 
 // Re-export the JD extraction function
 export { extractJDFromURLNew as extractJDFromURL }
