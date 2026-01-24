@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { findUserByEmail, validatePassword } from '@/lib/supabase-client'
+import { findUserByEmail, validatePassword } from '@/lib/database-persistent'
 
 // This will be replaced with Supabase functions when migrating
 export const authConfig: NextAuthOptions = {
@@ -16,7 +16,7 @@ export const authConfig: NextAuthOptions = {
           return null
         }
         
-        // Use Supabase for authentication
+        // Use persistent database for authentication
         const isValid = await validatePassword(credentials.email, credentials.password)
         if (!isValid) {
           return null

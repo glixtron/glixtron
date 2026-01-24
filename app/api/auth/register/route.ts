@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, findUserByEmail } from '@/lib/supabase-client'
+import { createUser, findUserByEmail } from '@/lib/database-persistent'
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        createdAt: user.created_at
+        createdAt: user.createdAt
       }
     })
   } catch (error: any) {

@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import bcrypt from 'bcryptjs'
 
 // Supabase configuration
 const supabaseUrl = process.env.SUPABASE_URL!
@@ -90,12 +91,15 @@ export class SupabaseDatabase {
     password: string
   }): Promise<DatabaseUser | null> {
     try {
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(userData.password, 12)
+      
       const { data, error } = await supabaseAdmin
         .from('users')
         .insert([{
           email: userData.email.toLowerCase(),
           name: userData.name.trim(),
-          password: userData.password, // TODO: Hash this with bcrypt
+          password: hashedPassword,
           email_verified: true
         }])
         .select()
@@ -103,6 +107,7 @@ export class SupabaseDatabase {
 
       if (error) {
         console.error('Supabase create user error:', error)
+        console.error('Error details:', JSON.stringify(error, null, 2))
         return null
       }
 
@@ -206,9 +211,9 @@ export class SupabaseDatabase {
         return false
       }
 
-      // TODO: Implement bcrypt comparison
-      // For now, use simple comparison (replace with bcrypt)
-      return user.password === password
+      // Compare the provided password with the stored hash
+      const isValid = await bcrypt.compare(password, user.password)
+      return isValid
     } catch (error) {
       console.error('Validate password error:', error)
       return false
