@@ -97,6 +97,10 @@
       "destination": "/api/security"
     },
     {
+      "source": "/api/test-routing",
+      "destination": "/api/test-routing"
+    },
+    {
       "source": "/((?!api|_next/static|_next/image|favicon.ico).*)",
       "destination": "/$1"
     }
