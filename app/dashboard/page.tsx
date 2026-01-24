@@ -2,15 +2,35 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Sparkles, TrendingUp, BookOpen, AlertCircle, User } from 'lucide-react'
 import { getAiAnalysis, type UserInputs, type AIAnalysis } from '@/lib/mock-data'
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null)
 
   useEffect(() => {
+    // Check if user is authenticated
+    if (status === 'unauthenticated') {
+      router.push('/login')
+      return
+    }
+
+    // Wait for session to load
+    if (status === 'loading') {
+      return
+    }
+  }, [router, status])
+
+  // Separate effect for assessment data (only runs if authenticated)
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      return
+    }
+
     // Get assessment data from localStorage
     const assessmentData = localStorage.getItem('assessmentData')
     if (!assessmentData) {
