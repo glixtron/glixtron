@@ -1,0 +1,20 @@
+{
+  "test@example.com": {
+    "id": "user_1769259969056_99o8mo4ye",
+    "email": "test@example.com",
+    "name": "Test User",
+    "password": "password123",
+    "emailVerified": true,
+    "createdAt": "2026-01-24T13:06:09.056Z",
+    "provider": "credentials"
+  },
+  "arrow4162549hemant@gmail.com": {
+    "id": "user_1769259990598_1g20o9rm6",
+    "email": "arrow4162549hemant@gmail.com",
+    "name": "Hemant",
+    "password": "password123",
+    "emailVerified": true,
+    "createdAt": "2026-01-24T13:06:30.598Z",
+    "provider": "credentials"
+  }
+}

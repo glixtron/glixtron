@@ -1,0 +1,42 @@
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <!-- Exact logo from user's image -->
+  
+  <!-- Dark blue circle background -->
+  <circle cx="80" cy="80" r="70" fill="#0a1628"/>
+  
+  <!-- Circuit board "G" traces -->
+  <g>
+    <!-- Main G shape -->
+    <path d="M 50 50 Q 35 50 35 65 L 35 95 Q 35 110 50 110 L 70 110 Q 85 110 85 95 L 85 85" 
+          stroke="#4a9eff" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Horizontal extension -->
+    <path d="M 70 85 L 110 85" stroke="#4a9eff" stroke-width="3" stroke-linecap="round"/>
+    <!-- Circuit nodes -->
+    <circle cx="50" cy="50" r="3" fill="#4a9eff"/>
+    <circle cx="70" cy="85" r="3" fill="#4a9eff"/>
+    <circle cx="110" cy="85" r="3" fill="#4a9eff"/>
+    <!-- Additional circuit traces -->
+    <path d="M 50 65 L 70 65" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 60 50 L 60 65" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="50" cy="65" r="2" fill="#7c3aed"/>
+    <circle cx="70" cy="65" r="2" fill="#7c3aed"/>
+    <circle cx="60" cy="50" r="2" fill="#7c3aed"/>
+  </g>
+  
+  <!-- DNA double helix -->
+  <g>
+    <!-- First helix strand -->
+    <path d="M 55 40 Q 70 55 55 70 Q 40 85 55 100 Q 70 115 55 130" 
+          stroke="#10b981" stroke-width="3" fill="none" opacity="0.9" stroke-linecap="round"/>
+    <!-- Second helix strand -->
+    <path d="M 105 40 Q 90 55 105 70 Q 120 85 105 100 Q 90 115 105 130" 
+          stroke="#10b981" stroke-width="3" fill="none" opacity="0.9" stroke-linecap="round"/>
+    <!-- DNA connections -->
+    <line x1="55" y1="45" x2="105" y2="45" stroke="#10b981" stroke-width="1.5" opacity="0.7"/>
+    <line x1="55" y1="60" x2="105" y2="60" stroke="#10b981" stroke-width="1.5" opacity="0.7"/>
+    <line x1="55" y1="75" x2="105" y2="75" stroke="#10b981" stroke-width="1.5" opacity="0.7"/>
+    <line x1="55" y1="90" x2="105" y2="90" stroke="#10b981" stroke-width="1.5" opacity="0.7"/>
+    <line x1="55" y1="105" x2="105" y2="105" stroke="#10b981" stroke-width="1.5" opacity="0.7"/>
+    <line x1="55" y1="120" x2="105" y2="120" stroke="#10b981" stroke-width="1.5" opacity="0.7"/>
+  </g>
+</svg>

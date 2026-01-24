@@ -1,0 +1,28 @@
+<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Favicon version -->
+  <defs>
+    <clipPath id="circleClip">
+      <circle cx="30" cy="30" r="25"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Dark blue circle -->
+  <circle cx="30" cy="30" r="25" fill="#0a1628"/>
+  
+  <!-- Simplified circuit G -->
+  <g clip-path="url(#circleClip)">
+    <path d="M 15 15 Q 10 15 10 20 L 10 40 Q 10 45 15 45 L 25 45 Q 30 45 30 40" 
+          stroke="#4a9eff" stroke-width="2" fill="none"/>
+    <path d="M 30 30 L 45 30" stroke="#4a9eff" stroke-width="2"/>
+    <circle cx="15" cy="15" r="2" fill="#4a9eff"/>
+    <circle cx="30" cy="30" r="2" fill="#4a9eff"/>
+  </g>
+  
+  <!-- Simplified DNA -->
+  <g clip-path="url(#circleClip)">
+    <path d="M 20 10 Q 25 15 20 25 Q 15 35 20 45 Q 25 55 20 60" 
+          stroke="#10b981" stroke-width="2" fill="none" opacity="0.8"/>
+    <path d="M 40 10 Q 35 15 40 25 Q 45 35 40 45 Q 35 55 40 60" 
+          stroke="#10b981" stroke-width="2" fill="none" opacity="0.8"/>
+  </g>
+</svg>
