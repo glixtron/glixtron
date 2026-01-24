@@ -28,10 +28,15 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password')
         setLoading(false)
+      } else if (result?.ok) {
+        // Successful login, redirect to welcome page
+        window.location.href = '/welcome'
       } else {
-        router.push('/welcome')
+        setError('Login failed. Please try again.')
+        setLoading(false)
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('An error occurred. Please try again.')
       setLoading(false)
     }

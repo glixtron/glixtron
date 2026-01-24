@@ -14,17 +14,23 @@ export default function WelcomePage() {
   useEffect(() => {
     // Check if user is authenticated
     if (status === 'unauthenticated') {
+      console.log('User not authenticated, redirecting to login')
       router.push('/login')
       return
     }
 
     // Wait for session to load
     if (status === 'loading') {
+      console.log('Session loading...')
       return
     }
 
-    setLoading(false)
-  }, [status, router])
+    // Session is loaded
+    if (status === 'authenticated') {
+      console.log('User authenticated:', session.user?.email)
+      setLoading(false)
+    }
+  }, [status, session, router])
 
   if (loading || status === 'loading') {
     return (
@@ -35,7 +41,21 @@ export default function WelcomePage() {
   }
 
   if (!session) {
-    return null
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Session Error</h2>
+          <p className="text-slate-400 mb-4">Unable to load your session. Please try logging in again.</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
