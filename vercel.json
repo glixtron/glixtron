@@ -85,6 +85,18 @@
       "destination": "/api/auth/[...nextauth]"
     },
     {
+      "source": "/api/jd/extract",
+      "destination": "/api/jd/extract"
+    },
+    {
+      "source": "/api/resume/analyze",
+      "destination": "/api/resume/analyze"
+    },
+    {
+      "source": "/api/security",
+      "destination": "/api/security"
+    },
+    {
       "source": "/((?!api|_next/static|_next/image|favicon.ico).*)",
       "destination": "/$1"
     }
