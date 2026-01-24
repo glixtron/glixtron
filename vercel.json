@@ -1,28 +1,54 @@
 {
+  "version": 2,
+  "name": "glixtron",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "installCommand": "rm -rf node_modules package-lock.json && npm install",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["sin1"],
+  "outputDirectory": ".next",
+  "regions": ["iad1", "hnd1", "sfo1"],
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
   "env": {
-    "NEXTAUTH_URL": "https://glixtron.vercel.app",
+    "NEXTAUTH_URL": "@nextauth_url",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
     "NODE_ENV": "production",
     "NPM_CONFIG_CACHE": "/tmp/npm-cache"
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://glixtron.vercel.app"
-    }
-  },
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
+      "NEXTAUTH_URL": "@nextauth_url"
     }
   },
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        },
         {
           "key": "Cache-Control",
           "value": "no-store, must-revalidate"
@@ -42,15 +68,30 @@
         },
         {
           "key": "Referrer-Policy",
-          "value": "origin-when-cross-origin"
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
   ],
   "rewrites": [
     {
+      "source": "/api/health",
+      "destination": "/api/health"
+    },
+    {
       "source": "/api/auth/:path*",
       "destination": "/api/auth/[...nextauth]"
+    },
+    {
+      "source": "/((?!api|_next/static|_next/image|favicon.ico).*)",
+      "destination": "/$1"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
     }
   ]
 }

@@ -6,7 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "npm run build && npm run test:api",
+    "test:api": "node scripts/test-api.js",
+    "test:health": "node scripts/health-check.js",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
+    "setup": "npm install && npm run build",
+    "postinstall": "echo '✅ Dependencies installed successfully'",
+    "prebuild": "echo '🔨 Building application...'",
+    "postbuild": "echo '✅ Build completed successfully'"
   },
   "dependencies": {
     "next": "^15.1.0",

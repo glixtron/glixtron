@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { findUserByEmail, validatePassword } from '@/lib/database-persistent'
+import { ENV_CONFIG } from './env-config'
+import { findUserByEmail, validatePassword } from './database-persistent'
 
 // This will be replaced with Supabase functions when migrating
 export const authConfig: NextAuthOptions = {
@@ -57,9 +58,10 @@ export const authConfig: NextAuthOptions = {
     verifyRequest: '/verify-email'
   },
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
+    maxAge: ENV_CONFIG.TIMEOUTS.AUTH_SESSION
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: ENV_CONFIG.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development'
 }
 

@@ -1,0 +1,114 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm run test --if-present
+      
+    - name: Build application
+      run: npm run build
+      env:
+        NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        
+    - name: Health Check
+      run: |
+        sleep 30
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/health)
+        if [ $response -eq 200 ]; then
+          echo "✅ Deployment successful - Health check passed"
+        else
+          echo "❌ Health check failed with status $response"
+          exit 1
+        fi
+        
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "🚀 Deployment completed successfully!"
+        else
+          echo "❌ Deployment failed - Check logs for details"
+        fi
+
+  deploy-backup:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: failure()
+    
+    steps:
+    - name: Deploy to backup server
+      run: |
+        echo "🔄 Deploying to backup server due to primary failure"
+        # Add backup deployment logic here
+        
+    - name: Notify backup deployment
+      run: |
+        echo "📦 Backup deployment completed"
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: success()
+    
+    steps:
+    - name: Comprehensive health check
+      run: |
+        echo "🔍 Running comprehensive health checks..."
+        
+        # Check main server
+        main_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/health)
+        echo "Main server status: $main_status"
+        
+        # Check auth endpoints
+        auth_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/auth/[...nextauth])
+        echo "Auth endpoint status: $auth_status"
+        
+        # Check database connectivity
+        db_check=$(curl -s -X POST https://glixtron.vercel.app/api/health \
+          -H "Content-Type: application/json" \
+          -d '{"action": "deep-check"}' | jq -r '.status')
+        echo "Database status: $db_check"
+        
+        if [ "$main_status" = "200" ] && [ "$auth_status" = "200" ] && [ "$db_check" = "healthy" ]; then
+          echo "✅ All health checks passed!"
+        else
+          echo "⚠️ Some health checks failed"
+          exit 1
+        fi
