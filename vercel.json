@@ -9,7 +9,7 @@
   ],
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "npm ci --prefer-offline --no-audit --no-fund",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1", "hnd1", "sfo1"],
@@ -26,11 +26,13 @@
     "SUPABASE_ANON_KEY": "@supabase_anon_key",
     "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
     "NODE_ENV": "production",
-    "NPM_CONFIG_CACHE": "/tmp/npm-cache"
+    "NPM_CONFIG_CACHE": "/tmp/npm-cache",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "@nextauth_url"
+      "NEXTAUTH_URL": "@nextauth_url",
+      "NODE_ENV": "production"
     }
   },
   "headers": [

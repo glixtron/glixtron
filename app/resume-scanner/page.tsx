@@ -6,12 +6,6 @@ import { FileText, Link as LinkIcon, Sparkles, AlertCircle, CheckCircle2, Trendi
 import dynamic from 'next/dynamic'
 import type { ResumeAnalysis } from '@/lib/resume-analyzer'
 
-// Dynamically import the resume analyzer to avoid SSR issues
-const ResumeAnalyzer = dynamic(() => import('@/components/ResumeAnalyzer'), {
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500"></div></div>
-})
-
 // Dynamically import JD extractor to avoid SSR issues
 const JDExtractor = dynamic(() => import('@/components/JDExtractor'), {
   ssr: false,
@@ -74,8 +68,24 @@ export default function ResumeScannerPage() {
     setJdMode('text')
   }
 
-  const handleAnalyze = async (analysisResult: ResumeAnalysis) => {
-    setAnalysis(analysisResult)
+  const handleAnalyze = async () => {
+    if (!resumeText.trim() || !jdText.trim()) {
+      alert('Please provide both resume and job description content.')
+      return
+    }
+    
+    setIsAnalyzing(true)
+    try {
+      // Import the analyzeResume function dynamically
+      const { analyzeResume } = await import('@/lib/resume-analyzer')
+      const result = await analyzeResume(resumeText, jdText)
+      setAnalysis(result)
+    } catch (error) {
+      console.error('Analysis error:', error)
+      alert('Failed to analyze resume. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   const handleSaveScan = async () => {
