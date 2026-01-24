@@ -31,6 +31,22 @@ const nextConfig = {
       {
         module: /encoding-sniffer/,
         message: /whatwg-encoding/,
+      },
+      {
+        module: /@exodus\/bytes/,
+        message: /whatwg-encoding/,
+      },
+      {
+        module: /cheerio/,
+        message: /encoding-sniffer/,
+      },
+      {
+        module: /htmlparser2/,
+        message: /whatwg-encoding/,
+      },
+      {
+        module: /parse5/,
+        message: /whatwg-encoding/,
       }
     ]
     

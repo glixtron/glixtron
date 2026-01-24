@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--max-old-space-size=4096' next dev",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
-    "start": "NODE_OPTIONS='--max-old-space-size=4096' next start",
+    "dev": "NODE_OPTIONS='--max-old-space-size=4096 --no-warnings' next dev",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096 --no-warnings' next build",
+    "start": "NODE_OPTIONS='--max-old-space-size=4096 --no-warnings' next start",
     "lint": "next lint --quiet",
     "test": "npm run build && npm run test:api",
     "test:api": "node scripts/test-api.js",
     "test:health": "node scripts/health-check.js",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "setup": "npm ci --prefer-offline --no-audit --no-fund && npm run build",
+    "setup": "npm ci --prefer-offline --no-audit --no-fund --silent && npm run build",
     "postinstall": "echo '✅ Dependencies installed successfully' 2>/dev/null || true",
     "prebuild": "echo '🔨 Building application...' 2>/dev/null || true",
     "postbuild": "echo '✅ Build completed successfully' 2>/dev/null || true"
@@ -37,7 +37,8 @@
     "@exodus/bytes": "^1.9.0"
   },
   "resolutions": {
-    "whatwg-encoding": "npm:@exodus/bytes@^1.9.0"
+    "whatwg-encoding": "npm:@exodus/bytes@^1.9.0",
+    "encoding-sniffer": "npm:@exodus/bytes@^1.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -48,5 +49,9 @@
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.3"
+  },
+  "overrides": {
+    "whatwg-encoding": "npm:@exodus/bytes@^1.9.0",
+    "encoding-sniffer": "npm:@exodus/bytes@^1.9.0"
   }
 }

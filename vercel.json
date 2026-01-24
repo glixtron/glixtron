@@ -7,9 +7,9 @@
       "use": "@vercel/next"
     }
   ],
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm ci --prefer-offline --no-audit --no-fund",
+  "buildCommand": "npm run build --silent",
+  "devCommand": "npm run dev --silent",
+  "installCommand": "npm ci --prefer-offline --no-audit --no-fund --silent",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1", "hnd1", "sfo1"],
