@@ -1,12 +1,13 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install",
+  "installCommand": "rm -rf node_modules package-lock.json && npm install",
   "framework": "nextjs",
   "regions": ["sin1"],
   "env": {
     "NEXTAUTH_URL": "https://glixtron.vercel.app",
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "NPM_CONFIG_CACHE": "/tmp/npm-cache"
   },
   "build": {
     "env": {
