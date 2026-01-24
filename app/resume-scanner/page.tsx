@@ -3,7 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileText, Link as LinkIcon, Sparkles, AlertCircle, CheckCircle2, TrendingUp, Copy, ExternalLink, Upload, ArrowRight, Save } from 'lucide-react'
-import { analyzeResume, extractJDFromURL, type ResumeAnalysis } from '@/lib/resume-analyzer'
+import dynamic from 'next/dynamic'
+import type { ResumeAnalysis } from '@/lib/resume-analyzer'
+
+// Dynamically import the resume analyzer to avoid SSR issues
+const ResumeAnalyzer = dynamic(() => import('@/components/ResumeAnalyzer'), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500"></div></div>
+})
+
+// Dynamically import JD extractor to avoid SSR issues
+const JDExtractor = dynamic(() => import('@/components/JDExtractor'), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-12"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-violet-500"></div></div>
+})
+
 import ResumeUpload from '@/components/ResumeUpload'
 
 type InputMode = 'link' | 'text'
@@ -54,35 +68,14 @@ export default function ResumeScannerPage() {
     }
   }
 
-  const handleExtractJD = async () => {
-    if (!jdLink.trim()) return
-    
-    setIsExtracting(true)
-    try {
-      const extracted = await extractJDFromURL(jdLink)
-      setExtractedJD(extracted)
-      setJdText(extracted)
-      setJdMode('text')
-    } catch (error) {
-      console.error('Error extracting JD:', error)
-      alert('Failed to extract job description. Please try pasting it directly.')
-    } finally {
-      setIsExtracting(false)
-    }
+  const handleExtractJD = async (content: string) => {
+    setExtractedJD(content)
+    setJdText(content)
+    setJdMode('text')
   }
 
-  const handleAnalyze = async () => {
-    if (!resumeText.trim() || !jdText.trim()) {
-      alert('Please provide both resume and job description content.')
-      return
-    }
-    
-    setIsAnalyzing(true)
-    setTimeout(() => {
-      const result = analyzeResume(resumeText, jdText)
-      setAnalysis(result)
-      setIsAnalyzing(false)
-    }, 1500)
+  const handleAnalyze = async (analysisResult: ResumeAnalysis) => {
+    setAnalysis(analysisResult)
   }
 
   const handleSaveScan = async () => {
@@ -258,23 +251,12 @@ export default function ResumeScannerPage() {
                     placeholder="Paste job posting URL (LinkedIn, Indeed, etc.)"
                     className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                   />
-                  <button
-                    onClick={handleExtractJD}
-                    disabled={!jdLink.trim() || isExtracting}
-                    className="px-6 py-3 bg-violet-500 hover:bg-violet-600 rounded-lg text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-                  >
-                    {isExtracting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Extracting...
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Extract JD
-                      </>
-                    )}
-                  </button>
+                  <JDExtractor
+                    jdLink={jdLink}
+                    onExtract={handleExtractJD}
+                    isExtracting={isExtracting}
+                    setIsExtracting={setIsExtracting}
+                  />
                 </div>
                 <p className="text-sm text-slate-500">
                   Our AI will visit the link and extract the job description automatically.

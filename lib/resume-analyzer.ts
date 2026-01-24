@@ -1,4 +1,8 @@
 import { analyzeKeywordsAdvanced, extractSkillsAdvanced, findSimilarSkills } from './nlp-analyzer-browser'
+import { extractJDFromURL as extractJDFromURLNew } from './jd-extractor'
+
+// Re-export the JD extraction function
+export { extractJDFromURLNew as extractJDFromURL }
 
 export interface ResumeAnalysis {
   matchScore: number
@@ -42,93 +46,6 @@ export interface Suggestion {
   action: string
   priority: number
   expectedImpact: number
-}
-
-/**
- * Extract text content from a URL (mock implementation)
- * In production, this would use a web scraping service or API
- */
-export async function extractJDFromURL(url: string): Promise<string> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  
-  // Mock JD extraction - in production, this would fetch and parse the URL
-  // For now, return a mock JD based on common patterns
-  const mockJDs: Record<string, string> = {
-    'linkedin.com': `Senior Full Stack Developer
-
-We are looking for an experienced Full Stack Developer to join our dynamic team.
-
-Requirements:
-- 5+ years of experience in software development
-- Proficiency in React, Node.js, and TypeScript
-- Strong knowledge of databases (PostgreSQL, MongoDB)
-- Experience with cloud platforms (AWS, Azure)
-- Excellent problem-solving skills
-- Strong communication and teamwork abilities
-
-Nice to have:
-- Experience with Docker and Kubernetes
-- Knowledge of CI/CD pipelines
-- Experience with microservices architecture
-
-Responsibilities:
-- Develop and maintain web applications
-- Collaborate with cross-functional teams
-- Write clean, maintainable code
-- Participate in code reviews
-- Mentor junior developers`,
-
-    'indeed.com': `Product Manager - Tech Startup
-
-Join our fast-growing startup as a Product Manager.
-
-Key Qualifications:
-- 3+ years of product management experience
-- Strong analytical skills
-- Experience with Agile methodologies
-- Excellent communication skills
-- Technical background preferred
-- Experience with data analysis tools
-
-Skills Required:
-- Product strategy
-- User research
-- Roadmap planning
-- Stakeholder management
-- A/B testing
-- Analytics (Google Analytics, Mixpanel)`,
-  }
-
-  // Check if URL contains known patterns
-  for (const [pattern, jd] of Object.entries(mockJDs)) {
-    if (url.toLowerCase().includes(pattern)) {
-      return jd
-    }
-  }
-
-  // Default mock JD
-  return `Software Engineer Position
-
-We are seeking a talented Software Engineer to join our team.
-
-Required Skills:
-- JavaScript/TypeScript
-- React or Vue.js
-- Node.js
-- Database design
-- RESTful APIs
-- Git version control
-
-Experience:
-- 3+ years of professional development experience
-- Strong problem-solving abilities
-- Team collaboration skills
-
-Preferred:
-- Cloud experience (AWS/GCP)
-- Testing frameworks (Jest, Cypress)
-- DevOps knowledge`
 }
 
 /**
