@@ -15,7 +15,7 @@ const resumeTextStore: Map<string, string> = new Map()
 /**
  * Get user data from database
  */
-export async function getUserData(userId: string): Promise<UserData | null> {
+export async function getUserData(userId: string): Promise<UserData> {
   const data = userDataStore.get(userId)
   if (!data) {
     // Initialize user data if doesn't exist
@@ -38,11 +38,11 @@ export async function saveUserData(userId: string, data: Partial<UserData>): Pro
   const existing = await getUserData(userId)
   
   const userData: UserData = {
-    userId,
     ...existing,
     ...data,
+    resumeScans: data.resumeScans || existing.resumeScans || [],
     updatedAt: new Date(),
-    createdAt: existing?.createdAt || new Date()
+    createdAt: existing.createdAt || new Date()
   }
   
   userDataStore.set(userId, userData)
@@ -164,14 +164,13 @@ export async function getResumeText(userId: string): Promise<string | null> {
 /**
  * Get all user data (for API responses)
  */
-export async function getAllUserData(userId: string): Promise<UserData | null> {
+export async function getAllUserData(userId: string): Promise<UserData> {
   const userData = await getUserData(userId)
-  if (!userData) return null
   
   // Populate with all related data
-  userData.assessmentData = await getAssessmentData(userId)
+  userData.assessmentData = await getAssessmentData(userId) || undefined
   userData.resumeScans = await getResumeScans(userId)
-  userData.savedResumeText = await getResumeText(userId)
+  userData.savedResumeText = await getResumeText(userId) || undefined
   
   return userData
 }
