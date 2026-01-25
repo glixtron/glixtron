@@ -20,6 +20,12 @@ const nextConfig = {
       }
     }
     
+    // Ensure TypeScript path resolution works
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': '.',
+    }
+    
     // Suppress deprecation warnings
     config.ignoreWarnings = [
       {
