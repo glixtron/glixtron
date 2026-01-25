@@ -21,6 +21,7 @@ const SECURITY_CONFIG = {
     'https://glixtron-git-main-glixtron.vercel.app',
     'https://glixtron.netlify.app',
     'https://glixtron.github.io',
+    'https://glixtron-*.vercel.app',
     'http://localhost:3000',
     'http://localhost:3001'
   ]
@@ -232,17 +233,14 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/resume-scanner/:path*', 
-    '/profile/:path*',
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (authentication endpoints)
+     * - api (all API endpoints)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
