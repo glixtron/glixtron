@@ -68,7 +68,7 @@ export default function ResumeScannerPage() {
     setJdMode('text')
   }
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = async (): Promise<void> => {
     if (!resumeText.trim() || !jdText.trim()) {
       alert('Please provide both resume and job description content.')
       return
@@ -302,7 +302,10 @@ export default function ResumeScannerPage() {
         {/* Analyze Button */}
         <div className="text-center mb-8">
           <button
-            onClick={handleAnalyze}
+            onClick={(e) => {
+              e.preventDefault()
+              handleAnalyze()
+            }}
             disabled={!resumeText.trim() || !jdText.trim() || isAnalyzing}
             className="px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 rounded-lg text-white font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center mx-auto"
           >

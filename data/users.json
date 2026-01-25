@@ -34,5 +34,14 @@
     "emailVerified": true,
     "createdAt": "2026-01-24T17:56:48.415Z",
     "provider": "credentials"
+  },
+  "newuser@test.com": {
+    "id": "user_1769365259512_g19sdkmhw",
+    "email": "newuser@test.com",
+    "name": "New Test User",
+    "password": "test123456",
+    "emailVerified": true,
+    "createdAt": "2026-01-25T18:20:59.512Z",
+    "provider": "credentials"
   }
 }

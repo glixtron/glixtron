@@ -3,7 +3,6 @@
  * Onion Architecture with Advanced Protection
  */
 
-import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 
 export interface SecurityConfig {

@@ -70,7 +70,7 @@ export default function WelcomePage() {
             Welcome back, {session.user?.name}! 👋
           </h1>
           <p className="text-xl text-slate-400 mb-8">
-            Ready to discover your career path? Let's get started with your personalized assessment.
+            Ready to discover your career path? Let&apos;s get started with your personalized assessment.
           </p>
         </div>
 

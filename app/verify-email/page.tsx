@@ -82,7 +82,7 @@ function VerifyEmailContent() {
                   <span className="font-medium">Verification Email Sent</span>
                 </div>
                 <p className="text-sm text-slate-400">
-                  We've sent a verification code to <span className="text-white font-medium">{email}</span>
+                  We&apos;ve sent a verification code to <span className="text-white font-medium">{email}</span>
                 </p>
                 <p className="text-xs text-slate-500 mt-2">
                   Please check your inbox and spam folder. The code will be in the email subject or body.
@@ -123,7 +123,7 @@ function VerifyEmailContent() {
               </form>
 
               <p className="mt-6 text-center text-sm text-slate-400">
-                Didn't receive the email?{' '}
+                Didn&apos;t receive the email?{' '}
                 <button className="text-blue-400 hover:text-blue-300 font-medium">
                   Resend code
                 </button>

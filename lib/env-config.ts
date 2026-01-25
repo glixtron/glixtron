@@ -12,9 +12,15 @@ export const ENV_CONFIG = {
     }
     
     // Server-side - use environment or fallback
-    return process.env.NEXTAUTH_URL || 
-           process.env.VERCEL_URL || 
-           'https://glixtron.vercel.app'
+    if (process.env.NEXTAUTH_URL) {
+      return process.env.NEXTAUTH_URL
+    }
+
+    if (process.env.VERCEL_URL) {
+      return `https://${process.env.VERCEL_URL}`
+    }
+
+    return 'https://glixtron.vercel.app'
   },
 
   get API_BASE(): string {

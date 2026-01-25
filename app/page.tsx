@@ -597,12 +597,12 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-800" />
         <div className="relative max-w-7xl mx-auto">
-          <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <div className={`text-center mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}> 
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Trusted by <span className="gradient-text">10,000+</span> Professionals
             </h2>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Join thousands who've transformed their careers with our AI-powered platform
+              Join thousands who&apos;ve transformed their careers with our AI-powered platform
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -676,7 +676,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Lock className="h-5 w-5 text-blue-400" />
-                  <span className="text-sm">Secure & private</span>
+                  <span className="text-sm">Secure &amp; private</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Award className="h-5 w-5 text-yellow-400" />
@@ -700,7 +700,7 @@ export default function Home() {
                 <span className="text-2xl font-bold gradient-text">Glixtron</span>
               </div>
               <p className="text-slate-400 leading-relaxed mb-6">
-                Your personal career architect, powered by AI. We're revolutionizing how professionals navigate their career journeys.
+                Your personal career architect, powered by AI. We&apos;re revolutionizing how professionals navigate their career journeys.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-500/20 transition-colors">
