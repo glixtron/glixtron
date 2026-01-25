@@ -10,6 +10,16 @@ const nextConfig = {
   
   // Suppress console warnings in production
   webpack: (config, { dev, isServer }) => {
+    // Fix module resolution for Vercel
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      }
+    }
+    
     // Suppress deprecation warnings
     config.ignoreWarnings = [
       {
