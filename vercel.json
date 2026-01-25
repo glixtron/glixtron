@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm run build --silent",
+  "buildCommand": "rm -rf .next && npm run build --silent",
   "devCommand": "npm run dev --silent",
-  "installCommand": "rm -rf .next && npm ci --prefer-offline --no-audit --no-fund --silent",
+  "installCommand": "npm ci --prefer-offline --no-audit --no-fund --silent",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "functions": {
