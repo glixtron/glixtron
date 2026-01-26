@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "NODE_OPTIONS='--max-old-space-size=4096' next build",
+  "buildCommand": "NEXTAUTH_URL=https://glixtron.vercel.app SUPABASE_URL=https://pcqqapovpqjdfhmcotzv.supabase.co SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDg0Mzg0Mn0.3FiAm1CMNJ6AuvSU4mEk8rWLpTCIURPO6ZG9rAfJXgY SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTI2Nzg0MiwiZXhwIjoyMDg0ODQzODQyfQ.v0-VGruhq0m42cvotrQdYtJU9fUqyKnk1VJA4Qp_wS0 NEXTAUTH_SECRET=/6513Og8RktelkSL0bnbNnBN10llN154pTmovLtv0gI= NODE_OPTIONS='--max-old-space-size=4096' next build",
   "devCommand": "npm run dev --silent",
   "installCommand": "npm ci --prefer-offline --no-audit --no-fund --silent",
   "framework": "nextjs",
@@ -23,7 +23,11 @@
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://glixtron.vercel.app"
+      "NEXTAUTH_URL": "https://glixtron.vercel.app",
+      "NEXTAUTH_SECRET": "/6513Og8RktelkSL0bnbNnBN10llN154pTmovLtv0gI=",
+      "SUPABASE_URL": "https://pcqqapovpqjdfhmcotzv.supabase.co",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDg0Mzg0Mn0.3FiAm1CMNJ6AuvSU4mEk8rWLpTCIURPO6ZG9rAfJXgY",
+      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTI2Nzg0MiwiZXhwIjoyMDg0ODQzODQyfQ.v0-VGruhq0m42cvotrQdYtJU9fUqyKnk1VJA4Qp_wS0"
     }
   },
   "headers": [
@@ -41,66 +45,14 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/api/health",
-      "destination": "/api/health"
-    },
-    {
-      "source": "/api/auth/:path*",
-      "destination": "/api/auth/[...nextauth]"
-    },
-    {
-      "source": "/api/jd/extract",
-      "destination": "/api/jd/extract"
-    },
-    {
-      "source": "/api/resume/analyze",
-      "destination": "/api/resume/analyze"
-    },
-    {
-      "source": "/api/security",
-      "destination": "/api/security"
-    },
-    {
-      "source": "/api/test-routing",
-      "destination": "/api/test-routing"
-    },
-    {
-      "source": "/((?!api|_next/static|_next/image|favicon.ico).*)",
-      "destination": "/$1"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/home",
-      "destination": "/",
-      "permanent": true
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
     }
   ]
 }
