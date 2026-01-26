@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, Mail, Lock, User, AlertCircle, Loader2 } from 'lucide-react'
-import SuccessModal from '@/components/SuccessModal'
+import SuccessModal from '@/components/successmodal'
 
 export default function RegisterPage() {
   const router = useRouter()

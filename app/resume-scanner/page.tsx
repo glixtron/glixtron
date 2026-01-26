@@ -7,12 +7,12 @@ import dynamic from 'next/dynamic'
 import type { ResumeAnalysis } from '@/lib/resume-analyzer'
 
 // Dynamically import JD extractor to avoid SSR issues
-const JDExtractor = dynamic(() => import('@/components/JDExtractor'), {
+const JDExtractor = dynamic(() => import('@/components/jdextractor'), {
   ssr: false,
   loading: () => <div className="flex items-center justify-center h-12"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-violet-500"></div></div>
 })
 
-import ResumeUpload from '@/components/ResumeUpload'
+import ResumeUpload from '@/components/resumeupload'
 
 type InputMode = 'link' | 'text'
 type ResumeInputMode = 'upload' | 'paste'
