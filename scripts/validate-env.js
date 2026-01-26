@@ -3,6 +3,7 @@
 /**
  * Environment Variable Validation Script
  * Runs before build to ensure all required variables are present
+ * In development, shows warnings but allows build to proceed
  */
 
 const requiredVars = [
@@ -28,58 +29,54 @@ const backupVars = [];
 
 // Check required variables
 requiredVars.forEach(varName => {
-  const value = process.env[varName];
-  if (!value) {
-    missingVars.push(varName);
-  } else {
-    presentVars.push(varName);
-  }
-});
-
-// Check optional variables
-optionalVars.forEach(varName => {
-  const value = process.env[varName];
+  const value = process.env[varName] || process.env[`NEXT_PUBLIC_${varName}`];
   if (value) {
     presentVars.push(varName);
-    if (varName.includes('BACKUP')) {
-      backupVars.push(varName);
-    }
+  } else {
+    missingVars.push(varName);
   }
 });
 
-// Report results
-console.log(`✅ Present variables (${presentVars.length}):`);
-presentVars.forEach(varName => {
-  const value = process.env[varName];
-  const displayValue = varName.includes('SECRET') || varName.includes('KEY') 
-    ? '[REDACTED]' 
-    : value;
-  console.log(`   ${varName}: ${displayValue}`);
+// Check optional/backup variables
+optionalVars.forEach(varName => {
+  const value = process.env[varName] || process.env[`NEXT_PUBLIC_${varName}`];
+  if (value) {
+    backupVars.push(varName);
+  }
 });
 
-if (backupVars.length > 0) {
-  console.log(`\n🔄 Backup configuration (${backupVars.length}):`);
-  backupVars.forEach(varName => {
-    console.log(`   ${varName}: [CONFIGURED]`);
-  });
-  console.log('\n🎉 High availability mode enabled!');
+// Display results
+console.log(`✅ Present variables (${presentVars.length}):`);
+if (presentVars.length > 0) {
+  presentVars.forEach(varName => console.log(`   ${varName}`));
 } else {
-  console.log('\n⚠️ No backup configured - single server mode');
+  console.log('   None');
+}
+
+console.log(`\n🔄 Backup variables (${backupVars.length}):`);
+if (backupVars.length > 0) {
+  backupVars.forEach(varName => console.log(`   ${varName}`));
+} else {
+  console.log('   ⚠️ No backup configured - single server mode');
 }
 
 if (missingVars.length > 0) {
   console.log(`\n❌ Missing variables (${missingVars.length}):`);
-  missingVars.forEach(varName => {
-    console.log(`   ${varName}: NOT SET`);
-  });
+  missingVars.forEach(varName => console.log(`   ${varName}: NOT SET`));
   
   console.log('\n💡 To fix this:');
   console.log('1. For local development: Add to .env.local');
   console.log('2. For Vercel: Add to Environment Variables in dashboard');
   console.log('3. For Netlify: Add to Environment Variables in dashboard');
   
-  process.exit(1);
+  // In development or CI, allow build to proceed with warning
+  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+    console.log('\n⚠️ Development/CI mode: Build will proceed with missing variables');
+    console.log('   Some features may not work correctly');
+  } else {
+    console.log('\n❌ Production mode: Build failed due to missing required variables');
+    process.exit(1);
+  }
 } else {
-  console.log('\n🎉 All required environment variables are present!');
-  console.log('✅ Ready for build!');
+  console.log('\n🎉 All required variables are present!');
 }

@@ -5,6 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { ENV_CONFIG } from './env-config'
+import bcrypt from 'bcryptjs'
 
 // Mock client for development when Supabase is not configured
 const createMockClient = () => ({
@@ -22,14 +23,11 @@ const createMockClient = () => ({
   }
 })
 
-export const supabase = ENV_CONFIG.SUPABASE_URL && ENV_CONFIG.SUPABASE_ANON_KEY
-  ? createClient(ENV_CONFIG.SUPABASE_URL, ENV_CONFIG.SUPABASE_ANON_KEY)
-  : createMockClient()
-
 // Import failover client if backup is configured
 const hasBackup = !!(process.env.SUPABASE_URL_BACKUP || process.env.NEXT_PUBLIC_SUPABASE_URL_BACKUP)
 
 let supabaseAdminClient: any
+let supabaseClient: any
 
 if (hasBackup) {
   // Use failover client when backup is configured
@@ -57,7 +55,7 @@ if (hasBackup) {
   }
 
   // Public Supabase client (for client-side operations)
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
 
   // Admin Supabase client (for server-side operations)
   supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, {
