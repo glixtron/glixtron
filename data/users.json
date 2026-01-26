@@ -52,5 +52,41 @@
     "emailVerified": true,
     "createdAt": "2026-01-26T16:53:23.729Z",
     "provider": "credentials"
+  },
+  "newtest@user.com": {
+    "id": "user_1769448265913_xf8b5qjl4",
+    "email": "newtest@user.com",
+    "name": "New Test User",
+    "password": "test123456",
+    "emailVerified": true,
+    "createdAt": "2026-01-26T17:24:25.914Z",
+    "provider": "credentials"
+  },
+  "pipeline-test-1769448325092@glixtron.com": {
+    "id": "user_1769448325728_e4hvmmjcy",
+    "email": "pipeline-test-1769448325092@glixtron.com",
+    "name": "Pipeline Test User",
+    "password": "TestUser123!",
+    "emailVerified": true,
+    "createdAt": "2026-01-26T17:25:25.728Z",
+    "provider": "credentials"
+  },
+  "debug@test.com": {
+    "id": "user_1769448343042_vhn5yb0es",
+    "email": "debug@test.com",
+    "name": "Debug Test User",
+    "password": "debug123456",
+    "emailVerified": true,
+    "createdAt": "2026-01-26T17:25:43.042Z",
+    "provider": "credentials"
+  },
+  "frontend-test-1769448372055@glixtron.com": {
+    "id": "user_1769448372119_eubz50qz3",
+    "email": "frontend-test-1769448372055@glixtron.com",
+    "name": "Frontend Test User",
+    "password": "Frontend123!",
+    "emailVerified": true,
+    "createdAt": "2026-01-26T17:26:12.119Z",
+    "provider": "credentials"
   }
 }

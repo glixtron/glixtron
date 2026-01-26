@@ -17,6 +17,8 @@ function LoginForm() {
   // Handle error from URL parameters
   useEffect(() => {
     const urlError = searchParams.get('error')
+    const urlMessage = searchParams.get('message')
+    
     if (urlError) {
       switch (urlError) {
         case 'CredentialsSignin':
@@ -31,6 +33,13 @@ function LoginForm() {
         default:
           setError('An error occurred during sign in.')
       }
+    }
+    
+    if (urlMessage) {
+      // Show success message from registration
+      setError(urlMessage)
+      // Clear the message after 5 seconds
+      setTimeout(() => setError(''), 5000)
     }
   }, [searchParams])
 
