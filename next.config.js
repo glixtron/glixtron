@@ -18,7 +18,7 @@ const nextConfig = {
   
   // Suppress console warnings in production
   webpack: (config, { dev, isServer }) => {
-    // Fix module resolution for Vercel
+    // Fix module resolution for deployment
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -53,25 +53,9 @@ const nextConfig = {
         message: /deprecated/,
       },
       {
-        module: /encoding-sniffer/,
-        message: /whatwg-encoding/,
+        module: /supabase/,
+        message: /Node.js 18 and below are deprecated/,
       },
-      {
-        module: /@exodus\/bytes/,
-        message: /whatwg-encoding/,
-      },
-      {
-        module: /cheerio/,
-        message: /encoding-sniffer/,
-      },
-      {
-        module: /htmlparser2/,
-        message: /whatwg-encoding/,
-      },
-      {
-        module: /parse5/,
-        message: /whatwg-encoding/,
-      }
     ]
     
     return config

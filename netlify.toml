@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build --no-lint"
+  command = "NODE_OPTIONS='--max-old-space-size=4096' npm run build --no-lint"
   publish = ".next"
   environment = { NODE_VERSION = "20" }
 
