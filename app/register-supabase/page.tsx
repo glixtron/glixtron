@@ -96,9 +96,7 @@ export default function SupabaseRegisterPage() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
-          <p className="text-gray-600 mb-4">
-            Welcome to Glixtron! Your account has been created and you're now logged in.
-          </p>
+          <p className="text-gray-600">Welcome to Glixtron! Your account has been created and you&apos;re now logged in.</p>
           <p className="text-sm text-gray-500">Redirecting to your dashboard...</p>
         </div>
       </div>

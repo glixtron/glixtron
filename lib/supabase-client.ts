@@ -4,18 +4,37 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import bcrypt from 'bcryptjs'
+import { ENV_CONFIG } from './env-config'
+
+// Mock client for development when Supabase is not configured
+const createMockClient = () => ({
+  from: () => ({
+    select: () => ({
+      eq: () => ({
+        single: () => Promise.resolve({ data: null, error: { message: 'Mock client - no database connection' } })
+      })
+    })
+  }),
+  auth: {
+    signUp: () => Promise.resolve({ data: { user: null }, error: { message: 'Mock client - no auth connection' } }),
+    signInWithPassword: () => Promise.resolve({ data: { user: null }, error: { message: 'Mock client - no auth connection' } }),
+    signOut: () => Promise.resolve({ error: null })
+  }
+})
+
+export const supabase = ENV_CONFIG.SUPABASE_URL && ENV_CONFIG.SUPABASE_ANON_KEY
+  ? createClient(ENV_CONFIG.SUPABASE_URL, ENV_CONFIG.SUPABASE_ANON_KEY)
+  : createMockClient()
 
 // Import failover client if backup is configured
 const hasBackup = !!(process.env.SUPABASE_URL_BACKUP || process.env.NEXT_PUBLIC_SUPABASE_URL_BACKUP)
 
-let supabaseClient: any
 let supabaseAdminClient: any
 
 if (hasBackup) {
   // Use failover client when backup is configured
-  const { supabase: failoverSupabase, supabaseAdmin: failoverSupabaseAdmin } = require('./supabase-failover')
-  supabaseClient = failoverSupabase
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { supabaseAdmin: failoverSupabaseAdmin } = require('./supabase-failover')
   supabaseAdminClient = failoverSupabaseAdmin
   console.log('🔄 Using Supabase failover client')
 } else {

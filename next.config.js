@@ -8,13 +8,13 @@ const nextConfig = {
   // Suppress warnings in production
   serverExternalPackages: ['@supabase/supabase-js'],
   
-  // Completely disable TypeScript and ESLint errors for deployment
+  // Enable TypeScript and ESLint for code quality
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // Enable TypeScript checking
   },
   eslint: {
-    ignoreDuringBuilds: true,
-    dirs: [], // Disable ESLint for all directories
+    ignoreDuringBuilds: false, // Enable ESLint during builds
+    dirs: ['app', 'components', 'lib', 'pages'], // Specify directories to lint
   },
   
   // Suppress console warnings in production

@@ -237,9 +237,9 @@ export default function HealthCheckPage() {
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mt-6">
           <h3 className="text-lg font-semibold text-yellow-800 mb-2">🔧 Troubleshooting Tips</h3>
           <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• If Supabase keys show "❌ No", check your environment variables</li>
+            <li>• If Supabase keys show &quot;❌ No&quot;, check your environment variables</li>
             <li>• If database connection fails, run the SQL setup script in Supabase dashboard</li>
-            <li>• If tables don't exist, copy the SQL from COPY_THIS_SQL.sql and run it</li>
+            <li>• If tables don&apos;t exist, copy the SQL from COPY_THIS_SQL.sql and run it</li>
             <li>• For Vercel deployment, ensure environment variables are set in dashboard</li>
             <li>• Check browser console for additional error details</li>
           </ul>

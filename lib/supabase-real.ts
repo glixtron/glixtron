@@ -20,7 +20,7 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
       return fetch(url, {
         ...options,
         // Ignore SSL certificate issues in development
-        // @ts-ignore
+        // @ts-expect-error - rejectUnauthorized is not in fetch options type
         rejectUnauthorized: process.env.NODE_ENV === 'production'
       })
     }

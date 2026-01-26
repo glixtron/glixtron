@@ -22,9 +22,9 @@ const optionalVars = [
 
 console.log('🔍 Validating environment variables...\n');
 
-let missingVars = [];
-let presentVars = [];
-let backupVars = [];
+const missingVars = [];
+const presentVars = [];
+const backupVars = [];
 
 // Check required variables
 requiredVars.forEach(varName => {

@@ -148,7 +148,7 @@ function extractFromIndeed($: cheerio.CheerioAPI): JDExtractionResult {
   const location = $('.jobsearch-JobInfoHeader-subheader div').text().trim() ||
                   $('.location').text().trim()
   
-  let content = $('#jobDescriptionText').text().trim() ||
+  const content = $('#jobDescriptionText').text().trim() ||
                 $('#jobDescription').text().trim() ||
                 $('.jobsearch-jobDescriptionText').text().trim()
 
@@ -173,7 +173,7 @@ function extractFromGlassdoor($: cheerio.CheerioAPI): JDExtractionResult {
   const location = $('.css-1v6dl2e').text().trim() ||
                   $('.location').text().trim()
   
-  let content = $('.jobDescription').text().trim() ||
+  const content = $('.jobDescription').text().trim() ||
                 $('.css-1u8oejf').text().trim()
 
   return {
@@ -197,7 +197,7 @@ function extractFromGoogleSites($: cheerio.CheerioAPI): JDExtractionResult {
   const location = $('.location').text().trim() ||
                   $('.job-location').text().trim()
   
-  let content = $('.sites-canvas-main').text().trim() ||
+  const content = $('.sites-canvas-main').text().trim() ||
                 $('.job-description').text().trim() ||
                 $('main').text().trim()
 
