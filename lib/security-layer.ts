@@ -412,7 +412,7 @@ export class SecurityLayer {
     const suspiciousHeaders = []
     const headers = request.headers
     
-    for (const [key, value] of headers.entries()) {
+    for (const [key, value] of Array.from(headers.entries())) {
       if (key.toLowerCase().includes('x-') && value) {
         // Check for suspicious header values
         if (typeof value === 'string' && (
