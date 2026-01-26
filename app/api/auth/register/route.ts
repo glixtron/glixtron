@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser, findUserByEmail } from '@/lib/database-persistent'
+import { createSupabaseUser, findSupabaseUserByEmail } from '@/lib/supabase-real'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUser = await findUserByEmail(email)
+    // Check if user already exists in Supabase
+    const existingUser = await findSupabaseUserByEmail(email)
     if (existingUser) {
       return NextResponse.json(
         { error: 'User with this email already exists' },
@@ -44,33 +44,52 @@ export async function POST(request: NextRequest) {
     }
     
     // Create new user using Supabase
-    const user = await createUser({
-      email,
-      name,
-      password
+    const user = await createSupabaseUser({
+      email: email.trim().toLowerCase(),
+      name: name.trim(),
+      password,
+      provider: 'email'
     })
     
     if (!user) {
       return NextResponse.json(
-        { error: 'Failed to create user' },
+        { error: 'Failed to create user in database' },
         { status: 500 }
       )
     }
     
     return NextResponse.json({
       success: true,
-      message: 'User registered successfully!',
+      message: 'User registered successfully! Please check your email to verify your account.',
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        createdAt: user.createdAt
-      }
+        emailVerified: user.email_verified,
+        createdAt: user.created_at
+      },
+      requiresEmailVerification: !user.email_verified
     })
   } catch (error: any) {
     console.error('Registration error:', error)
+    
+    // Handle specific Supabase errors
+    if (error.message?.includes('duplicate key')) {
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      )
+    }
+    
+    if (error.message?.includes('User already registered')) {
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: error.message || 'Registration failed' },
+      { error: error.message || 'Registration failed. Please try again.' },
       { status: 500 }
     )
   }
