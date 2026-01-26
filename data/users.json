@@ -43,5 +43,14 @@
     "emailVerified": true,
     "createdAt": "2026-01-25T18:20:59.512Z",
     "provider": "credentials"
+  },
+  "testuser@example.com": {
+    "id": "user_1769446403729_0ohs5vb7l",
+    "email": "testuser@example.com",
+    "name": "Test User",
+    "password": "password123",
+    "emailVerified": true,
+    "createdAt": "2026-01-26T16:53:23.729Z",
+    "provider": "credentials"
   }
 }
