@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
@@ -62,7 +62,6 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
-
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -137,7 +136,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-
           <p className="mt-6 text-center text-sm text-slate-400">
             Don&apos;t have an account?{' '}
             <Link href="/register" className="text-blue-400 hover:text-blue-300 font-medium">
@@ -147,5 +145,26 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center space-x-2 mb-4">
+              <div className="h-8 w-8 bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-3xl font-bold text-white">Glixtron</span>
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Loading...</h2>
+            <p className="text-slate-400">Please wait while we prepare your login page</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }
