@@ -88,5 +88,14 @@
     "emailVerified": true,
     "createdAt": "2026-01-26T17:26:12.119Z",
     "provider": "credentials"
+  },
+  "pipeline-test-1769448498973@glixtron.com": {
+    "id": "user_1769448499410_07i6mtyti",
+    "email": "pipeline-test-1769448498973@glixtron.com",
+    "name": "Pipeline Test User",
+    "password": "TestUser123!",
+    "emailVerified": true,
+    "createdAt": "2026-01-26T17:28:19.410Z",
+    "provider": "credentials"
   }
 }
