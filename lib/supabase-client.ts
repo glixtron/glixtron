@@ -1,39 +1,57 @@
 /**
  * Supabase Client Configuration
- * Production-ready database connection
+ * Production-ready database connection with failover support
  */
 
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
 
-// Supabase configuration with safe defaults
-const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder-url.supabase.co'
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'placeholder-key'
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key'
+// Import failover client if backup is configured
+const hasBackup = !!(process.env.SUPABASE_URL_BACKUP || process.env.NEXT_PUBLIC_SUPABASE_URL_BACKUP)
 
-// Log warnings for missing environment variables in development
-if (process.env.NODE_ENV === 'development') {
-  if (!process.env.SUPABASE_URL) {
-    console.warn('⚠️ SUPABASE_URL is missing. Using placeholder.')
+let supabaseClient: any
+let supabaseAdminClient: any
+
+if (hasBackup) {
+  // Use failover client when backup is configured
+  const { supabase: failoverSupabase, supabaseAdmin: failoverSupabaseAdmin } = require('./supabase-failover')
+  supabaseClient = failoverSupabase
+  supabaseAdminClient = failoverSupabaseAdmin
+  console.log('🔄 Using Supabase failover client')
+} else {
+  // Use single client configuration
+  const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder-url.supabase.co'
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'placeholder-key'
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key'
+
+  // Log warnings for missing environment variables in development
+  if (process.env.NODE_ENV === 'development') {
+    if (!process.env.SUPABASE_URL) {
+      console.warn('⚠️ SUPABASE_URL is missing. Using placeholder.')
+    }
+    if (!process.env.SUPABASE_ANON_KEY) {
+      console.warn('⚠️ SUPABASE_ANON_KEY is missing. Using placeholder.')
+    }
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Using placeholder.')
+    }
   }
-  if (!process.env.SUPABASE_ANON_KEY) {
-    console.warn('⚠️ SUPABASE_ANON_KEY is missing. Using placeholder.')
-  }
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Using placeholder.')
-  }
+
+  // Public Supabase client (for client-side operations)
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+
+  // Admin Supabase client (for server-side operations)
+  supabaseAdminClient = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
 }
 
-// Public Supabase client (for client-side operations)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-// Admin Supabase client (for server-side operations)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
+// Export the appropriate clients
+export const supabase = supabaseClient
+export const supabaseAdmin = supabaseAdminClient
 
 // Database types
 export interface DatabaseUser {

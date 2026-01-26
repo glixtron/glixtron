@@ -14,13 +14,17 @@ const requiredVars = [
 ];
 
 const optionalVars = [
-  'NODE_ENV'
+  'NODE_ENV',
+  'SUPABASE_URL_BACKUP',
+  'SUPABASE_ANON_KEY_BACKUP',
+  'SUPABASE_SERVICE_ROLE_KEY_BACKUP'
 ];
 
 console.log('🔍 Validating environment variables...\n');
 
 let missingVars = [];
 let presentVars = [];
+let backupVars = [];
 
 // Check required variables
 requiredVars.forEach(varName => {
@@ -37,6 +41,9 @@ optionalVars.forEach(varName => {
   const value = process.env[varName];
   if (value) {
     presentVars.push(varName);
+    if (varName.includes('BACKUP')) {
+      backupVars.push(varName);
+    }
   }
 });
 
@@ -49,6 +56,16 @@ presentVars.forEach(varName => {
     : value;
   console.log(`   ${varName}: ${displayValue}`);
 });
+
+if (backupVars.length > 0) {
+  console.log(`\n🔄 Backup configuration (${backupVars.length}):`);
+  backupVars.forEach(varName => {
+    console.log(`   ${varName}: [CONFIGURED]`);
+  });
+  console.log('\n🎉 High availability mode enabled!');
+} else {
+  console.log('\n⚠️ No backup configured - single server mode');
+}
 
 if (missingVars.length > 0) {
   console.log(`\n❌ Missing variables (${missingVars.length}):`);
