@@ -117,7 +117,7 @@ class MockDatabase {
   }
 
   async findUserById(id: string): Promise<User | null> {
-    for (const user of this.users.values()) {
+    for (const user of Array.from(this.users.values())) {
       if (user.id === id) {
         return user
       }

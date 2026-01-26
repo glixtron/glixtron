@@ -84,7 +84,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 }
 
 export async function findUserById(id: string): Promise<User | null> {
-  for (const user of users.values()) {
+  for (const user of Array.from(users.values())) {
     if (user.id === id) {
       return user
     }

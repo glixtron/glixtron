@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "NODE_OPTIONS='--max-old-space-size=4096' next build",
   "devCommand": "npm run dev --silent",
   "installCommand": "npm ci --prefer-offline --no-audit --no-fund --silent",
   "framework": "nextjs",
@@ -23,8 +23,7 @@
   },
   "build": {
     "env": {
-      "NEXTAUTH_URL": "https://glixtron.vercel.app",
-      "NODE_ENV": "production"
+      "NEXTAUTH_URL": "https://glixtron.vercel.app"
     }
   },
   "headers": [
@@ -41,7 +40,7 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
+          "value": "Content-Type, Authorization"
         },
         {
           "key": "Cache-Control",

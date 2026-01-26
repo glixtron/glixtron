@@ -237,7 +237,7 @@ export function extractSkillsAdvanced(text: string): string[] {
   
   skillPatterns.forEach(pattern => {
     const matches = text.matchAll(pattern)
-    for (const match of matches) {
+    for (const match of Array.from(matches)) {
       if (match[1]) {
         skills.add(match[1].trim())
       }
