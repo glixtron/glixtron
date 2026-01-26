@@ -26,19 +26,8 @@ export async function GET() {
       })
     }
 
-    // Create client with SSL fix for development
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        fetch: (url, options = {}) => {
-          return fetch(url, {
-            ...options,
-            // Ignore SSL certificate issues in development
-            // @ts-expect-error - rejectUnauthorized is not in fetch options type
-            rejectUnauthorized: process.env.NODE_ENV === 'production'
-          })
-        }
-      }
-    })
+    // Create client
+    const supabase = createClient(supabaseUrl, supabaseAnonKey)
     
     // Test connection
     console.log('Testing connection...')

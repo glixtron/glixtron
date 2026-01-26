@@ -14,16 +14,6 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
-  },
-  global: {
-    fetch: (url, options = {}) => {
-      return fetch(url, {
-        ...options,
-        // Ignore SSL certificate issues in development
-        // @ts-expect-error - rejectUnauthorized is not in fetch options type
-        rejectUnauthorized: process.env.NODE_ENV === 'production'
-      })
-    }
   }
 })
 
