@@ -6,10 +6,23 @@
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
 
-// Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+// Supabase configuration with safe defaults
+const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder-url.supabase.co'
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-key'
+
+// Log warnings for missing environment variables in development
+if (process.env.NODE_ENV === 'development') {
+  if (!process.env.SUPABASE_URL) {
+    console.warn('⚠️ SUPABASE_URL is missing. Using placeholder.')
+  }
+  if (!process.env.SUPABASE_ANON_KEY) {
+    console.warn('⚠️ SUPABASE_ANON_KEY is missing. Using placeholder.')
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Using placeholder.')
+  }
+}
 
 // Public Supabase client (for client-side operations)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)

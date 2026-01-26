@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config'
 import { getAllUserData } from '@/lib/supabase-client'
 
+// Force dynamic rendering to prevent static analysis issues
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/user/data
  * Get all user data (assessment, resume scans, saved resume text)

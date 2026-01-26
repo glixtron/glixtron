@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config'
 import { saveResumeText, getResumeText } from '@/lib/supabase-client'
 
+// Force dynamic rendering to prevent static analysis issues
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/user/resume-text
  * Get saved resume text for the user

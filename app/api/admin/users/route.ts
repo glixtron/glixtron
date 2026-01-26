@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllUsers } from '@/lib/supabase-client'
 
+// Force dynamic rendering to prevent static analysis issues
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/admin/users
  * Get all users (admin only)
