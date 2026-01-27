@@ -71,8 +71,7 @@ const UserSchema = new mongoose.Schema({
   }
 })
 
-// Index for faster queries (remove duplicate index)
-UserSchema.index({ email: 1 }, { unique: true })
+// Index for faster queries (email already has unique index in field definition)
 UserSchema.index({ createdAt: -1 })
 
 export default mongoose.models.User || mongoose.model('User', UserSchema)
