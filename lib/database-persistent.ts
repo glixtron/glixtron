@@ -1,6 +1,6 @@
 /**
  * Simple persistent mock database for development
- * In production, replace with Supabase or another real database
+ * In production, replace with MongoDB or another real database
  */
 
 import { writeFileSync, readFileSync, existsSync } from 'fs'

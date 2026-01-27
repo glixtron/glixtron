@@ -6,7 +6,7 @@ const nextConfig = {
   outputFileTracingRoot: __dirname,
   
   // Suppress warnings in production
-  serverExternalPackages: ['@supabase/supabase-js'],
+  serverExternalPackages: ['mongodb'],
   
   // Allow build to continue despite linting warnings
   eslint: {

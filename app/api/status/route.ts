@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
       message: '✅ App is working! (Using mock database)',
       status: 'Vercel deployment successful',
       timestamp: new Date().toISOString(),
-      note: 'Set up Supabase environment variables to enable database features'
+      note: 'Set up MongoDB environment variables to enable database features'
     })
   } catch (error: any) {
     return NextResponse.json({

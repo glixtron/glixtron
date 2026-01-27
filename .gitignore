@@ -191,9 +191,6 @@ storybook-static/
 # Tailwind
 .tailwindrc
 
-# Supabase
-.supabase/
-
 # Local development
 .local/
 

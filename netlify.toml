@@ -6,9 +6,7 @@
   [build.environment]
     NEXTAUTH_SECRET = "/6513Og8RktelkSL0bnbNnBN10llN154pTmovLtv0gI="
     NEXTAUTH_URL = "https://glixtron-pilot.netlify.app"
-    SUPABASE_URL = "https://pcqqapovpqjdfhmcotzv.supabase.co"
-    SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDg0Mzg0Mn0.3FiAm1CMNJ6AuvSU4mEk8rWLpTCIURPO6ZG9rAfJXgY"
-    SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTI2Nzg0MiwiZXhwIjoyMDg0ODQzODQyfQ.v0-VGruhq0m42cvotrQdYtJU9fUqyKnk1VJA4Qp_wS0"
+    MONGODB_URI = "mongodb+srv://glixtronglobal_db_user:anJIJGJpGLWTOzB9@glixtronglobal.8yc6sc4.mongodb.net/?appName=glixtronglobal"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
