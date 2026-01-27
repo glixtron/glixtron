@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { ENV_CONFIG } from './env-config'
-import { findUserByEmail, validatePassword } from './database-persistent'
+import { findUserByEmail, validatePassword } from './auth-helpers'
 
 // This will be replaced with Supabase functions when migrating
 export const authConfig: NextAuthOptions = {
