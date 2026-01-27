@@ -1,5 +1,17 @@
 import mongoose from 'mongoose'
 
+// Ensure MongoDB connection is established
+const connectDB = async () => {
+  try {
+    const { clientPromise } = await import('@/lib/mongodb-adapter')
+    await clientPromise
+    console.log('✅ MongoDB connected for User model')
+  } catch (error) {
+    console.error('❌ MongoDB connection failed for User model:', error)
+    throw error
+  }
+}
+
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -64,3 +76,6 @@ UserSchema.index({ email: 1 }, { unique: true })
 UserSchema.index({ createdAt: -1 })
 
 export default mongoose.models.User || mongoose.model('User', UserSchema)
+
+// Export connection function for explicit connection
+export { connectDB }
