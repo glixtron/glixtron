@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import clientPromise from '@/lib/mongodb'
+import { clientPromise } from '@/lib/mongodb-adapter'
 import bcrypt from 'bcryptjs'
 import User from '@/models/User'
 
@@ -70,8 +70,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Registration error:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Error message:', error.message)
+    
+    // Return detailed error for debugging
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
