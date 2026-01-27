@@ -66,6 +66,6 @@ export const authConfig: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: ENV_CONFIG.TIMEOUTS.AUTH_SESSION
   },
-  secret: ENV_CONFIG.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || ENV_CONFIG.NEXTAUTH_SECRET || 'fallback-secret-for-development-only',
   debug: process.env.NODE_ENV === 'development'
 }
