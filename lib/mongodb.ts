@@ -1,10 +1,7 @@
 import { MongoClient } from 'mongodb'
 
-// Validate environment variable
+// Validate environment variable (runtime check only)
 const mongodbUri = process.env.MONGODB_URI
-if (!mongodbUri) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local')
-}
 
 // Global variable to cache the database connection
 declare global {
@@ -15,48 +12,45 @@ declare global {
 let cached = global.mongo
 
 if (!cached) {
-  global.mongo = { conn: null, promise: null }
-  cached = global.mongo
+  cached = global.mongo = { conn: null, promise: null }
 }
 
-async function connectToDatabase() {
-  if (cached?.conn) {
+export async function connectToDatabase() {
+  if (!mongodbUri) {
+    console.warn('⚠️ MONGODB_URI environment variable not set - Database features will be disabled')
+    throw new Error('MONGODB_URI not configured at runtime')
+  }
+
+  if (!cached) {
+    cached = global.mongo = { conn: null, promise: null }
+  }
+
+  if (cached.conn) {
     return cached.conn
   }
 
-  if (!cached?.promise) {
+  if (!cached.promise) {
     const opts = {
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      retryWrites: true,
-      w: 'majority' as const
     }
 
-    if (cached) {
-      cached.promise = MongoClient.connect(mongodbUri!, opts)
-        .then(client => {
-          console.log('✅ Connected to MongoDB Atlas')
-          return client
-        })
-        .catch(error => {
-          console.error('❌ MongoDB connection error:', error)
-          if (cached) cached.promise = null // Reset promise on error
-          throw new Error('Failed to connect to MongoDB Atlas')
-        })
-    }
+    cached.promise = MongoClient.connect(mongodbUri, opts)
+      .then((client) => {
+        return client
+      })
+      .catch(error => {
+        console.error('❌ MongoDB connection error:', error)
+        if (cached) cached.promise = null // Reset promise on error
+        throw new Error('Failed to connect to MongoDB Atlas')
+      })
   }
 
   try {
-    if (cached) {
-      cached.conn = await cached.promise
-      return cached.conn
-    }
-    throw new Error('Cache not initialized')
+    cached.conn = await cached.promise
+    return cached.conn
   } catch (error) {
     if (cached) cached.promise = null // Reset promise on error
     throw error
   }
 }
-
 export default connectToDatabase()
