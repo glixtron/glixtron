@@ -102,21 +102,25 @@ export async function POST(request: NextRequest) {
     )
 
   } catch (error: any) {
-    console.error('💥 REGISTRATION ERROR DETAILS:')
+    console.error('💥 REGISTRATION ERROR - FULL STACK TRACE:')
     console.error('❌ Error Name:', error.name)
     console.error('❌ Error Message:', error.message)
     console.error('❌ Error Code:', error.code)
-    console.error('❌ Error Stack:', error.stack)
+    console.error('❌ Full Error Stack:', error.stack)
     console.error('❌ Environment Variables:', {
       MONGODB_URI: process.env.MONGODB_URI ? '✅ Set' : '❌ Missing',
       NODE_ENV: process.env.NODE_ENV
     })
     
-    // Specific MongoDB error logging
+    // Log the full error object for debugging
+    console.error('🔍 Full Error Object:', JSON.stringify(error, null, 2))
+    
+    // Specific MongoDB error logging with line numbers
     if (error.name === 'MongooseServerSelectionError') {
       console.error('🔍 MongoDB Connection Issue Details:')
       console.error('  - Error Code:', error.code)
       console.error('  - Error Message:', error.message)
+      console.error('  - Stack Trace Lines:', error.stack?.split('\n').slice(0, 5))
       console.error('  - Check: IP whitelist in MongoDB Atlas')
       console.error('  - Check: Connection string format')
       console.error('  - Check: Network connectivity')
@@ -125,6 +129,7 @@ export async function POST(request: NextRequest) {
     if (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError') {
       console.error('🔍 MongoDB Network Issue:')
       console.error('  - Network timeout or connection failed')
+      console.error('  - Stack Trace:', error.stack?.split('\n').slice(0, 3))
       console.error('  - Check: MongoDB Atlas status')
       console.error('  - Check: Firewall settings')
     }
@@ -133,16 +138,15 @@ export async function POST(request: NextRequest) {
       console.error('🔍 Mongoose Validation Error:')
       console.error('  - Schema validation failed')
       console.error('  - Details:', Object.keys(error.errors || {}))
+      console.error('  - Stack Trace:', error.stack?.split('\n').slice(0, 3))
     }
     
     if (error.name === 'OverwriteModelError') {
       console.error('🔍 Model Overwrite Issue:')
       console.error('  - User model export pattern issue')
       console.error('  - Multiple model definitions detected')
+      console.error('  - Stack Trace:', error.stack?.split('\n').slice(0, 3))
     }
-    
-    // Log the full error object for debugging
-    console.error('🔍 Full Error Object:', JSON.stringify(error, null, 2))
     
     // Return detailed error for debugging
     return NextResponse.json(

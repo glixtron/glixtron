@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb'
+import mongoose from 'mongoose'
 
 // Validate and encode environment variable (runtime check only)
 let mongodbUri = process.env.MONGODB_URI
@@ -54,16 +55,23 @@ export async function connectToDatabase() {
   }
 
   if (cached.conn) {
+    console.log('🔄 Using cached MongoDB connection')
     return cached.conn
   }
 
+  // Only create new connection if none exists
   if (!cached.promise) {
     const opts = {
       maxPoolSize: 10,
+      connectTimeoutMS: 10000,  // Increased from default
+      serverSelectionTimeoutMS: 10000,  // Increased from default
+      socketTimeoutMS: 45000,
     }
 
+    console.log('🔌 Initiating MongoDB connection with timeout settings...')
     cached.promise = MongoClient.connect(mongodbUri, opts)
       .then((client) => {
+        console.log('✅ MongoDB Connected Successfully')
         return client
       })
       .catch(error => {
