@@ -9,16 +9,15 @@
 const requiredVars = [
   'NEXTAUTH_SECRET',
   'NEXTAUTH_URL',
-  'SUPABASE_URL',
-  'SUPABASE_ANON_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY'
+  'MONGODB_URI'
 ];
 
 const optionalVars = [
   'NODE_ENV',
-  'SUPABASE_URL_BACKUP',
-  'SUPABASE_ANON_KEY_BACKUP',
-  'SUPABASE_SERVICE_ROLE_KEY_BACKUP'
+  'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET',
+  'GITHUB_CLIENT_ID',
+  'GITHUB_CLIENT_SECRET'
 ];
 
 console.log('🔍 Validating environment variables...\n');

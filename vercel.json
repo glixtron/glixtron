@@ -1,39 +1,20 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run build --silent",
   "devCommand": "npm run dev --silent",
   "installCommand": "npm ci --prefer-offline --no-audit --no-fund --silent",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "functions": {
     "app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "env": {
-    "NEXTAUTH_URL": "https://glixtron.vercel.app",
-    "NEXTAUTH_SECRET": "/6513Og8RktelkSL0bnbNnBN10llN154pTmovLtv0gI=",
-    "SUPABASE_URL": "https://pcqqapovpqjdfhmcotzv.supabase.co",
-    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDg0Mzg0Mn0.3FiAm1CMNJ6AuvSU4mEk8rWLpTCIURPO6ZG9rAfJXgY",
-    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTI2Nzg0MiwiZXhwIjoyMDg0ODQzODQyfQ.v0-VGruhq0m42cvotrQdYtJU9fUqyKnk1VJA4Qp_wS0",
-    "SUPABASE_URL_BACKUP": "https://backup-pcqqapovpqjdfhmcotzv.supabase.co",
-    "SUPABASE_ANON_KEY_BACKUP": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1iYWNrdXAiLCJyZWYiOiJiYWNrdXAtdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzY5MjY3ODQyLCJleHAiOjIwODQ4NDM4NDJ9.backup-key-placeholder",
-    "SUPABASE_SERVICE_ROLE_KEY_BACKUP": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1iYWNrdXAiLCJyZWYiOiJiYWNrdXAtdXBhYmFzZSIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDQzODQyfQ.backup-service-key-placeholder",
     "NODE_ENV": "production",
     "NPM_CONFIG_CACHE": "/tmp/npm-cache",
     "NODE_OPTIONS": "--max-old-space-size=4096"
-  },
-  "build": {
-    "env": {
-      "NEXTAUTH_URL": "https://glixtron.vercel.app",
-      "NEXTAUTH_SECRET": "/6513Og8RktelkSL0bnbNnBN10llN154pTmovLtv0gI=",
-      "SUPABASE_URL": "https://pcqqapovpqjdfhmcotzv.supabase.co",
-      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDg0Mzg0Mn0.3FiAm1CMNJ6AuvSU4mEk8rWLpTCIURPO6ZG9rAfJXgY",
-      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjcXFhcG92cHFqZGZobWNvdHp2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTI2Nzg0MiwiZXhwIjoyMDg0ODQzODQyfQ.v0-VGruhq0m42cvotrQdYtJU9fUqyKnk1VJA4Qp_wS0",
-      "SUPABASE_URL_BACKUP": "https://backup-pcqqapovpqjdfhmcotzv.supabase.co",
-      "SUPABASE_ANON_KEY_BACKUP": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1iYWNrdXAiLCJyZWYiOiJiYWNrdXAtdXBhYmFzZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzY5MjY3ODQyLCJleHAiOjIwODQ4NDM4NDJ9.backup-key-placeholder",
-      "SUPABASE_SERVICE_ROLE_KEY_BACKUP": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1iYWNrdXAiLCJyZWYiOiJiYWNrdXAtdXBhYmFzZSIsInJvbGUiOiJzZXJ2aWNlX3JvbGUiLCJpYXQiOjE3NjkyNjc4NDIsImV4cCI6MjA4NDQzODQyfQ.backup-service-key-placeholder"
-    }
   },
   "headers": [
     {
@@ -49,15 +30,67 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
+          "value": "Content-Type, Authorization, X-Requested-With"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "source": "/api/health",
+      "destination": "/api/health"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "/api/auth/[...nextauth]"
+    },
+    {
+      "source": "/api/jd/extract",
+      "destination": "/api/jd/extract"
+    },
+    {
+      "source": "/api/resume/analyze",
+      "destination": "/api/resume/analyze"
+    },
+    {
+      "source": "/api/security",
+      "destination": "/api/security"
+    },
+    {
+      "source": "/api/test-routing",
+      "destination": "/api/test-routing"
+    },
+    {
+      "source": "/((?!api|_next/static|_next/image|favicon.ico).*)",
+      "destination": "/$1"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
     }
   ]
 }

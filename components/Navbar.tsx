@@ -40,8 +40,8 @@ export default function Navbar() {
                   href="/profile"
                   className="flex items-center space-x-2 text-slate-300 hover:text-white transition-colors"
                 >
-                  {session.user?.image ? (
-                    <img src={session.user.image} alt={session.user.name || ''} className="w-8 h-8 rounded-full border-2 border-blue-500/30" />
+                  {session?.user?.avatar_url ? (
+                    <img src={session.user.avatar_url} alt={session.user.name || ''} className="w-8 h-8 rounded-full border-2 border-blue-500/30" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center border-2 border-blue-500/30">
                       <User className="h-5 w-5 text-white" />

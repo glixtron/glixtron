@@ -1,96 +1,85 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseUser, findSupabaseUserByEmail } from '@/lib/supabase-real'
+import clientPromise from '@/lib/mongodb'
+import bcrypt from 'bcryptjs'
+import User from '@/models/User'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { email, name, password } = body
-    
-    if (!email || !name || !password) {
+    const { name, email, password } = await request.json()
+
+    // Validation
+    if (!name || !email || !password) {
       return NextResponse.json(
-        { error: 'Name, email, and password are required' },
+        { error: 'Please provide name, email, and password' },
         { status: 400 }
       )
     }
-    
+
     if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters long' },
+        { error: 'Password must be at least 6 characters' },
         { status: 400 }
       )
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { error: 'Please enter a valid email address' },
-        { status: 400 }
-      )
-    }
+    // Connect to database
+    await clientPromise
 
-    if (!name.trim()) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      )
-    }
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      email: email.toLowerCase().trim() 
+    })
 
-    // Check if user already exists in Supabase
-    const existingUser = await findSupabaseUserByEmail(email)
     if (existingUser) {
       return NextResponse.json(
         { error: 'User with this email already exists' },
         { status: 400 }
       )
     }
-    
-    // Create new user using Supabase
-    const user = await createSupabaseUser({
-      email: email.trim().toLowerCase(),
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Create user
+    const user = new User({
       name: name.trim(),
-      password,
-      provider: 'email'
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+      avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name.trim())}&background=random`
     })
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Failed to create user in database' },
-        { status: 500 }
-      )
+
+    await user.save()
+
+    // Return user without password
+    const userResponse = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar_url: user.avatar_url,
+      role: user.role,
+      createdAt: user.createdAt
     }
-    
-    return NextResponse.json({
-      success: true,
-      message: 'User registered successfully! Please check your email to verify your account.',
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.email_verified,
-        createdAt: user.created_at
+
+    return NextResponse.json(
+      { 
+        message: 'User created successfully',
+        user: userResponse
       },
-      requiresEmailVerification: !user.email_verified
-    })
+      { status: 201 }
+    )
+
   } catch (error: any) {
     console.error('Registration error:', error)
-    
-    // Handle specific Supabase errors
-    if (error.message?.includes('duplicate key')) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      )
-    }
-    
-    if (error.message?.includes('User already registered')) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      )
-    }
-    
     return NextResponse.json(
-      { error: error.message || 'Registration failed. Please try again.' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    message: 'Registration endpoint has been disabled',
+    status: 'Please use the direct registration form at /register'
+  })
 }

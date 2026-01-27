@@ -31,10 +31,8 @@ export const ENV_CONFIG = {
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
 
-  // Supabase Configuration
-  SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
-  SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  // MongoDB Configuration
+  MONGODB_URI: process.env.MONGODB_URI,
 
   // Server Configuration
   get IS_PRODUCTION(): boolean {
@@ -83,7 +81,7 @@ export const ENV_CONFIG = {
   // Feature Flags
   get FEATURES() {
     return {
-      ENABLE_SUPABASE: !!process.env.SUPABASE_URL,
+      ENABLE_MONGODB: !!process.env.MONGODB_URI,
       ENABLE_ANALYTICS: this.IS_PRODUCTION,
       ENABLE_ERROR_REPORTING: this.IS_PRODUCTION,
       ENABLE_PERFORMANCE_MONITORING: this.IS_PRODUCTION
