@@ -18,6 +18,9 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   
+  // Standalone output for Vercel
+  output: 'standalone',
+  
   // Suppress console warnings in production
   webpack: (config, { dev, isServer }) => {
     // Suppress deprecation warnings

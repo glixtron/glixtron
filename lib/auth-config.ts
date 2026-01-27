@@ -1,10 +1,13 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import { MongoDBAdapter } from '@auth/mongodb-adapter'
 import { ENV_CONFIG } from './env-config'
 import { findUserByEmail, validatePassword } from './auth-helpers'
+import { clientPromise } from '@/lib/mongodb-adapter'
 
-// This will be replaced with Supabase functions when migrating
+// MongoDB-powered authentication configuration
 export const authConfig: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
