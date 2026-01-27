@@ -1,7 +1,35 @@
 import { MongoClient } from 'mongodb'
 
-// Validate environment variable (runtime check only)
-const mongodbUri = process.env.MONGODB_URI
+// Validate and encode environment variable (runtime check only)
+let mongodbUri = process.env.MONGODB_URI
+
+if (!mongodbUri) {
+  console.warn('⚠️ MONGODB_URI environment variable not set - Database features will be disabled')
+}
+
+// URL encode password if it contains special characters
+function encodeMongoDBPassword(uri: string): string {
+  try {
+    const url = new URL(uri)
+    // Only encode the password part if it exists
+    if (url.password) {
+      const encodedPassword = encodeURIComponent(url.password)
+      // Reconstruct the URI with encoded password
+      const userInfo = url.username ? `${url.username}:${encodedPassword}` : encodedPassword
+      return uri.replace(`${url.username}:${url.password}`, userInfo)
+    }
+    return uri
+  } catch (error) {
+    console.warn('⚠️ Failed to parse MongoDB URI for password encoding:', error)
+    return uri
+  }
+}
+
+// Apply URL encoding to the connection string
+if (mongodbUri) {
+  mongodbUri = encodeMongoDBPassword(mongodbUri)
+  console.log('🔗 MongoDB URI processed for special characters')
+}
 
 // Global variable to cache the database connection
 declare global {

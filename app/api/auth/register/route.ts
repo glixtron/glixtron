@@ -105,25 +105,44 @@ export async function POST(request: NextRequest) {
     console.error('💥 REGISTRATION ERROR DETAILS:')
     console.error('❌ Error Name:', error.name)
     console.error('❌ Error Message:', error.message)
+    console.error('❌ Error Code:', error.code)
     console.error('❌ Error Stack:', error.stack)
     console.error('❌ Environment Variables:', {
       MONGODB_URI: process.env.MONGODB_URI ? '✅ Set' : '❌ Missing',
       NODE_ENV: process.env.NODE_ENV
     })
     
-    // Check for specific MongoDB connection errors
+    // Specific MongoDB error logging
     if (error.name === 'MongooseServerSelectionError') {
-      console.error('🔍 MongoDB Connection Issue - Check:')
-      console.error('  - IP whitelist in MongoDB Atlas')
-      console.error('  - Connection string format')
-      console.error('  - Network connectivity')
+      console.error('🔍 MongoDB Connection Issue Details:')
+      console.error('  - Error Code:', error.code)
+      console.error('  - Error Message:', error.message)
+      console.error('  - Check: IP whitelist in MongoDB Atlas')
+      console.error('  - Check: Connection string format')
+      console.error('  - Check: Network connectivity')
+    }
+    
+    if (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError') {
+      console.error('🔍 MongoDB Network Issue:')
+      console.error('  - Network timeout or connection failed')
+      console.error('  - Check: MongoDB Atlas status')
+      console.error('  - Check: Firewall settings')
+    }
+    
+    if (error.name === 'ValidationError') {
+      console.error('🔍 Mongoose Validation Error:')
+      console.error('  - Schema validation failed')
+      console.error('  - Details:', Object.keys(error.errors || {}))
     }
     
     if (error.name === 'OverwriteModelError') {
-      console.error('🔍 Model Overwrite Issue - Check:')
-      console.error('  - User model export pattern')
-      console.error('  - Multiple model definitions')
+      console.error('🔍 Model Overwrite Issue:')
+      console.error('  - User model export pattern issue')
+      console.error('  - Multiple model definitions detected')
     }
+    
+    // Log the full error object for debugging
+    console.error('🔍 Full Error Object:', JSON.stringify(error, null, 2))
     
     // Return detailed error for debugging
     return NextResponse.json(
@@ -131,6 +150,7 @@ export async function POST(request: NextRequest) {
         error: 'Internal server error',
         details: error.message,
         errorType: error.name,
+        errorCode: error.code,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
         timestamp: new Date().toISOString()
       },
