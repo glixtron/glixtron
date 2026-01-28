@@ -1,5 +1,4 @@
 import { MongoClient } from 'mongodb'
-import mongoose from 'mongoose'
 
 // Validate and encode environment variable (runtime check only)
 let mongodbUri = process.env.MONGODB_URI
@@ -32,61 +31,59 @@ if (mongodbUri) {
   console.log('🔗 MongoDB URI processed for special characters')
 }
 
-// Global variable to cache the database connection
+// Global singleton pattern for Vercel serverless
 declare global {
   // eslint-disable-next-line no-var
-  var mongo: { conn: MongoClient | null; promise: Promise<MongoClient> | null } | undefined
+  var _mongoClientPromise: Promise<MongoClient> | undefined
 }
 
-let cached = global.mongo
+let clientPromise: Promise<MongoClient>
 
-if (!cached) {
-  cached = global.mongo = { conn: null, promise: null }
+if (!mongodbUri) {
+  console.error('❌ MONGODB_URI environment variable not set - Database features will be disabled')
+  clientPromise = Promise.reject(new Error('MONGODB_URI not configured at runtime'))
+} else {
+  // Use global singleton to prevent connection leaks in serverless
+  if (!global._mongoClientPromise) {
+    const client = new MongoClient(mongodbUri, {
+      maxPoolSize: 10, // Maximum number of connections in the pool
+      minPoolSize: 1,  // Maintain at least 1 connection
+      maxIdleTimeMS: 30000, // Close connections after 30s of inactivity
+      serverSelectionTimeoutMS: 10000, // How long to try selecting a server
+      socketTimeoutMS: 45000, // How long a send or receive on a socket can take
+      connectTimeoutMS: 10000, // How long a connection can take to be established
+      retryWrites: true, // Retry writes if they fail
+      retryReads: true, // Retry reads if they fail
+    })
+    
+    global._mongoClientPromise = client.connect()
+      .then((client) => {
+        console.log('✅ MongoDB Connected Successfully (Singleton)')
+        return client
+      })
+      .catch((error) => {
+        console.error('❌ MongoDB connection failed:', error)
+        // Reset the promise on error so it can be retried
+        global._mongoClientPromise = undefined
+        throw new Error('Failed to connect to MongoDB Atlas')
+      })
+  }
+  
+  clientPromise = global._mongoClientPromise
 }
 
 export async function connectToDatabase() {
   if (!mongodbUri) {
-    console.warn('⚠️ MONGODB_URI environment variable not set - Database features will be disabled')
     throw new Error('MONGODB_URI not configured at runtime')
   }
 
-  if (!cached) {
-    cached = global.mongo = { conn: null, promise: null }
-  }
-
-  if (cached.conn) {
-    console.log('🔄 Using cached MongoDB connection')
-    return cached.conn
-  }
-
-  // Only create new connection if none exists
-  if (!cached.promise) {
-    const opts = {
-      maxPoolSize: 10,
-      connectTimeoutMS: 10000,  // Increased from default
-      serverSelectionTimeoutMS: 10000,  // Increased from default
-      socketTimeoutMS: 45000,
-    }
-
-    console.log('🔌 Initiating MongoDB connection with timeout settings...')
-    cached.promise = MongoClient.connect(mongodbUri, opts)
-      .then((client) => {
-        console.log('✅ MongoDB Connected Successfully')
-        return client
-      })
-      .catch(error => {
-        console.error('❌ MongoDB connection error:', error)
-        if (cached) cached.promise = null // Reset promise on error
-        throw new Error('Failed to connect to MongoDB Atlas')
-      })
-  }
-
   try {
-    cached.conn = await cached.promise
-    return cached.conn
+    const client = await clientPromise
+    return client
   } catch (error) {
-    if (cached) cached.promise = null // Reset promise on error
+    console.error('❌ Database connection error:', error)
     throw error
   }
 }
-export default connectToDatabase()
+
+export default clientPromise

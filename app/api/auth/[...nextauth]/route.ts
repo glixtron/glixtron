@@ -4,13 +4,10 @@ import { authConfig } from '@/lib/auth-config'
 // Force dynamic to prevent static generation issues
 export const dynamic = 'force-dynamic'
 
-// Debug environment variables (relaxed for build)
-console.log('🔍 NextAuth Environment Check:')
-console.log('  - NEXTAUTH_SECRET:', process.env.NEXTAUTH_SECRET ? '✅ Set' : '⚠️ Missing (will check at runtime)')
-console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '⚠️ Missing (will check at runtime)')
+// Only validate secret at runtime, not during build
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || process.argv.includes('build')
 
-// Validate secret only in runtime production, not during build
-if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
+if (!isBuildTime && process.env.NODE_ENV === 'production' && !process.env.NEXTAUTH_SECRET) {
   console.error('❌ CRITICAL: NEXTAUTH_SECRET is required in production mode')
   throw new Error('NEXTAUTH_SECRET environment variable is required in production')
 }
