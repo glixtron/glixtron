@@ -32,36 +32,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (password.length < 6) {
-      console.error('❌ Password too short:', password.length, 'characters')
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      console.error('❌ Invalid email format:', email)
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
+        { error: 'Please provide a valid email address' },
+        { status: 400 }
+      )
+    }
+
+    // Password validation
+    if (password.length < 6) {
+      console.error('❌ Password too short:', password.length)
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters long' },
         { status: 400 }
       )
     }
 
     console.log('✅ Input validation passed')
-
-    // Connect to database
-    console.log('🔌 Connecting to MongoDB...')
-    await clientPromise
-    console.log('✅ MongoDB connection established')
-
-    // Check if user already exists
-    console.log('🔍 Checking for existing user:', email.toLowerCase().trim())
-    const existingUser = await User.findOne({ 
-      email: email.toLowerCase().trim() 
-    })
-
-    if (existingUser) {
-      console.error('❌ User already exists:', email.toLowerCase().trim())
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      )
-    }
-
-    console.log('✅ User does not exist, proceeding with registration')
 
     // Hash password
     console.log('🔐 Hashing password...')
@@ -69,29 +59,29 @@ export async function POST(request: NextRequest) {
     console.log('✅ Password hashed successfully')
 
     // Create user
-    console.log('👤 Creating user document...')
-    const user = new User({
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
+    console.log('👤 Creating user in MongoDB...')
+    const user = await User.create({
+      name,
+      email,
       password: hashedPassword,
-      avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name.trim())}&background=random`
+      avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
     })
+    console.log('✅ User created successfully:', { id: user._id, email: user.email })
 
-    console.log('💾 Saving user to database...')
-    await user.save()
-    console.log('✅ User saved successfully:', user._id)
-
-    // Return user without password
+    // Prepare response
     const userResponse = {
       id: user._id,
       name: user.name,
       email: user.email,
       avatar_url: user.avatar_url,
-      role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt
     }
 
-    console.log('🎉 Registration completed successfully for:', user.email)
+    console.log('🎉 Registration completed successfully for:', email)
 
     return NextResponse.json(
       { 
@@ -102,7 +92,7 @@ export async function POST(request: NextRequest) {
     )
 
   } catch (error: any) {
-    console.error('💥 REGISTRATION ERROR - FULL STACK TRACE:')
+    console.error('💥 REGISTRATION ERROR - RAW ERROR DETAILS:')
     console.error('❌ Error Name:', error.name)
     console.error('❌ Error Message:', error.message)
     console.error('❌ Error Code:', error.code)
@@ -115,47 +105,13 @@ export async function POST(request: NextRequest) {
     // Log the full error object for debugging
     console.error('🔍 Full Error Object:', JSON.stringify(error, null, 2))
     
-    // Specific MongoDB error logging with line numbers
-    if (error.name === 'MongooseServerSelectionError') {
-      console.error('🔍 MongoDB Connection Issue Details:')
-      console.error('  - Error Code:', error.code)
-      console.error('  - Error Message:', error.message)
-      console.error('  - Stack Trace Lines:', error.stack?.split('\n').slice(0, 5))
-      console.error('  - Check: IP whitelist in MongoDB Atlas')
-      console.error('  - Check: Connection string format')
-      console.error('  - Check: Network connectivity')
-    }
-    
-    if (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError') {
-      console.error('🔍 MongoDB Network Issue:')
-      console.error('  - Network timeout or connection failed')
-      console.error('  - Stack Trace:', error.stack?.split('\n').slice(0, 3))
-      console.error('  - Check: MongoDB Atlas status')
-      console.error('  - Check: Firewall settings')
-    }
-    
-    if (error.name === 'ValidationError') {
-      console.error('🔍 Mongoose Validation Error:')
-      console.error('  - Schema validation failed')
-      console.error('  - Details:', Object.keys(error.errors || {}))
-      console.error('  - Stack Trace:', error.stack?.split('\n').slice(0, 3))
-    }
-    
-    if (error.name === 'OverwriteModelError') {
-      console.error('🔍 Model Overwrite Issue:')
-      console.error('  - User model export pattern issue')
-      console.error('  - Multiple model definitions detected')
-      console.error('  - Stack Trace:', error.stack?.split('\n').slice(0, 3))
-    }
-    
-    // Return detailed error for debugging
+    // Return detailed error for debugging - EXPOSE RAW ERROR
     return NextResponse.json(
       { 
-        error: 'Internal server error',
-        details: error.message,
-        errorType: error.name,
-        errorCode: error.code,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
         timestamp: new Date().toISOString()
       },
       { status: 500 }
