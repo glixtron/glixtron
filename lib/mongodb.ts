@@ -8,6 +8,8 @@ const uri = process.env.MONGODB_URI;
 const options = {
   connectTimeoutMS: 10000,
   serverSelectionTimeoutMS: 10000,
+  tlsAllowInvalidCertificates: true,
+  tlsAllowInvalidHostnames: true,
 };
 
 let client;
