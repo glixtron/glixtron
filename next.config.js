@@ -10,11 +10,7 @@ const nextConfig = {
   
   // Allow build to continue despite linting warnings
   eslint: {
-    ignoreDuringBuilds: true,
-    rules: {
-      'react/no-unescaped-entities': 'off',
-    '@next/next/no-page-custom-font': 'off'
-    }
+    ignoreDuringBuilds: true
   },
   
   // Allow build to continue despite TypeScript errors
