@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   Share2, 
@@ -27,7 +27,8 @@ interface SharedContent {
   customParams?: Record<string, string>
 }
 
-export default function SharedPage() {
+// Component that uses useSearchParams
+function SharedContentComponent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [sharedContent, setSharedContent] = useState<SharedContent | null>(null)
@@ -35,10 +36,10 @@ export default function SharedPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    const id = searchParams.get('id')
-    const category = searchParams.get('category')
-    const title = searchParams.get('title')
-    const expires = searchParams.get('expires')
+    const id = searchParams.get('id') || ''
+    const category = searchParams.get('category') || ''
+    const title = searchParams.get('title') || ''
+    const expires = searchParams.get('expires') || ''
 
     if (!id || !category || !title) {
       router.push('/')
@@ -335,5 +336,23 @@ export default function SharedPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Main page component with Suspense boundary
+export default function SharedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div className="text-center">
+          <div className="inline-block mb-6">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-slate-400">Loading shared content...</p>
+        </div>
+      </div>
+    }>
+      <SharedContentComponent />
+    </Suspense>
   )
 }
