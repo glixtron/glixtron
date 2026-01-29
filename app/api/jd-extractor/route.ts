@@ -16,6 +16,8 @@ const secureHandler = secureApiRoute(
       switch (action) {
         case 'extract':
           const url = searchParams.get('url')
+          const userId = searchParams.get('userId')
+          
           if (!url) {
             return NextResponse.json({
               success: false,
@@ -31,6 +33,27 @@ const secureHandler = secureApiRoute(
               success: false,
               error: 'Invalid URL format'
             }, { status: 400 })
+          }
+
+          // Check user limits if userId provided
+          if (userId) {
+            const { userTierSystem } = await import('@/lib/user-tier-system')
+            await userTierSystem.initialize()
+            
+            const canAnalyze = await userTierSystem.canPerformJobAnalysis(userId)
+            
+            if (!canAnalyze.allowed) {
+              return NextResponse.json({
+                success: false,
+                error: `Job analysis limit reached. ${canAnalyze.remaining} analyses remaining. Upgrade to premium for unlimited access.`,
+                tier: canAnalyze.tier,
+                remaining: canAnalyze.remaining,
+                upgradeRequired: true
+              }, { status: 429 })
+            }
+            
+            // Record usage
+            await userTierSystem.recordJobAnalysis(userId)
           }
 
           console.log('🔍 Starting JD extraction from:', url)
