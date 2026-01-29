@@ -127,7 +127,7 @@ export default function UsageTracker({ userId, onUpgradeRequired }: UsageTracker
         <Alert className="border-orange-200 bg-orange-50">
           <AlertTriangle className="h-4 w-4 text-orange-600" />
           <AlertDescription className="text-orange-800">
-            You're approaching your job analysis limit! Upgrade to Premium for unlimited access or refer friends to earn free Premium.
+            You&apos;re approaching your job analysis limit! Upgrade to Premium for unlimited access or refer friends to earn free Premium.
           </AlertDescription>
         </Alert>
       )}
