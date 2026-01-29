@@ -108,7 +108,8 @@ export async function POST(request: NextRequest) {
     // Return detailed error for debugging - EXPOSE RAW ERROR
     return NextResponse.json(
       { 
-        message: error.message,
+        error: error.message,  // Show actual error message
+        message: error.message, // Also include in message field
         stack: error.stack,
         name: error.name,
         code: error.code,
