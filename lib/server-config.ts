@@ -21,34 +21,52 @@ export interface ServerConfig {
   retries: number
 }
 
-// Production server endpoints
+// Production server endpoints - Multiple regions for high availability
 export const SERVER_CONFIG: ServerConfig = {
   primary: [
     {
       id: 'vercel-primary',
-      name: 'Vercel Primary',
-      url: 'https://glixtron.vercel.app',
+      name: 'Vercel Primary (US East)',
+      url: 'https://glixtron-pilot.vercel.app',
       priority: 1,
       isHealthy: true,
       lastChecked: new Date(),
-      region: 'global'
+      region: 'us-east-1'
     },
     {
       id: 'vercel-secondary',
-      name: 'Vercel Secondary', 
-      url: 'https://glixtron-git-main-glixtron.vercel.app',
+      name: 'Vercel Secondary (US West)', 
+      url: 'https://glixtron-pilot-git-main-glixtron.vercel.app',
       priority: 2,
       isHealthy: true,
       lastChecked: new Date(),
-      region: 'global'
+      region: 'us-west-1'
+    },
+    {
+      id: 'vercel-eu',
+      name: 'Vercel EU (Frankfurt)',
+      url: 'https://glixtron-eu.vercel.app',
+      priority: 3,
+      isHealthy: true,
+      lastChecked: new Date(),
+      region: 'eu-central-1'
+    },
+    {
+      id: 'vercel-asia',
+      name: 'Vercel Asia (Singapore)',
+      url: 'https://glixtron-asia.vercel.app',
+      priority: 4,
+      isHealthy: true,
+      lastChecked: new Date(),
+      region: 'ap-southeast-1'
     }
   ],
   fallback: [
     {
       id: 'github-pages',
-      name: 'GitHub Pages',
+      name: 'GitHub Pages (Static)',
       url: 'https://glixtron.github.io',
-      priority: 3,
+      priority: 5,
       isHealthy: true,
       lastChecked: new Date(),
       region: 'global'
@@ -57,7 +75,25 @@ export const SERVER_CONFIG: ServerConfig = {
       id: 'netlify-backup',
       name: 'Netlify Backup',
       url: 'https://glixtron.netlify.app',
-      priority: 4,
+      priority: 6,
+      isHealthy: true,
+      lastChecked: new Date(),
+      region: 'global'
+    },
+    {
+      id: 'cloudflare-pages',
+      name: 'Cloudflare Pages',
+      url: 'https://glixtron.pages.dev',
+      priority: 7,
+      isHealthy: true,
+      lastChecked: new Date(),
+      region: 'global'
+    },
+    {
+      id: 'railway-app',
+      name: 'Railway App',
+      url: 'https://glixtron.railway.app',
+      priority: 8,
       isHealthy: true,
       lastChecked: new Date(),
       region: 'global'
