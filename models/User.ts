@@ -1,80 +1,84 @@
-import mongoose from 'mongoose'
+import { MongoClient, Db, Collection, ObjectId } from 'mongodb'
 
-// Ensure MongoDB connection is established
+let client: MongoClient
+let db: Db
+let usersCollection: Collection
+
+// Initialize MongoDB connection
 const connectDB = async () => {
   try {
-    const { clientPromise } = await import('@/lib/mongodb-adapter')
-    await clientPromise
+    const clientPromise = await import('@/lib/mongodb')
+    client = await clientPromise.default
+    db = client.db('glixtronglobal_db_user')
+    usersCollection = db.collection('users')
     console.log('✅ MongoDB connected for User model')
+    return { client, db, usersCollection }
   } catch (error) {
     console.error('❌ MongoDB connection failed for User model:', error)
     throw error
   }
 }
 
-const UserSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please provide a name'],
-    trim: true,
-    maxlength: [50, 'Name cannot be more than 50 characters']
-  },
-  email: {
-    type: String,
-    required: [true, 'Please provide an email'],
-    unique: true,
-    trim: true,
-    lowercase: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email'
-    ]
-  },
-  password: {
-    type: String,
-    required: [true, 'Please provide a password'],
-    minlength: [6, 'Password must be at least 6 characters'],
-    select: false // Don't include password in queries by default
-  },
-  avatar_url: {
-    type: String,
-    default: function(this: any) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.name)}&background=random`
+// User interface
+export interface User {
+  _id?: string | ObjectId
+  name: string
+  email: string
+  password: string
+  avatar_url?: string
+  emailVerified?: boolean
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+// User operations class
+export class UserOperations {
+  static async create(userData: Omit<User, '_id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+    const { usersCollection } = await connectDB()
+    const now = new Date()
+    const userToInsert = {
+      ...userData,
+      createdAt: now,
+      updatedAt: now
     }
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  },
-  isEmailVerified: {
-    type: Boolean,
-    default: true // Since we're disabling email verification
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+    
+    const result = await usersCollection.insertOne(userToInsert)
+    return {
+      _id: result.insertedId,
+      ...userToInsert
+    }
   }
-}, {
-  timestamps: true,
-  toJSON: {
-    transform: function(doc: any, ret: any) {
-      if (ret.password) {
-        delete ret.password
+
+  static async findByEmail(email: string): Promise<User | null> {
+    const { usersCollection } = await connectDB()
+    const user = await usersCollection.findOne({ email })
+    return user as User | null
+  }
+
+  static async findById(id: string): Promise<User | null> {
+    const { usersCollection } = await connectDB()
+    const user = await usersCollection.findOne({ _id: new ObjectId(id) })
+    return user as User | null
+  }
+
+  static async updateById(id: string, updateData: Partial<User>): Promise<User | null> {
+    const { usersCollection } = await connectDB()
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { 
+        $set: { 
+          ...updateData, 
+          updatedAt: new Date() 
+        } 
       }
-      return ret
-    }
+    )
+    
+    if (result.matchedCount === 0) return null
+    return await this.findById(id)
   }
-})
+}
 
-// Index for faster queries (email already has unique index in field definition)
-UserSchema.index({ createdAt: -1 })
-
-export default mongoose.models.User || mongoose.model('User', UserSchema)
-
-// Export connection function for explicit connection
+// Export for backward compatibility
+export const User = UserOperations
+export default User
 export { connectDB }

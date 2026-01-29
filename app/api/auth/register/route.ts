@@ -65,9 +65,7 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      emailVerified: false
     })
     console.log('✅ User created successfully:', { id: user._id, email: user.email })
 
