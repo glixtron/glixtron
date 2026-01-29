@@ -32,12 +32,12 @@ export const authConfig: NextAuthOptions = {
         }
         
         return {
-          id: user.id,
+          id: user._id?.toString() || user.id?.toString() || '',
           email: user.email,
           name: user.name,
-          image: user.image || undefined,
-          role: user.provider || 'user',
-          avatar_url: user.image || undefined
+          image: user.avatar_url || undefined,
+          role: 'user',
+          avatar_url: user.avatar_url || undefined
         } as any
       }
     })

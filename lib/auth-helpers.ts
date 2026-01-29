@@ -10,7 +10,7 @@ export async function findUserByEmail(email: string) {
     await clientPromise
     
     console.log('🔍 Searching for user:', email.toLowerCase().trim())
-    const user = await User.findOne({ email: email.toLowerCase().trim() })
+    const user = await User.findByEmail(email.toLowerCase().trim())
     console.log('👤 User found:', !!user)
     return user
   } catch (error) {
@@ -26,15 +26,22 @@ export async function validatePassword(email: string, password: string) {
     await clientPromise
     
     console.log('🔐 Validating password for:', email.toLowerCase().trim())
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password')
+    const user = await User.findByEmail(email.toLowerCase().trim())
     
     if (!user) {
       console.log('❌ User not found for password validation')
       return false
     }
     
+    if (!user.password) {
+      console.log('❌ User has no password field')
+      return false
+    }
+    
     const isValid = await bcrypt.compare(password, user.password)
     console.log('🔐 Password validation result:', isValid)
+    console.log('🔍 User password hash exists:', !!user.password)
+    console.log('🔍 Provided password length:', password.length)
     return isValid
   } catch (error) {
     console.error('❌ Error validating password:', error)
@@ -53,20 +60,22 @@ export async function createUser(userData: {
     await connectDB()
     await clientPromise
     
-    console.log('👤 Creating user:', userData.email)
+    console.log('👤 Creating new user:', userData.email.toLowerCase().trim())
     
+    // Hash password
     const hashedPassword = await bcrypt.hash(userData.password, 12)
     
-    const user = new User({
-      name: userData.name.trim(),
+    // Create user with MongoDB driver
+    const newUser = await User.create({
+      name: userData.name,
       email: userData.email.toLowerCase().trim(),
       password: hashedPassword,
-      avatar_url: userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name.trim())}&background=random`
+      avatar_url: userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=random&color=fff`,
+      emailVerified: false
     })
     
-    await user.save()
-    console.log('✅ User created successfully:', user._id)
-    return user
+    console.log('✅ User created successfully:', { id: newUser._id, email: newUser.email })
+    return newUser
   } catch (error) {
     console.error('❌ Error creating user:', error)
     throw error
