@@ -16,21 +16,44 @@ export const authConfig: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        console.log('🔐 AUTHORIZATION STARTED')
+        console.log('📧 Email provided:', credentials?.email)
+        console.log('🔑 Password provided length:', credentials?.password?.length)
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Missing credentials')
           return null
         }
         
-        // Use persistent database for authentication
-        const isValid = await validatePassword(credentials.email, credentials.password)
-        if (!isValid) {
-          return null
-        }
-        
+        // First find the user
+        console.log('👤 Looking up user...')
         const user = await findUserByEmail(credentials.email)
+        console.log('👤 User found:', !!user)
+        
         if (!user) {
+          console.log('❌ User not found in database')
           return null
         }
         
+        console.log('🔍 User data:', {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          hasPassword: !!user.password,
+          passwordLength: user.password?.length
+        })
+        
+        // Then validate password
+        console.log('🔐 Validating password...')
+        const isValid = await validatePassword(credentials.email, credentials.password)
+        console.log('🔐 Password validation result:', isValid)
+        
+        if (!isValid) {
+          console.log('❌ Password validation failed')
+          return null
+        }
+        
+        console.log('✅ Authentication successful!')
         return {
           id: user._id?.toString() || user.id?.toString() || '',
           email: user.email,
