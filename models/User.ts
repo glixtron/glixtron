@@ -7,14 +7,26 @@ let usersCollection: Collection
 // Initialize MongoDB connection
 const connectDB = async () => {
   try {
+    console.log('🔗 User Model: Connecting to MongoDB...')
     const clientPromise = await import('@/lib/mongodb')
     client = await clientPromise.default
-    db = client.db('glixtronglobal_db_user')
+    
+    // Use the correct database name
+    db = client.db('glixtron')
     usersCollection = db.collection('users')
-    console.log('✅ MongoDB connected for User model')
+    
+    console.log('✅ User Model: MongoDB connected successfully')
+    console.log('📊 User Model: Database:', db.databaseName)
+    console.log('📋 User Model: Collection:', usersCollection.collectionName)
+    
     return { client, db, usersCollection }
-  } catch (error) {
-    console.error('❌ MongoDB connection failed for User model:', error)
+  } catch (error: any) {
+    console.error('❌ User Model: MongoDB connection failed:', {
+      error: error.message,
+      code: error.code,
+      name: error.name,
+      stack: error.stack
+    })
     throw error
   }
 }

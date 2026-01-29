@@ -60,9 +60,30 @@ export async function POST(request: NextRequest) {
     console.log('🔐 Starting registration process...')
     console.log('📧 Email:', email.toLowerCase().trim())
 
-    // Connect to database
-    await clientPromise
-    console.log('✅ Database connected')
+    // Connect to database with detailed logging
+    console.log('🔗 Connecting to MongoDB...')
+    console.log('📊 MongoDB URI:', process.env.MONGODB_URI?.substring(0, 20) + '...')
+    
+    try {
+      await clientPromise
+      console.log('✅ Database connected successfully')
+    } catch (dbError: any) {
+      console.error('❌ Database connection failed:', {
+        error: dbError.message,
+        code: dbError.code,
+        name: dbError.name,
+        stack: dbError.stack
+      })
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Database connection failed',
+          details: dbError.message,
+          code: 'DB_CONNECTION_ERROR'
+        },
+        { status: 500 }
+      )
+    }
 
     // Check if user already exists
     console.log('👤 Checking for existing user...')
