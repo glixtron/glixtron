@@ -45,8 +45,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('📄 Starting resume analysis...')
+    console.log('📊 Input sizes:', {
+      resumeLength: resume.length,
+      jobDescriptionLength: jobDescription.length
+    })
+    
     // Analyze resume against job description
     const analysis = await analyzeResume(resume, jobDescription)
+    
+    // Log the analysis (no data storage)
+    console.log('✅ Resume analysis completed:', {
+      matchScore: analysis.matchScore,
+      skillMatches: analysis.skillsMatch?.matched?.length || 0,
+      timestamp: new Date().toISOString()
+    })
 
     return NextResponse.json({
       success: true,

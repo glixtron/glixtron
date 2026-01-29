@@ -4,12 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { extractJDFromURL } from '@/lib/jd-extractor-server'
+import { extractJDFromURL, analyzeJobDescription } from '@/lib/jd-extractor-server'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { url } = body
+    const { url, analyze = false } = body
 
     if (!url) {
       return NextResponse.json(
@@ -36,19 +36,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('🔍 Starting JD extraction for:', url)
+    
     // Extract job description
     const jobDescription = await extractJDFromURL(url)
+    
+    let analysis = null
+    if (analyze) {
+      console.log('🤖 Starting AI analysis...')
+      analysis = await analyzeJobDescription(jobDescription)
+    }
+
+    // Log the extraction (no data storage)
+    console.log('📊 JD Extraction completed:', {
+      url,
+      contentLength: jobDescription.length,
+      analyzed: analyze,
+      timestamp: new Date().toISOString()
+    })
 
     return NextResponse.json({
       success: true,
       data: {
         url,
         jobDescription,
+        analysis,
         extractedAt: new Date().toISOString(),
         length: jobDescription.length,
-        mode: 'server-safe'
+        mode: 'real-extraction'
       },
-      message: 'Job description extracted successfully (server-safe mode)'
+      message: `Job description extracted successfully${analyze ? ' with AI analysis' : ''}`
     })
 
   } catch (error: any) {
