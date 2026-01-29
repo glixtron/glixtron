@@ -192,7 +192,7 @@ export default function SharedPage() {
             <h1 className="text-3xl font-bold text-white">Shared Content</h1>
           </div>
           <p className="text-slate-300">
-            You've been invited to explore this career development resource
+            You&apos;ve been invited to explore this career development resource
           </p>
         </div>
 
