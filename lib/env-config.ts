@@ -20,7 +20,7 @@ export const ENV_CONFIG = {
       return `https://${process.env.VERCEL_URL}`
     }
 
-    return 'https://glixtron.vercel.app'
+    return 'https://careerpath-pro.vercel.app'
   },
 
   get API_BASE(): string {

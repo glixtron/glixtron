@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react'
+import { brandConfig } from '@/lib/brand-config'
 
 export default function Footer() {
   return (
@@ -7,10 +8,10 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
             <Sparkles className="h-5 w-5 text-blue-400" />
-            <span className="text-lg font-semibold gradient-text">Glixtron</span>
+            <span className="text-lg font-semibold gradient-text">{brandConfig.appName}</span>
           </div>
           <p className="text-slate-400 text-sm">
-            © 2026 Glixtron. Your personal career architect.
+            © 2026 {brandConfig.companyName}. Your personal career architect.
           </p>
         </div>
       </div>

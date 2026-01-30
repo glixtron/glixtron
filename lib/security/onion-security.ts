@@ -18,7 +18,7 @@ export const SECURITY_CONFIG = {
     maxBlockSize: 1024 * 1024, // 1MB
     genesisBlock: {
       timestamp: Date.now(),
-      data: 'Genesis Block - Glixtron Security Chain',
+      data: 'Genesis Block - CareerPath Pro Security Chain',
       previousHash: '0'.repeat(64)
     }
   },

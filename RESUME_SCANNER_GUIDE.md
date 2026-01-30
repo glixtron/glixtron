@@ -175,7 +175,7 @@ Currently uses mock extraction that simulates web scraping. In production, this 
 ```
 1. User finds job on LinkedIn
 2. Copies job posting URL
-3. Pastes resume content into Glixtron
+3. Pastes resume content into CareerPath Pro
 4. Pastes LinkedIn URL, clicks "Extract JD"
 5. Clicks "Analyze"
 6. Sees 72% match score
@@ -187,4 +187,4 @@ Currently uses mock extraction that simulates web scraping. In production, this 
 
 ---
 
-*This feature is part of the Glixtron MVP and uses mock data for demonstration. Production implementation would connect to real AI services and web scraping APIs.*
+*This feature is part of the CareerPath Pro MVP and uses mock data for demonstration. Production implementation would connect to real AI services and web scraping APIs.*

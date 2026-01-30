@@ -27,7 +27,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'vercel-primary',
       name: 'Vercel Primary (US East)',
-      url: 'https://glixtron-pilot.vercel.app',
+      url: 'https://careerpath-pro.vercel.app',
       priority: 1,
       isHealthy: true,
       lastChecked: new Date(),
@@ -36,7 +36,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'vercel-secondary',
       name: 'Vercel Secondary (US West)', 
-      url: 'https://glixtron-pilot-git-main-glixtron.vercel.app',
+      url: 'https://careerpath-pro-git-main-careerpath.vercel.app',
       priority: 2,
       isHealthy: true,
       lastChecked: new Date(),
@@ -45,7 +45,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'vercel-eu',
       name: 'Vercel EU (Frankfurt)',
-      url: 'https://glixtron-eu.vercel.app',
+      url: 'https://careerpath-pro-eu.vercel.app',
       priority: 3,
       isHealthy: true,
       lastChecked: new Date(),
@@ -54,7 +54,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'vercel-asia',
       name: 'Vercel Asia (Singapore)',
-      url: 'https://glixtron-asia.vercel.app',
+      url: 'https://careerpath-pro-asia.vercel.app',
       priority: 4,
       isHealthy: true,
       lastChecked: new Date(),
@@ -65,7 +65,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'github-pages',
       name: 'GitHub Pages (Static)',
-      url: 'https://glixtron.github.io',
+      url: 'https://careerpath-pro.github.io',
       priority: 5,
       isHealthy: true,
       lastChecked: new Date(),
@@ -74,7 +74,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'netlify-backup',
       name: 'Netlify Backup',
-      url: 'https://glixtron.netlify.app',
+      url: 'https://careerpath-pro.netlify.app',
       priority: 6,
       isHealthy: true,
       lastChecked: new Date(),
@@ -83,7 +83,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'cloudflare-pages',
       name: 'Cloudflare Pages',
-      url: 'https://glixtron.pages.dev',
+      url: 'https://careerpath-pro.pages.dev',
       priority: 7,
       isHealthy: true,
       lastChecked: new Date(),
@@ -92,7 +92,7 @@ export const SERVER_CONFIG: ServerConfig = {
     {
       id: 'railway-app',
       name: 'Railway App',
-      url: 'https://glixtron.railway.app',
+      url: 'https://careerpath-pro.railway.app',
       priority: 8,
       isHealthy: true,
       lastChecked: new Date(),

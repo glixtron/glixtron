@@ -69,7 +69,7 @@ class UserTierSystem {
     }
     
     this.client = new MongoClient(mongoUri)
-    this.db = this.client.db('glixtron')
+    this.db = this.client.db('careerpath-pro')
   }
 
   async initialize() {
