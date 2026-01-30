@@ -40,9 +40,26 @@ export default function ResumeScannerPage() {
         const scanResponse = await apiService.scanResume(uploadResponse.data.resumeId)
         
         if (scanResponse.success) {
-          setScanResults(scanResponse.data)
-          setSuccessMessage('Resume scanned successfully!')
-          setTimeout(() => setSuccessMessage(null), 3000)
+          // Save the resume to database
+          const saveResponse = await apiService.saveResume({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            uploadDate: new Date().toISOString().split('T')[0],
+            atsScore: scanResponse.data.atsScore,
+            overallScore: scanResponse.data.score,
+            status: 'active',
+            lastScanned: new Date().toISOString().split('T')[0],
+            improvements: scanResponse.data.suggestions?.length || 0,
+            applications: 0,
+            scanResults: scanResponse.data
+          })
+          
+          if (saveResponse.success) {
+            setScanResults(scanResponse.data)
+            setSuccessMessage('Resume scanned and saved successfully!')
+            setTimeout(() => setSuccessMessage(null), 3000)
+          }
         } else {
           throw new Error('Failed to scan resume')
         }
