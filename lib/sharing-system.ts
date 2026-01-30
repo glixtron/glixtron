@@ -37,10 +37,10 @@ export interface SharingConfig {
 
 // Main sharing configuration
 export const SHARING_CONFIG: SharingConfig = {
-  baseUrl: 'https://careerpath-pro.vercel.app',
+  baseUrl: 'https://glixtron.vercel.app',
   trackAnalytics: true,
   enableRegionRouting: true,
-  customDomain: 'https://careerpath-pro.app',
+  customDomain: 'https://glixtron.app',
   socialMedia: {
     twitter: 'https://twitter.com/intent/tweet',
     linkedin: 'https://www.linkedin.com/sharing/share-offsite/',

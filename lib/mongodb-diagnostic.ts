@@ -85,7 +85,7 @@ export function diagnoseMongoURI(uri: string): {
   }
 }
 
-export function generateCorrectURI(clusterName: string, username: string, password: string, database: string = 'careerpath-pro'): string {
+export function generateCorrectURI(clusterName: string, username: string, password: string, database: string = 'glixtron'): string {
   // Encode password for special characters
   const encodedPassword = encodeURIComponent(password)
   

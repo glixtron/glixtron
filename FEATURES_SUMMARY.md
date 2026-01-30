@@ -1,4 +1,4 @@
-# CareerPath Pro MVP - Advanced Features Summary
+# Glixtron MVP - Advanced Features Summary
 
 ## ✅ Completed Features
 

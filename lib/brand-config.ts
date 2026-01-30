@@ -5,26 +5,26 @@
 
 export const BRAND_CONFIG = {
   // Application Identity
-  appName: 'CareerPath Pro',
-  appFullName: 'CareerPath Professional Assessment',
-  appTagline: 'Advanced Career Assessment & Guidance Platform',
+  appName: 'Glixtron',
+  appFullName: 'Glixtron Career Intelligence',
+  appTagline: 'AI-Powered Career Assessment Platform',
   
   // Company Information
-  companyName: 'CareerTech Solutions',
-  companyWebsite: 'https://careertech.example.com',
-  supportEmail: 'support@careertech.example.com',
+  companyName: 'Glixtron Technologies',
+  companyWebsite: 'https://glixtron.com',
+  supportEmail: 'support@glixtron.com',
   
   // URLs and Domains
   baseUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000',
   apiBaseUrl: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-  website: process.env.NEXT_PUBLIC_WEBSITE || 'https://careertech.example.com',
+  website: process.env.NEXT_PUBLIC_WEBSITE || 'https://glixtron.com',
   
   // Social Media
   socialLinks: {
-    twitter: process.env.NEXT_PUBLIC_TWITTER || 'https://twitter.com/careertech',
-    linkedin: process.env.NEXT_PUBLIC_LINKEDIN || 'https://linkedin.com/company/careertech',
-    github: process.env.NEXT_PUBLIC_GITHUB || 'https://github.com/careertech',
-    facebook: process.env.NEXT_PUBLIC_FACEBOOK || 'https://facebook.com/careertech'
+    twitter: process.env.NEXT_PUBLIC_TWITTER || 'https://twitter.com/glixtron',
+    linkedin: process.env.NEXT_PUBLIC_LINKEDIN || 'https://linkedin.com/company/glixtron',
+    github: process.env.NEXT_PUBLIC_GITHUB || 'https://github.com/glixtron',
+    facebook: process.env.NEXT_PUBLIC_FACEBOOK || 'https://facebook.com/glixtron'
   },
   
   // Brand Colors
@@ -82,9 +82,9 @@ export const BRAND_CONFIG = {
   
   // Email Templates
   email: {
-    fromName: 'CareerPath Pro',
-    fromEmail: 'noreply@careertech.example.com',
-    supportEmail: 'support@careertech.example.com'
+    fromName: 'Glixtron',
+    fromEmail: 'noreply@glixtron.com',
+    supportEmail: 'support@glixtron.com'
   },
   
   // Analytics and Tracking
@@ -121,44 +121,8 @@ export const BRAND_CONFIG = {
 export const BRAND_VARIANTS = {
   default: {
     ...BRAND_CONFIG,
-    appName: 'CareerPath Pro',
-    companyName: 'CareerTech Solutions'
-  },
-  
-  enterprise: {
-    ...BRAND_CONFIG,
-    appName: 'Enterprise CareerPath',
-    companyName: 'Enterprise Solutions Inc',
-    features: {
-      ...BRAND_CONFIG.features,
-      bulkProcessing: true,
-      customIntegrations: true,
-      prioritySupport: true
-    }
-  },
-  
-  education: {
-    ...BRAND_CONFIG,
-    appName: 'EduCareer Pro',
-    companyName: 'Education Technology Solutions',
-    features: {
-      ...BRAND_CONFIG.features,
-      studentTracking: true,
-      instructorDashboard: true,
-      curriculumIntegration: true
-    }
-  },
-  
-  government: {
-    ...BRAND_CONFIG,
-    appName: 'GovCareer Pro',
-    companyName: 'Public Sector Solutions',
-    features: {
-      ...BRAND_CONFIG.features,
-      complianceReporting: true,
-      auditTrails: true,
-      secureStorage: true
-    }
+    appName: 'Glixtron',
+    companyName: 'Glixtron Technologies'
   }
 }
 

@@ -8,8 +8,8 @@
 const { execSync } = require('child_process')
 
 const SERVERS = [
-  'https://careerpath-pro.vercel.app',
-  'https://careerpath-pro-git-main-careerpath.vercel.app',
+  'https://glixtron.vercel.app',
+  'https://glixtron-git-main-glixtron.vercel.app',
   'http://localhost:3000'
 ]
 

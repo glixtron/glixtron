@@ -41,7 +41,7 @@ The vercel.json now includes:
 Set these in Vercel:
 ```env
 NEXTAUTH_SECRET=your-super-secret-key-here
-NEXTAUTH_URL=https://careerpath-pro.vercel.app
+NEXTAUTH_URL=https://glixtron.vercel.app
 ```
 
 ## 🔍 Post-Deployment Verification
@@ -80,7 +80,7 @@ npm run dev    # Should work without warnings
 ```
 
 ### Vercel Test
-1. Visit https://careerpath-pro.vercel.app
+1. Visit https://glixtron.vercel.app
 2. Test registration/login
 3. Check all pages work
 4. Verify no console errors

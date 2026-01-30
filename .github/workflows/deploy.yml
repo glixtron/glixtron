@@ -54,7 +54,7 @@ jobs:
         sleep 30
         
         echo "🔍 Checking application health..."
-        response=$(curl -s -o /dev/null -w "%{http_code}" https://careerpath-pro.vercel.app/api/health)
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/health)
         echo "Health check response: $response"
         
         if [ "$response" = "200" ]; then
@@ -62,7 +62,7 @@ jobs:
         else
           echo "❌ Health check failed with status $response"
           echo "🔍 Getting detailed error information..."
-          curl -s https://careerpath-pro.vercel.app/api/health || echo "Failed to get health details"
+          curl -s https://glixtron.vercel.app/api/health || echo "Failed to get health details"
           exit 1
         fi
         
@@ -101,7 +101,7 @@ jobs:
         echo "🔍 Running comprehensive health checks..."
         
         # Check main server
-        main_status=$(curl -s -o /dev/null -w "%{http_code}" https://careerpath-pro.vercel.app/api/health)
+        main_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/health)
         echo "Main server status: $main_status"
         
         # Check if main server is responding
@@ -111,19 +111,19 @@ jobs:
         fi
         
         # Check auth endpoints
-        auth_status=$(curl -s -o /dev/null -w "%{http_code}" https://careerpath-pro.vercel.app/api/auth/signin)
+        auth_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/auth/signin)
         echo "Auth endpoint status: $auth_status"
         
         # Check JD extractor
-        jd_status=$(curl -s -o /dev/null -w "%{http_code}" https://careerpath-pro.vercel.app/api/jd/extract)
+        jd_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/jd/extract)
         echo "JD extractor status: $jd_status"
         
         # Check resume analyzer
-        resume_status=$(curl -s -o /dev/null -w "%{http_code}" https://careerpath-pro.vercel.app/api/resume/analyze)
+        resume_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/resume/analyze)
         echo "Resume analyzer status: $resume_status"
         
         # Check security endpoint
-        security_status=$(curl -s -o /dev/null -w "%{http_code}" https://careerpath-pro.vercel.app/api/security)
+        security_status=$(curl -s -o /dev/null -w "%{http_code}" https://glixtron.vercel.app/api/security)
         echo "Security endpoint status: $security_status"
         
         # Basic health check - if all endpoints respond with 200 or 404 (for POST endpoints), consider it healthy
