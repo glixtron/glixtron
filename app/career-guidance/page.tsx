@@ -1,6 +1,8 @@
 'use client'
 
 // Force Redeploy 2026-v1 - Fix Career Guidance Routing and Layout
+export const dynamic = 'force-dynamic'
+// REBUILD_v2 - Flattened structure fix
 
 import { useState, useEffect } from 'react'
 import StatCard from '@/components/StatCard'
@@ -690,3 +692,4 @@ export default function CareerGuidancePage() {
 }
 // Cache bust: Fri Jan 30 18:48:06 IST 2026
 // Cache cleared: Fri Jan 30 18:53:40 IST 2026
+// Cache bust: 1769780465
