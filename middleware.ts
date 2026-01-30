@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { securityLayer } from '@/lib/security-layer'
 
-// Security configuration
+// Security configuration - TEMPORARILY DISABLED FOR DEBUGGING
 const SECURITY_CONFIG = {
-  enabled: true,
+  enabled: false, // DISABLED
   rateLimit: {
-    enabled: true,
+    enabled: false, // DISABLED
     maxRequests: 100,
     windowMs: 60000 // 1 minute
   },
@@ -216,31 +216,15 @@ function addSecurityHeaders(response: NextResponse): void {
   response.headers.set('X-Powered-By', 'Glixtron-Security')
 }
 
-// Combined middleware
+// Combined middleware - TEMPORARILY DISABLED FOR DEBUGGING
 export default async function middleware(request: NextRequest) {
-  // Apply security middleware first
-  if (SECURITY_CONFIG.enabled) {
-    const securityResult = await securityMiddleware(request)
-    if (securityResult.status !== 200) {
-      return securityResult
-    }
-  }
-
-  // For now, skip NextAuth middleware to avoid type conflicts
-  // Authentication will be handled at the route level
+  // Skip all security checks for debugging
   return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (all API endpoints)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
+    // Match everything except static files and API routes
     '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
