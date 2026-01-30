@@ -4,7 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { extractJDFromURL, analyzeJobDescription, type JDExtractionResult, type AIAnalysisResult } from '@/lib/jd-extractor-server'
+import { extractJDFromURL } from '@/lib/jd-extractor-server'
+import { htmlJDParser } from '@/lib/html-jd-parser-fallback'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-config'
+import { UserTierSystem } from '@/lib/user-tier-system'
 import { secureApiRoute } from '@/lib/security/middleware'
 
 const secureHandler = secureApiRoute(

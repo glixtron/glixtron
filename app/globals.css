@@ -619,52 +619,95 @@ body {
   }
   
   /* Enhanced Input Styles with Better Contrast */
-  .input {
-    background-color: var(--input-bg);
-    color: var(--input-text);
+  .input,
+  input,
+  textarea,
+  select {
+    background-color: #ffffff !important;
+    color: #000000 !important;
     border: 1px solid var(--input-border);
     border-radius: var(--radius);
     padding: 0.5rem 0.75rem;
     transition: all 0.2s ease;
     font-size: 0.875rem;
     line-height: 1.25rem;
+    display: block;
+    width: 100%;
   }
   
-  .input::placeholder {
-    color: var(--input-placeholder);
+  .dark .input,
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
   }
   
-  .input:focus {
+  .input:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
     outline: none;
     border-color: var(--input-focus-border);
     box-shadow: 0 0 0 3px var(--input-focus-ring);
   }
   
-  .input:disabled {
-    background-color: var(--muted);
-    color: var(--muted-foreground);
-    cursor: not-allowed;
-    opacity: 0.7;
+  .input::placeholder,
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--input-placeholder) !important;
   }
   
-  /* Password Field Specific Styles */
-  .input[type="password"] {
+  /* Password Input Specific Styles */
+  input[type="password"] {
+    font-family: 'Courier New', monospace;
     letter-spacing: 0.05em;
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   }
   
-  /* Email Field Specific Styles */
-  .input[type="email"] {
+  /* Email Input Specific Styles */
+  input[type="email"] {
     font-family: inherit;
   }
   
-  /* Search Input Styles */
-  .input[type="search"] {
-    padding-left: 2.5rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 0.75rem center;
-    background-size: 1rem 1rem;
+  /* Search Input Specific Styles */
+  input[type="search"] {
+    font-family: inherit;
+  }
+  
+  /* Textarea Styles */
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  /* Ensure all form elements have white background in light mode */
+  .form-control,
+  .form-input,
+  .form-textarea {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .dark .form-control,
+  .dark .form-input,
+  .dark .form-textarea {
+    background-color: var(--input-bg) !important;
+    color: var(--input-text) !important;
+  }
+  
+  /* Card backgrounds for content areas */
+  .card-content,
+  .content-area,
+  .paste-area {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  .dark .card-content,
+  .dark .content-area,
+  .dark .paste-area {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
   }
   
   .dark .input[type="search"] {
