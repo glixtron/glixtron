@@ -1,7 +1,6 @@
 'use client'
 
 // Force Redeploy 2026-v1 - Fix Career Guidance Routing and Layout
-export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import StatCard from '@/components/StatCard'
