@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { Sparkles, User, LogOut } from 'lucide-react'
+import { brandConfig } from '@/lib/brand-config'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -18,8 +19,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center space-x-2 group">
-            <img src="/logo-updated.svg" alt="Glixtron" className="h-8 w-8 company-logo" />
-            <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Glixtron</span>
+            <img src="/logo-updated.svg" alt="CareerPath Pro" className="h-8 w-8 company-logo" />
+            <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{brandConfig.appName}</span>
           </Link>
           <div className="flex items-center space-x-6">
             <Link 

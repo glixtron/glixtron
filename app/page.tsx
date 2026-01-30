@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Sparkles, Brain, Network, TrendingUp, FileText, CheckCircle2, ArrowRight, Zap, Shield, Target, Users, Star, BarChart3, Lightbulb, Rocket, Award, Globe, Code2, Cpu, Database, Cloud, Lock, Heart, MessageSquare, TrendingDown, Mail, Phone, MapPin, Clock, CheckCircle, AlertCircle, BookOpen, GraduationCap, Briefcase, UserCheck, Building2, Linkedin, Twitter, Github, Instagram, ChevronRight, Play, Video, FileCheck, Search, PieChart, Activity, Eye } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { brandConfig } from '@/lib/brand-config'
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0)
@@ -69,7 +70,7 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto text-center">
           {/* Enhanced Badge */}
           <div className={`inline-flex items-center space-x-2 px-6 py-3 rounded-full glass mb-8 backdrop-blur-xl border border-blue-500/30 shadow-lg shadow-blue-500/20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-            <img src="/logo-updated.svg" alt="Glixtron" className="h-5 w-5 animate-spin-slow" />
+            <img src="/logo-updated.svg" alt="CareerPath Pro" className="h-5 w-5 animate-spin-slow" />
             <span className="text-sm font-semibold text-blue-300">AI-Powered Career Intelligence</span>
             <div className="flex items-center space-x-1 ml-2">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -97,7 +98,7 @@ export default function Home() {
           {/* Enhanced Description */}
           <div className={`max-w-3xl mx-auto mb-12 transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <p className="text-lg text-slate-400 leading-relaxed">
-              Glixtron revolutionizes career development through advanced AI technology that analyzes your unique professional DNA. 
+              {brandConfig.appName} revolutionizes career development through advanced AI technology that analyzes your unique professional DNA. 
               Our platform combines machine learning, behavioral psychology, and industry expertise to provide personalized career pathways 
               that align with your skills, aspirations, and market opportunities.
             </p>
@@ -153,13 +154,13 @@ export default function Home() {
           <div className={`text-center mb-20 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/30 mb-6">
               <Building2 className="h-4 w-4 text-violet-400" />
-              <span className="text-sm text-violet-300 font-semibold">About Glixtron</span>
+              <span className="text-sm text-violet-300 font-semibold">About {brandConfig.appName}</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Pioneering the Future of <span className="gradient-text">Career Intelligence</span>
             </h2>
             <p className="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
-              Founded in 2024, Glixtron emerged from a simple mission: to democratize career guidance through cutting-edge AI technology. 
+              Founded in 2024, {brandConfig.appName} emerged from a simple mission: to democratize career guidance through cutting-edge AI technology. 
               Our team of data scientists, career coaches, and industry experts has helped thousands of professionals navigate their career journeys with confidence.
             </p>
           </div>
@@ -252,7 +253,7 @@ export default function Home() {
               <span className="text-sm text-blue-300 font-semibold">Features</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Why Choose <span className="gradient-text">Glixtron</span>?
+              Why Choose <span className="gradient-text">{brandConfig.appName}</span>?
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">
               Unlock your career potential with cutting-edge AI technology and personalized insights
@@ -495,7 +496,7 @@ export default function Home() {
               Always Here to <span className="gradient-text">Help You Succeed</span>
             </h2>
             <p className="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed">
-              Our dedicated support team is available 24/7 to ensure you get the most out of your Glixtron experience
+              Our dedicated support team is available 24/7 to ensure you get the most out of your {brandConfig.appName} experience
             </p>
           </div>
           
@@ -505,7 +506,7 @@ export default function Home() {
                 icon: Mail,
                 title: "Email Support",
                 description: "Get detailed responses to your questions",
-                contact: "glixtron.global@gmail.com",
+                contact: brandConfig.supportEmail,
                 responseTime: "Within 24 hours",
                 color: "blue"
               },
@@ -581,7 +582,7 @@ export default function Home() {
                   Our support team is ready to help you navigate your career journey
                 </p>
                 <a 
-                  href="mailto:glixtron.global@gmail.com"
+                  href={`mailto:${brandConfig.supportEmail}`}
                   className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-violet-500 rounded-xl hover:from-blue-600 hover:to-violet-600 transition-all text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <Mail className="mr-2 h-5 w-5" />
@@ -696,8 +697,8 @@ export default function Home() {
             {/* Company Info */}
             <div>
               <div className="flex items-center space-x-3 mb-6">
-                <img src="/logo-updated.svg" alt="Glixtron" className="h-10 w-10" />
-                <span className="text-2xl font-bold gradient-text">Glixtron</span>
+                <img src="/logo-updated.svg" alt="{brandConfig.appName}" className="h-10 w-10" />
+                <span className="text-2xl font-bold gradient-text">{brandConfig.appName}</span>
               </div>
               <p className="text-slate-400 leading-relaxed mb-6">
                 Your personal career architect, powered by AI. We&apos;re revolutionizing how professionals navigate their career journeys.
@@ -748,8 +749,8 @@ export default function Home() {
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Mail className="h-5 w-5 text-blue-400" />
-                  <a href="mailto:glixtron.global@gmail.com" className="text-slate-400 hover:text-white transition-colors">
-                    glixtron.global@gmail.com
+                  <a href={`mailto:${brandConfig.supportEmail}`} className="text-slate-400 hover:text-white transition-colors">
+                    {brandConfig.supportEmail}
                   </a>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -771,7 +772,7 @@ export default function Home() {
           <div className="border-t border-slate-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-slate-400 text-sm mb-4 md:mb-0">
-                © 2024 Glixtron. All rights reserved. Your career, our mission.
+                © 2024 {brandConfig.companyName}. All rights reserved. Your career, our mission.
               </p>
               <div className="flex space-x-6 text-sm">
                 <a href="#" className="text-slate-400 hover:text-white transition-colors">Privacy Policy</a>
