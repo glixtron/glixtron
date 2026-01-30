@@ -33,7 +33,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Welcome back, John!</h1>
-        <p className="text-slate-400">Here's what's happening with your career journey today.</p>
+        <p className="text-slate-400">Here&apos;s what&apos;s happening with your career journey today.</p>
       </div>
 
       {/* Stats Grid */}

@@ -22,7 +22,7 @@ export default function AssessmentPage() {
   const assessmentSteps = [
     { id: 1, title: 'Personal Information', description: 'Tell us about yourself', completed: true },
     { id: 2, title: 'Skills & Experience', description: 'Your professional background', completed: true },
-    { id: 3, title: 'Career Preferences', description: 'What you\'re looking for', completed: false },
+    { id: 3, title: 'Career Preferences', description: 'What you&apos;re looking for', completed: false },
     { id: 4, title: 'Personality Assessment', description: 'Your work style', completed: false },
     { id: 5, title: 'Results & Recommendations', description: 'Your personalized report', completed: false }
   ]
@@ -94,7 +94,7 @@ export default function AssessmentPage() {
 
           {/* Features */}
           <div>
-            <h2 className="text-xl font-semibold text-white mb-4">What You'll Get</h2>
+            <h2 className="text-xl font-semibold text-white mb-4">What You&apos;ll Get</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ChartCard title="Personalized Career Paths">
                 <div className="space-y-3">

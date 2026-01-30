@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import './globals.css'
+import '../globals.css'
 import DashboardLayout from '@/components/DashboardLayout'
 import { brandConfig } from '@/lib/brand-config'
 
