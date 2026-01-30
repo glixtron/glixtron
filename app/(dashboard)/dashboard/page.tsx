@@ -67,20 +67,57 @@ export default function DashboardPage() {
     try {
       switch (action) {
         case 'assessment':
-          await apiService.startAssessment('full')
-          window.location.href = '/assessment'
+          // Start assessment and navigate
+          const assessmentResponse = await apiService.startAssessment('full')
+          if (assessmentResponse.success) {
+            window.location.href = '/assessment'
+          } else {
+            setError('Failed to start assessment')
+          }
           break
+          
         case 'resume-scan':
+          // Navigate to resume scanner
           window.location.href = '/resume-scanner'
           break
+          
         case 'career-guidance':
-          window.location.href = '/career-guidance'
+          // Get career guidance and navigate
+          const guidanceResponse = await apiService.getCareerGuidance()
+          if (guidanceResponse.success) {
+            window.location.href = '/career-guidance'
+          } else {
+            setError('Failed to load career guidance')
+          }
           break
+          
+        case 'job-extractor':
+          // Navigate to job extractor
+          window.location.href = '/job-extractor'
+          break
+          
+        case 'billing':
+          // Navigate to billing page
+          window.location.href = '/dashboard/billing'
+          break
+          
+        case 'profile':
+          // Navigate to profile
+          window.location.href = '/profile'
+          break
+          
+        case 'settings':
+          // Navigate to settings
+          window.location.href = '/settings'
+          break
+          
         default:
-          console.log(`Action: ${action}`)
+          console.log(`Unknown action: ${action}`)
+          setError('Unknown action')
       }
     } catch (error) {
       console.error('Action failed:', error)
+      setError(`Failed to execute ${action}`)
     }
   }
 
@@ -189,6 +226,27 @@ export default function DashboardPage() {
             icon={<TrendingUp className="h-6 w-6 text-blue-400" />}
             action={() => handleQuickAction('career-guidance')}
             actionText="Get Guidance"
+          />
+          <ActionCard
+            title="Job Extractor"
+            description="Extract key information from job descriptions and match with your profile."
+            icon={<Briefcase className="h-6 w-6 text-blue-400" />}
+            action={() => handleQuickAction('job-extractor')}
+            actionText="Extract Jobs"
+          />
+          <ActionCard
+            title="Manage Subscription"
+            description="Upgrade your plan to unlock premium features and advanced analytics."
+            icon={<Award className="h-6 w-6 text-blue-400" />}
+            action={() => handleQuickAction('billing')}
+            actionText="Manage Plan"
+          />
+          <ActionCard
+            title="Update Profile"
+            description="Keep your profile updated to improve job matching and recommendations."
+            icon={<Users className="h-6 w-6 text-blue-400" />}
+            action={() => handleQuickAction('profile')}
+            actionText="Update Profile"
           />
         </div>
       </div>

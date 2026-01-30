@@ -4,6 +4,7 @@ import { useState } from 'react'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
+import { apiService } from '@/lib/api-service'
 import { 
   FileText, 
   Upload, 
@@ -13,7 +14,9 @@ import {
   TrendingUp,
   Target,
   Eye,
-  Zap
+  Zap,
+  Sparkles,
+  BarChart3
 } from 'lucide-react'
 
 export default function ResumeScannerPage() {
@@ -21,11 +24,35 @@ export default function ResumeScannerPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [scanResults, setScanResults] = useState<any>(null)
   const [isScanning, setIsScanning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const handleFileUpload = (file: File) => {
-    setUploadedFile(file)
-    // Simulate file processing
-    setTimeout(() => {
+  const handleFileUpload = async (file: File) => {
+    try {
+      setError(null)
+      setSuccessMessage(null)
+      setUploadedFile(file)
+      setIsScanning(true)
+
+      // Upload and scan resume via API
+      const uploadResponse = await apiService.uploadResume(file)
+      if (uploadResponse.success) {
+        const scanResponse = await apiService.scanResume(uploadResponse.data.resumeId)
+        
+        if (scanResponse.success) {
+          setScanResults(scanResponse.data)
+          setSuccessMessage('Resume scanned successfully!')
+          setTimeout(() => setSuccessMessage(null), 3000)
+        } else {
+          throw new Error('Failed to scan resume')
+        }
+      } else {
+        throw new Error('Failed to upload resume')
+      }
+    } catch (error) {
+      console.error('Resume scan error:', error)
+      setError('Failed to scan resume. Please try again.')
+      // Fallback to mock data
       setScanResults({
         score: 87,
         atsScore: 92,
@@ -40,9 +67,16 @@ export default function ResumeScannerPage() {
           "Include keywords for your target role",
           "Improve formatting for better ATS readability"
         ],
-        keywords: ["Project Management", "Team Leadership", "Data Analysis"]
+        keywords: ["Project Management", "Team Leadership", "Data Analysis"],
+        improvements: [
+          { section: "Experience", suggestion: "Add metrics and KPIs", impact: "High" },
+          { section: "Skills", suggestion: "Include more technical skills", impact: "Medium" },
+          { section: "Summary", suggestion: "Add professional summary", impact: "High" }
+        ]
       })
-    }, 2000)
+    } finally {
+      setIsScanning(false)
+    }
   }
 
   const handleDragOver = (e: React.DragEvent) => {

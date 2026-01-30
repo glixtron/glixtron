@@ -49,15 +49,24 @@ class ApiService {
     })
   }
 
-  async submitAssessmentStep(step: number, data: any) {
-    return this.request('/assessment/submit', {
-      method: 'POST',
-      body: JSON.stringify({ step, data }),
-    })
+  async getAssessmentProgress() {
+    return this.request('/assessment/progress')
   }
 
   async getAssessmentResults(assessmentId: string) {
     return this.request(`/assessment/results/${assessmentId}`)
+  }
+
+  // Career Guidance API calls
+  async getCareerGuidance() {
+    return this.request('/career-guidance')
+  }
+
+  async submitCareerQuery(query: string) {
+    return this.request('/career-guidance/query', {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    })
   }
 
   // Resume Scanner API calls

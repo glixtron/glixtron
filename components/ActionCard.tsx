@@ -1,14 +1,16 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
+import { Loader2 } from 'lucide-react'
 
 interface ActionCardProps {
   title: string
   description: string
   icon: ReactNode
-  action: () => void
+  action: () => void | Promise<void>
   actionText: string
   className?: string
+  disabled?: boolean
 }
 
 export default function ActionCard({ 
@@ -17,13 +19,30 @@ export default function ActionCard({
   icon, 
   action, 
   actionText,
-  className = '' 
+  className = '',
+  disabled = false
 }: ActionCardProps) {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleAction = async () => {
+    if (disabled || isLoading) return
+    
+    try {
+      setIsLoading(true)
+      await action()
+    } catch (error) {
+      console.error('Action failed:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className={`
       p-6 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-700/50 
       hover:border-blue-500/50 hover:shadow-glow-lg transition-all duration-300 
       group hover:scale-[1.02] animate-fade-in relative overflow-hidden
+      ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       ${className}
     `}>
       {/* Background gradient effect */}
@@ -40,10 +59,24 @@ export default function ActionCard({
             <p className="text-slate-400 text-sm mb-4 group-hover:text-slate-300 transition-colors">{description}</p>
             
             <button
-              onClick={action}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-lg transition-all duration-200 hover:shadow-glow transform hover:scale-105"
+              onClick={handleAction}
+              disabled={disabled || isLoading}
+              className={`
+                inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                ${disabled || isLoading
+                  ? 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white hover:shadow-glow transform hover:scale-105'
+                }
+              `}
             >
-              {actionText}
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                actionText
+              )}
             </button>
           </div>
         </div>
