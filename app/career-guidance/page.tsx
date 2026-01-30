@@ -18,16 +18,32 @@ import {
   ArrowRight,
   CheckCircle,
   AlertCircle,
-  Zap
+  Zap,
+  FileText,
+  Briefcase,
+  Upload,
+  Download,
+  Eye,
+  Search,
+  Map,
+  Play,
+  Clock
 } from 'lucide-react'
 
 export default function CareerGuidancePage() {
+  const [activeTab, setActiveTab] = useState('overview')
   const [guidance, setGuidance] = useState<any>(null)
+  const [savedResumes, setSavedResumes] = useState<any[]>([])
+  const [jobAnalysis, setJobAnalysis] = useState<any>(null)
+  const [assessmentRoadmap, setAssessmentRoadmap] = useState<any>(null)
+  const [aiRoadmap, setAiRoadmap] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [queryResult, setQueryResult] = useState<any>(null)
   const [isQuerying, setIsQuerying] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [jobDescription, setJobDescription] = useState('')
+  const [isAnalyzingJob, setIsAnalyzingJob] = useState(false)
 
   useEffect(() => {
     loadCareerGuidance()

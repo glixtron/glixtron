@@ -92,6 +92,17 @@ class ApiService {
     return this.request(`/resume/results/${scanId}`)
   }
 
+  async getSavedResumes() {
+    return this.request('/resume/saved')
+  }
+
+  async saveResume(resumeData: any) {
+    return this.request('/resume/save', {
+      method: 'POST',
+      body: JSON.stringify(resumeData),
+    })
+  }
+
   // Profile API calls
   async getUserProfile() {
     return this.request('/profile')

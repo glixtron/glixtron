@@ -16,7 +16,8 @@ import {
   Sparkles,
   Camera,
   Menu,
-  X
+  X,
+  BarChart3
 } from 'lucide-react'
 import { brandConfig } from '@/lib/brand-config'
 import { apiService } from '@/lib/api-service'
@@ -24,7 +25,8 @@ import { apiService } from '@/lib/api-service'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Resume Scanner', href: '/resume-scanner', icon: Briefcase },
-  { name: 'Job Extractor', href: '/job-extractor', icon: FileText },
+  { name: 'Career Guidance', href: '/career-guidance', icon: TrendingUp },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Subscription & Payments', href: '/dashboard/billing', icon: CreditCard },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]

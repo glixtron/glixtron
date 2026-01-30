@@ -92,8 +92,8 @@ export default function DashboardPage() {
           break
           
         case 'job-extractor':
-          // Navigate to job extractor
-          window.location.href = '/job-extractor'
+          // Navigate to career guidance (replaces job extractor)
+          window.location.href = '/career-guidance'
           break
           
         case 'billing':
@@ -228,11 +228,11 @@ export default function DashboardPage() {
             actionText="Get Guidance"
           />
           <ActionCard
-            title="Job Extractor"
-            description="Extract key information from job descriptions and match with your profile."
-            icon={<Briefcase className="h-6 w-6 text-blue-400" />}
+            title="Career Analysis"
+            description="Get comprehensive career guidance with job analysis and AI-powered roadmaps."
+            icon={<TrendingUp className="h-6 w-6 text-blue-400" />}
             action={() => handleQuickAction('job-extractor')}
-            actionText="Extract Jobs"
+            actionText="Analyze Career"
           />
           <ActionCard
             title="Manage Subscription"
