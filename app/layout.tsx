@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 import { Providers } from './providers'
+import GlobalSidebar from '@/components/GlobalSidebar'
 
 export const metadata: Metadata = {
   title: 'Glixtron - Your Personal Career Architect',
@@ -21,13 +20,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen bg-slate-950 text-white">
         <Providers>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
+          <div className="flex h-screen overflow-hidden">
+            {/* Global Sidebar */}
+            <GlobalSidebar />
+            
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Main Content */}
+              <main className="flex-1 overflow-y-auto">
+                <div className="p-4 sm:p-6 lg:p-8">
+                  {children}
+                </div>
+              </main>
+            </div>
+          </div>
         </Providers>
       </body>
     </html>

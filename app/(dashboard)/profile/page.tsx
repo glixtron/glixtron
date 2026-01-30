@@ -122,12 +122,10 @@ export default function ProfilePage() {
 
   if (isLoading && !profileData) {
     return (
-      <div className="space-y-8 animate-fade-in">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Sparkles className="h-12 w-12 text-blue-400 animate-pulse mx-auto mb-4" />
-            <p className="text-white text-lg">Loading profile...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Sparkles className="h-12 w-12 text-blue-400 animate-pulse mx-auto mb-4" />
+          <p className="text-white text-lg">Loading profile...</p>
         </div>
       </div>
     )
