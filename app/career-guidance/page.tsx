@@ -3,7 +3,7 @@
 // Force Redeploy 2026-v1 - Fix Career Guidance Routing and Layout
 export const dynamic = 'force-dynamic'
 // REBUILD_v2 - Flattened structure fix
-
+// FORCE_CACHE_CLEAR_1738259386 - Prerender fix
 import { useState, useEffect } from 'react'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'

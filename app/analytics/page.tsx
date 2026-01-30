@@ -1,5 +1,9 @@
 'use client'
 
+// Analytics Dashboard with comprehensive career metrics
+export const dynamic = 'force-dynamic'
+// FORCE_CACHE_CLEAR_1738259386 - Prerender fix
+
 import { useState, useEffect } from 'react'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
@@ -20,9 +24,8 @@ import {
   Zap,
   Activity,
   DollarSign,
-  CheckCircle,
-  AlertCircle,
-  ArrowRight
+  ArrowRight,
+  CheckCircle
 } from 'lucide-react'
 
 export default function AnalyticsPage() {
