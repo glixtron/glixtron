@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
-import GlobalSidebar from '@/components/GlobalSidebar'
+import CollapsibleSidebar from '@/components/CollapsibleSidebar'
 
 export const metadata: Metadata = {
   title: 'Glixtron - Your Personal Career Architect',
@@ -23,8 +23,8 @@ export default function RootLayout({
       <body className="min-h-screen bg-slate-950 text-white">
         <Providers>
           <div className="flex h-screen overflow-hidden">
-            {/* Global Sidebar */}
-            <GlobalSidebar />
+            {/* Collapsible Sidebar */}
+            <CollapsibleSidebar />
             
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
