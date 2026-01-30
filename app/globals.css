@@ -2,22 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light Theme - Default */
+/* Light Theme - White and Blue with Black Text */
 :root {
   --background: #ffffff;
-  --foreground: #0f172a;
+  --foreground: #000000;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #000000;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #000000;
   --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --secondary: #f8fafc;
-  --secondary-foreground: #1e293b;
-  --muted: #f1f5f9;
+  --secondary: #f0f9ff;
+  --secondary-foreground: #1e3a8a;
+  --muted: #f8fafc;
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #1e293b;
+  --accent: #dbeafe;
+  --accent-foreground: #1e40af;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #e2e8f0;
@@ -25,13 +25,24 @@
   --ring: #2563eb;
   --radius: 0.5rem;
   
-  /* High Contrast Text Colors */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  /* High Contrast Text Colors - Pure Black */
+  --text-primary: #000000;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
   --text-inverse: #ffffff;
   
-  /* Standard Blue Theme Colors */
+  /* Navigation and Active States */
+  --nav-bg: #ffffff;
+  --nav-border: #e5e7eb;
+  --nav-text: #000000;
+  --nav-text-hover: #2563eb;
+  --nav-active: #2563eb;
+  --nav-active-text: #ffffff;
+  --nav-icon: #374151;
+  --nav-icon-hover: #2563eb;
+  --nav-icon-active: #ffffff;
+  
+  /* Enhanced Blue Theme Colors */
   --blue-50: #eff6ff;
   --blue-100: #dbeafe;
   --blue-200: #bfdbfe;
@@ -43,17 +54,17 @@
   --blue-800: #1e40af;
   --blue-900: #1e3a8a;
   
-  /* Neutral Colors with Better Contrast */
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
+  /* Pure White and Black Variants */
+  --white-50: #ffffff;
+  --white-100: #f9fafb;
+  --white-200: #f3f4f6;
+  --white-300: #e5e7eb;
+  --white-400: #d1d5db;
+  --white-500: #9ca3af;
+  --white-600: #6b7280;
+  --white-700: #4b5563;
+  --white-800: #374151;
+  --white-900: #111827;
   
   /* Success Colors */
   --success: #059669;
@@ -79,98 +90,109 @@
   --info-light: #ecfeff;
   --info-border: #06b6d4;
   
-  /* Form Colors */
+  /* Form Colors - High Contrast */
   --input-bg: #ffffff;
   --input-border: #d1d5db;
-  --input-text: #111827;
+  --input-text: #000000;
   --input-placeholder: #6b7280;
   --input-focus-border: #2563eb;
-  --input-focus-ring: rgba(37, 99, 235, 0.2);
+  --input-focus-ring: rgba(37, 99, 235, 0.3);
 }
 
-/* Dark Theme */
+/* Dark Theme - Black and Blue with Garish Combination */
 .dark {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --card: #1e293b;
-  --card-foreground: #f8fafc;
-  --popover: #1e293b;
-  --popover-foreground: #f8fafc;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --accent: #334155;
-  --accent-foreground: #f8fafc;
-  --destructive: #ef4444;
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #0a0a0a;
+  --popover-foreground: #ffffff;
+  --primary: #00d4ff;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #00d4ff;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #0066cc;
+  --accent-foreground: #ffffff;
+  --destructive: #ff0066;
   --destructive-foreground: #ffffff;
-  --border: #374151;
-  --input: #1f2937;
-  --ring: #3b82f6;
+  --border: #333333;
+  --input: #1a1a1a;
+  --ring: #00d4ff;
   
-  /* High Contrast Text Colors for Dark Mode */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-inverse: #0f172a;
+  /* High Contrast Text Colors - Pure White */
+  --text-primary: #ffffff;
+  --text-secondary: #e5e5e5;
+  --text-muted: #a3a3a3;
+  --text-inverse: #000000;
   
-  /* Dark theme adjustments for blue */
-  --blue-50: #1e3a8a;
-  --blue-100: #1e40af;
-  --blue-200: #1d4ed8;
-  --blue-300: #2563eb;
-  --blue-400: #3b82f6;
-  --blue-500: #60a5fa;
-  --blue-600: #93c5fd;
-  --blue-700: #bfdbfe;
-  --blue-800: #dbeafe;
-  --blue-900: #eff6ff;
+  /* Navigation and Active States - Garish Blue */
+  --nav-bg: #0a0a0a;
+  --nav-border: #333333;
+  --nav-text: #ffffff;
+  --nav-text-hover: #00d4ff;
+  --nav-active: #00d4ff;
+  --nav-active-text: #000000;
+  --nav-icon: #cccccc;
+  --nav-icon-hover: #00d4ff;
+  --nav-icon-active: #000000;
   
-  /* Neutral Colors for Dark Mode */
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
+  /* Garish Blue Theme Colors */
+  --blue-50: #000033;
+  --blue-100: #000066;
+  --blue-200: #003399;
+  --blue-300: #0066cc;
+  --blue-400: #0099ff;
+  --blue-500: #00ccff;
+  --blue-600: #00d4ff;
+  --blue-700: #33ddff;
+  --blue-800: #66e6ff;
+  --blue-900: #99f0ff;
   
-  /* Success Colors for Dark Mode */
-  --success: #10b981;
-  --success-foreground: #ffffff;
-  --success-light: #064e3b;
-  --success-border: #059669;
+  /* Pure Black and White Variants */
+  --black-50: #000000;
+  --black-100: #0a0a0a;
+  --black-200: #1a1a1a;
+  --black-300: #262626;
+  --black-400: #333333;
+  --black-500: #4d4d4d;
+  --black-600: #666666;
+  --black-700: #808080;
+  --black-800: #a3a3a3;
+  --black-900: #cccccc;
   
-  /* Warning Colors for Dark Mode */
-  --warning: #f59e0b;
-  --warning-foreground: #ffffff;
-  --warning-light: #78350f;
-  --warning-border: #d97706;
+  /* Success Colors - Bright Green */
+  --success: #00ff88;
+  --success-foreground: #000000;
+  --success-light: #00331a;
+  --success-border: #00cc66;
   
-  /* Error Colors for Dark Mode */
-  --error: #ef4444;
+  /* Warning Colors - Bright Yellow */
+  --warning: #ffcc00;
+  --warning-foreground: #000000;
+  --warning-light: #332600;
+  --warning-border: #ff9900;
+  
+  /* Error Colors - Bright Red */
+  --error: #ff0066;
   --error-foreground: #ffffff;
-  --error-light: #7f1d1d;
-  --error-border: #dc2626;
+  --error-light: #33001a;
+  --error-border: #ff0044;
   
-  /* Info Colors for Dark Mode */
-  --info: #06b6d4;
-  --info-foreground: #ffffff;
-  --info-light: #164e63;
-  --info-border: #0891b2;
+  /* Info Colors - Bright Cyan */
+  --info: #00ffff;
+  --info-foreground: #000000;
+  --info-light: #003333;
+  --info-border: #00cccc;
   
-  /* Form Colors for Dark Mode */
-  --input-bg: #1f2937;
-  --input-border: #374151;
-  --input-text: #f9fafb;
-  --input-placeholder: #9ca3af;
-  --input-focus-border: #60a5fa;
-  --input-focus-ring: rgba(96, 165, 250, 0.2);
+  /* Form Colors - High Contrast */
+  --input-bg: #1a1a1a;
+  --input-border: #333333;
+  --input-text: #ffffff;
+  --input-placeholder: #808080;
+  --input-focus-border: #00d4ff;
+  --input-focus-ring: rgba(0, 212, 255, 0.4);
 }
 
 * {
@@ -198,7 +220,7 @@ body {
     border: 1px solid var(--primary);
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.875rem;
     line-height: 1.25rem;
     transition: all 0.2s ease;
@@ -207,18 +229,27 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 2.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
   .btn-primary:hover {
-    background-color: var(--blue-700);
-    border-color: var(--blue-700);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    filter: brightness(1.1);
   }
   
   .btn-primary:focus {
     outline: none;
-    box-shadow: 0 0 0 3px var(--input-focus-ring);
+    box-shadow: 0 0 0 4px var(--input-focus-ring);
+  }
+  
+  .dark .btn-primary {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark .btn-primary:hover {
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.5);
+    filter: brightness(1.2);
   }
   
   .btn-secondary {
@@ -499,13 +530,92 @@ body {
   
   /* Focus Styles for Accessibility */
   .focus-ring:focus {
-    outline: 2px solid var(--ring);
+    outline: 3px solid var(--ring);
     outline-offset: 2px;
   }
   
   .focus-ring:focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 3px solid var(--ring);
     outline-offset: 2px;
+  }
+  
+  /* Navigation and Active Page Styles */
+  .nav-container {
+    background-color: var(--nav-bg);
+    border-bottom: 1px solid var(--nav-border);
+  }
+  
+  .nav-link {
+    color: var(--nav-text);
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  
+  .nav-link:hover {
+    color: var(--nav-text-hover);
+  }
+  
+  .nav-link.active {
+    color: var(--nav-active-text);
+    background-color: var(--nav-active);
+  }
+  
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--nav-active);
+  }
+  
+  .nav-icon {
+    color: var(--nav-icon);
+    transition: all 0.2s ease;
+  }
+  
+  .nav-icon:hover {
+    color: var(--nav-icon-hover);
+  }
+  
+  .nav-icon.active {
+    color: var(--nav-icon-active);
+  }
+  
+  /* Company Logo Protection */
+  .company-logo {
+    filter: none !important;
+    mix-blend-mode: normal !important;
+  }
+  
+  .company-logo svg {
+    fill: currentColor !important;
+  }
+  
+  /* High Contrast Mode Support */
+  @media (prefers-contrast: high) {
+    .btn-primary {
+      border-width: 2px;
+      font-weight: 700;
+    }
+    
+    .nav-link.active {
+      border: 2px solid var(--nav-active);
+    }
+  }
+  
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    .btn-primary,
+    .nav-link,
+    .nav-icon {
+      transition: none;
+    }
+    
+    .btn-primary:hover {
+      transform: none;
+    }
   }
   
   /* Enhanced Input Styles with Better Contrast */
