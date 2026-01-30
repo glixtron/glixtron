@@ -1,5 +1,7 @@
 'use client'
 
+// Force Redeploy 2026-v1 - Fix Career Guidance Routing and Layout
+
 import { useState, useEffect } from 'react'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
