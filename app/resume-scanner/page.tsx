@@ -124,8 +124,8 @@ export default function ResumeScannerPage() {
               onAnalysisComplete={handleAnalysisComplete}
               onError={handleError}
               isAnalyzing={isScanning}
-              acceptedFormats={brandConfig?.supportedFormats || ['pdf', 'docx', 'txt']}
-              maxFileSize={brandConfig?.maxFileSize || 10 * 1024 * 1024}
+              acceptedFormats={['pdf', 'docx', 'txt']}
+              maxFileSize={10 * 1024 * 1024}
             />
           </div>
         </SafeComponent>

@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Target, Calendar, Clock, TrendingUp, CheckCircle, AlertCircle, Plus } from 'lucide-react'
+import { Target, Calendar, Clock, TrendingUp, CheckCircle, AlertCircle, Plus, RefreshCw, Circle } from 'lucide-react'
 import { SafeIcon, SafeComponent } from '@/components/SafetyWrapper'
+import { useRealTimeRoadmap } from '@/hooks/useRealTimeRoadmap'
 
 interface RoadmapMilestone {
   id: string
@@ -15,47 +16,18 @@ interface RoadmapMilestone {
   updatedAt: string
 }
 
-interface RoadmapState {
-  currentMilestone: string
-  targetDate: string
-  progressScore: number
-  updatedAt: string
-}
-
 interface RoadmapWidgetProps {
   className?: string
 }
 
 export default function RoadmapWidget({ className = '' }: RoadmapWidgetProps) {
-  const [milestones, setMilestones] = useState<RoadmapMilestone[]>([])
-  const [currentState, setCurrentState] = useState<RoadmapState | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { milestones, isLoading, error, refreshRoadmap } = useRealTimeRoadmap()
 
-  useEffect(() => {
-    loadRoadmapData()
-  }, [])
+  // Calculate progress
+  const completed = milestones.filter(m => m.status === 'completed').length
+  const progress = milestones.length > 0 ? (completed / milestones.length) * 100 : 0
 
-  const loadRoadmapData = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/user/roadmap')
-      
-      if (response.ok) {
-        const data = await response.json()
-        setMilestones(data.data.milestones || [])
-        setCurrentState(data.data.currentState)
-      } else {
-        setError('Failed to load roadmap data')
-      }
-    } catch (error) {
-      console.error('Error loading roadmap:', error)
-      setError('Network error loading roadmap')
-    } finally {
-      setLoading(false)
-    }
-  }
-
+  // Get priority color
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'High': return 'text-red-400 bg-red-500/10 border-red-500/30'
@@ -65,144 +37,125 @@ export default function RoadmapWidget({ className = '' }: RoadmapWidgetProps) {
     }
   }
 
+  // Get status icon
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4 text-green-400" />
-      case 'in-progress': return <Clock className="w-4 h-4 text-blue-400" />
-      default: return <AlertCircle className="w-4 h-4 text-yellow-400" />
+      case 'completed': return <CheckCircle className="w-5 h-5 text-green-500" />
+      case 'in-progress': return <Clock className="w-5 h-5 text-blue-500" />
+      default: return <Circle className="w-5 h-5 text-gray-500" />
     }
-  }
-
-  const getProgressColor = (score: number) => {
-    if (score >= 75) return 'bg-green-500'
-    if (score >= 50) return 'bg-yellow-500'
-    return 'bg-red-500'
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
-
-  if (loading) {
-    return (
-      <SafeComponent>
-        <div className={`bg-slate-900/80 border border-slate-700/50 rounded-xl p-6 ${className}`}>
-          <div className="animate-pulse">
-            <div className="h-6 bg-slate-700 rounded w-32 mb-4"></div>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-slate-700 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </SafeComponent>
-    )
-  }
-
-  if (error) {
-    return (
-      <SafeComponent>
-        <div className={`bg-red-500/10 border border-red-500/30 rounded-xl p-6 ${className}`}>
-          <div className="flex items-center space-x-3">
-            <SafeIcon icon={AlertCircle} className="w-5 h-5 text-red-400" />
-            <span className="text-red-400">{error}</span>
-          </div>
-        </div>
-      </SafeComponent>
-    )
   }
 
   return (
     <SafeComponent>
-      <div className={`bg-slate-900/80 border border-slate-700/50 rounded-xl p-6 ${className}`}>
+      <div className={`p-6 bg-slate-900/50 border border-slate-800 rounded-2xl ${className}`}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-3">
-            <SafeIcon icon={Target} className="w-5 h-5 text-blue-400" />
-            <h3 className="text-lg font-semibold text-white">Career Roadmap</h3>
+            <Target className="w-6 h-6 text-blue-400" />
+            <h3 className="text-xl font-bold text-white">Career Roadmap</h3>
           </div>
-          <button
-            onClick={loadRoadmapData}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <SafeIcon icon={AlertCircle} className="w-4 h-4" />
-          </button>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm font-medium text-blue-400">{Math.round(progress)}% Complete</span>
+            <button
+              onClick={refreshRoadmap}
+              disabled={isLoading}
+              className="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
-        {/* Current Progress */}
-        {currentState && (
-          <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-blue-400 font-medium">Current Progress</span>
-              <span className="text-white font-bold">{currentState.progressScore}%</span>
-            </div>
-            <div className="w-full bg-slate-700 rounded-full h-2 mb-2">
-              <div 
-                className={`${getProgressColor(currentState.progressScore)} h-2 rounded-full transition-all duration-300`}
-                style={{ width: `${currentState.progressScore}%` }}
-              ></div>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">{currentState.currentMilestone}</span>
-              <span className="text-gray-400">Target: {formatDate(currentState.targetDate)}</span>
+        {/* Progress Bar */}
+        <div className="w-full bg-slate-800 h-2 rounded-full mb-8">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-1000" 
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+
+        {/* Loading State */}
+        {isLoading && milestones.length === 0 && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading your career roadmap...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <span className="text-red-400">{error}</span>
             </div>
           </div>
         )}
 
-        {/* Milestones List */}
-        <div className="space-y-3">
-          <h4 className="text-white font-medium mb-3">AI-Generated Milestones</h4>
-          
-          {milestones.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <SafeIcon icon={Target} className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No milestones yet. Get AI career advice to generate your roadmap!</p>
-            </div>
-          ) : (
-            milestones.slice(0, 5).map((milestone) => (
-              <div
-                key={milestone.id}
-                className="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700/30 rounded-lg hover:bg-slate-800/70 transition-colors"
-              >
-                <div className="flex items-center space-x-3">
+        {/* Milestones */}
+        {!isLoading && milestones.length > 0 && (
+          <div className="space-y-4">
+            {milestones.map((milestone, index) => (
+              <div key={milestone.id} className="flex items-start gap-4 group hover:bg-slate-800/30 p-3 rounded-lg transition-colors">
+                <div className="mt-1">
                   {getStatusIcon(milestone.status)}
-                  <div>
-                    <p className="text-white font-medium">{milestone.milestone}</p>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <SafeIcon icon={Calendar} className="w-3 h-3" />
-                      <span>{formatDate(milestone.targetDate)}</span>
-                    </div>
-                  </div>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(milestone.priority)}`}>
-                    {milestone.priority}
-                  </span>
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-                    <span className="text-xs text-white font-bold">{milestone.progressScore}%</span>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className={`text-sm font-medium ${
+                      milestone.status === 'completed' ? 'text-slate-400 line-through' : 'text-slate-200'
+                    }`}>
+                      {milestone.milestone}
+                    </p>
+                    <span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(milestone.priority)}`}>
+                      {milestone.priority}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Calendar size={12} />
+                    <span>Target: {new Date(milestone.targetDate).toLocaleDateString()}</span>
+                    {milestone.progressScore > 0 && (
+                      <>
+                        <span>•</span>
+                        <span>Progress: {milestone.progressScore}%</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Action Button */}
-        <div className="mt-6 pt-4 border-t border-slate-700/30">
-          <button
-            onClick={() => window.location.href = '/career-guidance'}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <SafeIcon icon={Plus} className="w-4 h-4" />
-            <span>Get AI Career Advice</span>
-          </button>
-        </div>
+        {/* Empty State */}
+        {!isLoading && milestones.length === 0 && !error && (
+          <div className="text-center py-8">
+            <Target className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400 text-sm mb-2">No milestones yet</p>
+            <p className="text-gray-500 text-xs">Chat with the AI Assistant to generate your personalized career roadmap!</p>
+          </div>
+        )}
+
+        {/* Summary */}
+        {milestones.length > 0 && (
+          <div className="mt-6 pt-6 border-t border-slate-700">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold text-white">{milestones.length}</p>
+                <p className="text-xs text-gray-400">Total Milestones</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-green-400">{completed}</p>
+                <p className="text-xs text-gray-400">Completed</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-400">{milestones.length - completed}</p>
+                <p className="text-xs text-gray-400">In Progress</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </SafeComponent>
   )
