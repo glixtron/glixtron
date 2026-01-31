@@ -3,9 +3,11 @@ import './globals.css'
 import { Providers } from './providers'
 import CollapsibleSidebar from '@/components/CollapsibleSidebar'
 
+import { brandConfig } from '@/config/brand'
+
 export const metadata: Metadata = {
-  title: 'Glixtron - Your Personal Career Architect',
-  description: 'AI-powered intelligence to assess, develop, and connect you to your future career.',
+  title: `${brandConfig.name} - Your Personal Career Architect`,
+  description: brandConfig.description || 'AI-powered intelligence to assess, develop, and connect you to your future career.',
   icons: {
     icon: '/favicon-updated.svg',
     shortcut: '/favicon-updated.svg',

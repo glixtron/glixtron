@@ -5,6 +5,7 @@ import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
 import SkeletonLoader from '@/components/SkeletonLoader'
+import RoadmapWidget from '@/components/RoadmapWidget'
 import { 
   TrendingUp, 
   Users, 
@@ -213,6 +214,11 @@ export default function DashboardPage() {
           </div>
           
           <div className="space-y-8">
+            {/* Roadmap Widget - Dynamic */}
+            <Suspense fallback={<SkeletonLoader type="card" />}>
+              <RoadmapWidget />
+            </Suspense>
+            
             {/* Recent Activity - Dynamic */}
             <Suspense fallback={<ActivitySkeleton />}>
               <DynamicActivity />

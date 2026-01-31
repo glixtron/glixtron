@@ -8,6 +8,9 @@ import { getServerSession } from 'next-auth'
 import { authConfig } from '@/lib/auth-config'
 import { deepseekCareerAnalysis } from '@/lib/ai-providers'
 
+// Extend timeout for Vercel Hobby tier
+export const maxDuration = 60
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authConfig)

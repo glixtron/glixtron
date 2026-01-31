@@ -407,20 +407,27 @@ export default function CareerGuidancePage() {
   const updateRoadmapInDB = async (roadmapData: any) => {
     try {
       const response = await fetch('/api/user/roadmap', {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(roadmapData)
+        body: JSON.stringify({
+          milestone: roadmapData.milestone,
+          targetDate: roadmapData.targetDate,
+          priority: roadmapData.priority || 'High',
+          progressScore: roadmapData.progressScore || 25
+        })
       })
       
       if (response.ok) {
-        console.log('✅ Roadmap updated in database')
+        const result = await response.json()
+        console.log('✅ Roadmap milestone saved to database:', result.data)
+        return result.data
       } else {
-        console.warn('⚠️ Failed to update roadmap in database')
+        console.warn('⚠️ Failed to save roadmap milestone to database')
       }
     } catch (error) {
-      console.warn('⚠️ Error updating roadmap in database:', error)
+      console.warn('⚠️ Error saving roadmap milestone to database:', error)
     }
   }
 

@@ -5,7 +5,7 @@ import { MongoClient } from 'mongodb'
 // Extend timeout for Vercel Hobby tier
 export const maxDuration = 60
 
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession()
@@ -16,14 +16,13 @@ export async function POST(request: NextRequest) {
       }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { milestone, targetDate, progressScore } = body
+    const { milestone, targetDate, priority, progressScore } = await request.json()
 
-    // Validate input
-    if (!milestone || !targetDate || typeof progressScore !== 'number') {
-      return NextResponse.json({
+    // Validate required fields
+    if (!milestone || !targetDate || !priority) {
+      return NextResponse.json({ 
         success: false,
-        error: 'Invalid roadmap data'
+        error: 'Missing required fields: milestone, targetDate, priority'
       }, { status: 400 })
     }
 
@@ -33,39 +32,55 @@ export async function POST(request: NextRequest) {
       await client.connect()
       const db = client.db()
       
-      // Update user's roadmap
+      // Add the new milestone to the user's roadmap array
       const result = await db.collection('users').updateOne(
         { email: session.user.email },
         { 
+          $push: { 
+            roadmap: {
+              id: new Date().getTime().toString(), // Simple ID generation
+              milestone,
+              targetDate,
+              priority,
+              status: 'pending',
+              progressScore: progressScore || 25,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            } 
+          } as any,
+          // Update current roadmap state
           $set: {
-            'roadmap.currentMilestone': milestone,
-            'roadmap.targetDate': targetDate,
-            'roadmap.progressScore': progressScore,
-            'roadmap.updatedAt': new Date()
+            'roadmapState.currentMilestone': milestone,
+            'roadmapState.targetDate': targetDate,
+            'roadmapState.progressScore': progressScore || 25,
+            'roadmapState.updatedAt': new Date()
           }
         },
         { upsert: true }
       )
       
       // Also save to roadmap history for analytics
-      await db.collection('roadmap_updates').insertOne({
+      await db.collection('roadmap_history').insertOne({
         email: session.user.email,
         milestone,
         targetDate,
-        progressScore,
-        updatedAt: new Date(),
-        source: 'ai_advice'
+        priority,
+        progressScore: progressScore || 25,
+        source: 'ai_generated',
+        createdAt: new Date()
       })
       
-      console.log('✅ Roadmap updated for user:', session.user.email)
+      console.log('✅ Roadmap milestone saved for user:', session.user.email)
       
       return NextResponse.json({
         success: true,
         data: {
+          id: new Date().getTime().toString(),
           milestone,
           targetDate,
-          progressScore,
-          updatedAt: new Date()
+          priority,
+          status: 'pending',
+          progressScore: progressScore || 25
         }
       })
       
@@ -74,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
     
   } catch (error) {
-    console.error('Roadmap update error:', error)
+    console.error('Roadmap Update Error:', error)
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'

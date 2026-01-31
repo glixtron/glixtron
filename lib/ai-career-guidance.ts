@@ -166,7 +166,7 @@ export class AICareerGuidance {
       const genAI = new GoogleGenerativeAI(this.geminiApiKey)
       const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
-      const prompt = this.buildCareerPrompt(request)
+      const prompt = await this.buildCareerPrompt(request)
       const result = await model.generateContent(prompt)
       const response = await result.response
       const text = response.text()
@@ -187,13 +187,13 @@ export class AICareerGuidance {
       const { OpenAI } = await import('openai')
       const openai = new OpenAI({ apiKey: this.openaiApiKey })
 
-      const prompt = this.buildCareerPrompt(request)
+      const prompt = await this.buildCareerPrompt(request)
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: 'You are an expert career counselor specializing in science education and career paths. Provide detailed, actionable guidance for science students.'
+            content: 'You are an expert career counselor providing structured guidance.'
           },
           {
             role: 'user',
@@ -254,11 +254,41 @@ export class AICareerGuidance {
   /**
    * Build comprehensive career prompt
    */
-  private buildCareerPrompt(request: CareerGuidanceRequest): string {
+  private async buildCareerPrompt(request: CareerGuidanceRequest): Promise<string> {
     const { studentProfile, assessmentResults } = request
+    
+    // Try to get dynamic brand config, fall back to default
+    let brandConfig
+    try {
+      const { brandConfig: importedConfig } = await import('@/config/brand')
+      brandConfig = importedConfig
+    } catch (error) {
+      // Fallback to hardcoded config
+      brandConfig = {
+        aiPersona: {
+          name: "Aria",
+          style: "Professional & Data-Driven",
+          instruction: "You are an elite Silicon Valley recruiter. Be blunt about skill gaps but provide high-ROI solutions. Focus heavily on ATS optimization and salary negotiation.",
+          tone: "formal",
+          communication: {
+            greeting: "Hello! I'm Aria, your AI career advisor.",
+            signoff: "Best regards on your career journey!",
+            encouragement: "You're making great progress toward your goals."
+          }
+        },
+        name: "Glixtron Pilot"
+      }
+    }
 
     return `
-As an expert career counselor for science students, analyze the following profile and provide comprehensive career guidance:
+IDENTITY: Your name is ${brandConfig.aiPersona.name}.
+ROLE: ${brandConfig.aiPersona.instruction}
+TONE: ${brandConfig.aiPersona.tone}.
+
+You are representing the brand "${brandConfig.name}". 
+Ensure all advice aligns with a ${brandConfig.aiPersona.style} methodology.
+
+${brandConfig.aiPersona.communication.greeting}
 
 STUDENT PROFILE:
 - Name: ${studentProfile.name}
@@ -292,6 +322,13 @@ Please provide a comprehensive career guidance response in JSON format with the 
 }
 
 Focus on science-related careers and provide specific, actionable advice. Consider current market trends and future growth potential in science fields.
+
+CRITICAL: At the end of your advice, always include the roadmap update tag:
+ROADMAP_UPDATE: {"milestone": "...", "targetDate": "...", "priority": "...", "progressScore": 25}
+
+${brandConfig.aiPersona.communication.encouragement}
+
+${brandConfig.aiPersona.communication.signoff}
     `.trim()
   }
 
