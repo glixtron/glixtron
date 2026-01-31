@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import CollapsibleSidebar from '@/components/CollapsibleSidebar'
+import { Analytics } from '@vercel/analytics/next'
 
 import { brandConfig } from '@/config/brand'
 
@@ -39,6 +40,7 @@ export default function RootLayout({
             </div>
           </div>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
