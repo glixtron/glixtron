@@ -1,5 +1,63 @@
 import { NextResponse } from 'next/server';
 
+// Initialize AI services
+let geminiAI: any = null;
+let firecrawlAI: any = null;
+
+// Initialize AI services lazily
+const getGeminiAI = () => {
+  if (!geminiAI && process.env.GEMINI_API_KEY) {
+    try {
+      // Dynamic import to avoid require() lint error
+      import('@google/generative-ai').then(({ GoogleGenerativeAI }: any) => {
+        geminiAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+        console.log('Gemini AI initialized successfully');
+      }).catch((error: any) => {
+        console.warn('Failed to initialize Gemini AI:', error?.message || 'Unknown error');
+        console.warn('Falling back to structured parsing');
+      });
+    } catch (error: any) {
+      console.warn('Failed to initialize Gemini AI:', error?.message || 'Unknown error');
+      console.warn('Falling back to structured parsing');
+    }
+  }
+  return geminiAI;
+};
+
+const getFirecrawlAI = () => {
+  if (!firecrawlAI && process.env.FIRECRAWL_API_KEY) {
+    try {
+      // Firecrawl would require a custom implementation or SDK
+      // For now, we'll use a placeholder
+      firecrawlAI = {
+        scrapeUrl: async (url: string) => {
+          // Placeholder for Firecrawl implementation
+          const response = await fetch(`https://api.firecrawl.dev/v1/scrape`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              url: url,
+              formats: ['markdown', 'raw'],
+            }),
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Firecrawl API error: ${response.status}`);
+          }
+          
+          return await response.json();
+        }
+      };
+    } catch (error: any) {
+      console.warn('Failed to initialize Firecrawl AI:', error?.message || 'Unknown error');
+    }
+  }
+  return firecrawlAI;
+};
+
 export async function POST(req: Request) {
   try {
     const { url } = await req.json();
@@ -25,25 +83,77 @@ export async function POST(req: Request) {
       throw new Error('No content found on the page');
     }
 
-    // 2. AI INTEGRATION: Use structured parsing to extract job information
-    // For now, we'll do basic parsing. In production, you'd use Gemini/GPT here
-    const structuredData = extractJobInfo(rawContent);
+    // 2. AI INTEGRATION: Use Gemini for enhanced data extraction
+    let structuredData;
+    
+    try {
+      const gemini = getGeminiAI();
+      if (gemini) {
+        structuredData = await extractJobInfoWithGemini(rawContent, gemini);
+      } else {
+        // Fallback to structured parsing
+        structuredData = extractJobInfo(rawContent);
+        console.log('Using structured parsing fallback (Gemini not available)');
+      }
+    } catch (error: any) {
+      console.warn('AI extraction failed, using structured parsing:', error?.message || 'Unknown error');
+      structuredData = extractJobInfo(rawContent);
+    }
 
     return NextResponse.json({ 
       success: true, 
       data: {
         ...structuredData,
         rawContent: rawContent.substring(0, 5000), // Store first 5000 chars for reference
-        extractedAt: new Date().toISOString()
+        extractedAt: new Date().toISOString(),
+        aiEnhanced: !!getGeminiAI()
       }
     });
 
   } catch (error: any) {
     console.error("Extraction Error:", error);
     return NextResponse.json({ 
-      error: error.message || "Failed to extract job description",
-      details: error.stack
+      error: error?.message || "Failed to extract job description",
+      details: error?.stack || 'No stack trace available'
     }, { status: 500 });
+  }
+}
+
+// Enhanced job information extraction using Gemini AI
+async function extractJobInfoWithGemini(content: string, geminiAI: any) {
+  const model = geminiAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  
+  const prompt = `
+    Extract the following information from this job description and return it as valid JSON:
+    - jobTitle: The job title
+    - companyName: The company name
+    - keySkills: Array of key technical skills mentioned
+    - experienceLevel: The experience level required
+    - salaryRange: The salary range if mentioned
+    - location: Job location
+    - remote: Whether it's remote (Yes/No/Not Specified)
+    - employmentType: Employment type (full-time/part-time/contract/internship)
+    - responsibilities: Array of key responsibilities as bullet points
+    - requirements: Array of key requirements as bullet points
+    - benefits: Array of benefits mentioned
+    - applicationDeadline: Application deadline if mentioned
+    
+    Job Content: ${content.substring(0, 8000)}
+    
+    Return ONLY valid JSON. No markdown formatting, no code blocks, no explanations.
+  `;
+
+  const result = await model.generateContent(prompt);
+  const aiResponse = result.response.text();
+  
+  // Clean JSON if the AI adds markdown blocks
+  const cleanedJson = aiResponse.replace(/```json|```/g, '').trim();
+  
+  try {
+    return JSON.parse(cleanedJson);
+  } catch (error: any) {
+    console.warn('Failed to parse AI response, using fallback parsing:', error?.message || 'Unknown error');
+    return extractJobInfo(content);
   }
 }
 

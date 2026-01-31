@@ -2,13 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // Mock data - in a real app, this would come from a database
 const mockStats = {
-  careerScore: 87,
-  completedAssessments: 12,
-  jobMatches: 48,
+  careerProgress: "87%",
+  careerTrend: "5% from last month",
+  projectsCompleted: "12",
+  projectTrend: "2 this week",
+  marketReadiness: "78%",
+  readinessTrend: "3% improvement",
+  skillsMastered: "15/20",
+  skillTrend: "3 new skills",
+  jobMatches: "48",
+  jobTrend: "12 new matches",
   skillPoints: 1234,
   trends: {
-    careerScore: { value: '5% from last month', isPositive: true },
-    completedAssessments: { value: '2 this week', isPositive: true },
+    careerProgress: { value: '5% from last month', isPositive: true },
+    projectsCompleted: { value: '2 this week', isPositive: true },
+    marketReadiness: { value: '3% improvement', isPositive: true },
+    skillsMastered: { value: '3 new skills', isPositive: true },
     jobMatches: { value: '12 new matches', isPositive: true },
     skillPoints: { value: '150 earned', isPositive: true },
   }

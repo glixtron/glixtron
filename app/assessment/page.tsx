@@ -349,14 +349,14 @@ export default function AssessmentPage() {
               <ActionCard
                 title="Comprehensive Career Assessment"
                 description="Complete evaluation including skills, personality, and preferences for personalized career recommendations."
-                icon={<Brain className="h-6 w-6 text-blue-400" />}
+                icon={Brain}
                 action={() => handleStartAssessment('full')}
                 actionText={isLoading ? 'Starting...' : 'Start Full Assessment'}
               />
               <ActionCard
                 title="Quick Skills Assessment"
                 description="Fast evaluation of your current skills and experience to identify immediate opportunities."
-                icon={<Target className="h-6 w-6 text-blue-400" />}
+                icon={Target}
                 action={() => handleStartAssessment('quick')}
                 actionText={isLoading ? 'Starting...' : 'Quick Assessment'}
               />

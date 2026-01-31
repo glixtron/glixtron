@@ -343,14 +343,14 @@ export default function SettingsPage() {
           <ActionCard
             title="Export Data"
             description="Download all your data and information from our platform."
-            icon={<Database className="h-6 w-6 text-brand-accent" />}
+            icon={Database}
             action={() => console.log('Export data')}
             actionText="Export Data"
           />
           <ActionCard
             title="Get Help"
             description="Access our help center and support resources."
-            icon={<HelpCircle className="h-6 w-6 text-brand-accent" />}
+            icon={HelpCircle}
             action={() => console.log('Get help')}
             actionText="Get Help"
           />

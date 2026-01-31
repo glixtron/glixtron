@@ -95,13 +95,18 @@ export default function CompanyLogo({ company, size = 'md', className = '' }: Co
     }
   }
 
+  const logo = {
+    svg: getIcon(company),
+    color: color
+  }
+
   return (
     <div 
       className={`company-logo flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
       {logo && (
-        <div className="company-logo" style={{ color: logo.color }}>
+        <div className="company-logo" style={{ backgroundImage: `url('https://example.com/logo.png')`, color: logo.color }}>
           {logo.svg}
         </div>
       )}

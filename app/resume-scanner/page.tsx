@@ -4,7 +4,10 @@ import { useState } from 'react'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
+import FileUpload from '@/components/FileUpload'
+import { brandConfig } from '@/config/brand'
 import { apiService } from '@/lib/api-service'
+import { useResumeReport } from '@/lib/resume-report-generator'
 import { 
   FileText, 
   Upload, 
@@ -16,340 +19,267 @@ import {
   Eye,
   Zap,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Award,
+  Shield
 } from 'lucide-react'
 
 export default function ResumeScannerPage() {
-  const [isDragging, setIsDragging] = useState(false)
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [scanResults, setScanResults] = useState<any>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const { downloadReport } = useResumeReport()
 
-  const handleFileUpload = async (file: File) => {
-    try {
-      setError(null)
-      setSuccessMessage(null)
-      setUploadedFile(file)
-      setIsScanning(true)
-
-      // Upload and scan resume via API
-      const uploadResponse = await apiService.uploadResume(file)
-      if (uploadResponse.success) {
-        const scanResponse = await apiService.scanResume(uploadResponse.data.resumeId)
-        
-        if (scanResponse.success) {
-          // Save the resume to database
-          const saveResponse = await apiService.saveResume({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            uploadDate: new Date().toISOString().split('T')[0],
-            atsScore: scanResponse.data.atsScore,
-            overallScore: scanResponse.data.score,
-            status: 'active',
-            lastScanned: new Date().toISOString().split('T')[0],
-            improvements: scanResponse.data.suggestions?.length || 0,
-            applications: 0,
-            scanResults: scanResponse.data
-          })
-          
-          if (saveResponse.success) {
-            setScanResults(scanResponse.data)
-            setSuccessMessage('Resume scanned and saved successfully!')
-            setTimeout(() => setSuccessMessage(null), 3000)
-          }
-        } else {
-          throw new Error('Failed to scan resume')
-        }
-      } else {
-        throw new Error('Failed to upload resume')
-      }
-    } catch (error) {
-      console.error('Resume scan error:', error)
-      setError('Failed to scan resume. Please try again.')
-      // Fallback to mock data
-      setScanResults({
-        score: 87,
-        atsScore: 92,
-        sections: {
-          contact: 95,
-          experience: 88,
-          education: 90,
-          skills: 82
-        },
-        suggestions: [
-          "Add more quantifiable achievements",
-          "Include keywords for your target role",
-          "Improve formatting for better ATS readability"
-        ],
-        keywords: ["Project Management", "Team Leadership", "Data Analysis"],
-        improvements: [
-          { section: "Experience", suggestion: "Add metrics and KPIs", impact: "High" },
-          { section: "Skills", suggestion: "Include more technical skills", impact: "Medium" },
-          { section: "Summary", suggestion: "Add professional summary", impact: "High" }
-        ]
-      })
-    } finally {
-      setIsScanning(false)
-    }
-  }
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    
-    const files = e.dataTransfer.files
-    if (files.length > 0) {
-      handleFileUpload(files[0])
-    }
-  }
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      handleFileUpload(files[0])
-    }
-  }
-
-  const startScan = () => {
+  const handleFileSelect = (file: File) => {
+    setError(null)
+    setSuccessMessage(null)
     setIsScanning(true)
-    setTimeout(() => {
-      setIsScanning(false)
-    }, 3000)
+  }
+
+  const handleAnalysisComplete = (result: any) => {
+    setIsScanning(false)
+    setScanResults(result.analysis)
+    setSuccessMessage(`Resume analysis complete! Overall score: ${result.analysis.overallScore}/10`)
+  }
+
+  const handleError = (errorMessage: string) => {
+    setIsScanning(false)
+    setError(errorMessage)
+  }
+
+  const handleDownloadReport = () => {
+    if (scanResults) {
+      const reportData = {
+        ...scanResults,
+        fileName: 'resume.pdf',
+        processedAt: new Date().toISOString()
+      }
+      downloadReport(reportData)
+    }
+  }
+
+  const getScoreColor = (score: number) => {
+    if (score >= 8) return 'text-green-400'
+    if (score >= 6) return 'text-yellow-400'
+    return 'text-red-400'
+  }
+
+  const getScoreBg = (score: number) => {
+    if (score >= 8) return 'bg-green-500/10 border-green-500/30'
+    if (score >= 6) return 'bg-yellow-500/10 border-yellow-500/30'
+    return 'bg-red-500/10 border-red-500/30'
   }
 
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Resume Scanner</h1>
-        <p className="text-slate-400">Optimize your resume for ATS and maximize your interview chances.</p>
+        <h1 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          AI Resume Scanner
+        </h1>
+        <p className="text-slate-400">
+          Upload your resume for instant AI-powered analysis and ATS optimization
+        </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard
-          title="ATS Score"
-          value={scanResults ? `${scanResults.atsScore}%` : '--'}
-          icon={Target}
-          trend={{ value: "Industry avg: 75%", isPositive: true }}
-          description="Applicant Tracking System compatibility"
-        />
-        <StatCard
-          title="Overall Score"
-          value={scanResults ? `${scanResults.score}%` : '--'}
-          icon={TrendingUp}
-          description="Complete resume analysis"
-        />
-        <StatCard
-          title="Resumes Scanned"
-          value="1,247"
-          icon={FileText}
-          trend={{ value: "12% this week", isPositive: true }}
-          description="Total scans performed"
-        />
-        <StatCard
-          title="Success Rate"
-          value="89%"
-          icon={CheckCircle}
-          description="Users who got interviews"
-        />
-      </div>
-
-      {!scanResults ? (
-        /* Upload Section */
-        <div className="space-y-8">
-          {/* Upload Area */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4">Upload Your Resume</h2>
-            <div
-              className={`
-                border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200
-                ${isDragging 
-                  ? 'border-brand-accent bg-brand-accent/10' 
-                  : 'border-slate-700 bg-brand-glass hover:border-slate-600'
-                }
-              `}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <Upload className="h-12 w-12 text-brand-accent mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
-                {uploadedFile ? uploadedFile.name : 'Drop your resume here'}
-              </h3>
-              <p className="text-slate-400 mb-4">
-                {uploadedFile 
-                  ? 'File uploaded successfully' 
-                  : 'Supports PDF, DOCX, DOC (Max 10MB)'
-                }
-              </p>
-              <input
-                type="file"
-                accept=".pdf,.docx,.doc"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="inline-flex items-center px-6 py-3 bg-brand-accent text-white rounded-lg hover:bg-blue-600 transition-colors cursor-pointer"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Choose File
-              </label>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4">What We Analyze</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <ActionCard
-                title="ATS Compatibility"
-                description="Check if your resume passes Applicant Tracking Systems used by 90% of companies."
-                icon={<Target className="h-6 w-6 text-brand-accent" />}
-                action={() => console.log('Learn more')}
-                actionText="Learn More"
-              />
-              <ActionCard
-                title="Keyword Optimization"
-                description="Ensure your resume contains the right keywords for your target roles."
-                icon={<Zap className="h-6 w-6 text-brand-accent" />}
-                action={() => console.log('Learn more')}
-                actionText="Learn More"
-              />
-              <ActionCard
-                title="Format & Structure"
-                description="Analyze formatting, length, and structure for maximum impact."
-                icon={<Eye className="h-6 w-6 text-brand-accent" />}
-                action={() => console.log('Learn more')}
-                actionText="Learn More"
-              />
-            </div>
-          </div>
-
-          {/* Process */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4">How It Works</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {[
-                { step: 1, title: 'Upload', description: 'Upload your resume file' },
-                { step: 2, title: 'Scan', description: 'AI analyzes your resume' },
-                { step: 3, title: 'Results', description: 'Get detailed feedback' },
-                { step: 4, title: 'Optimize', description: 'Improve your resume' }
-              ].map((item) => (
-                <div key={item.step} className="text-center">
-                  <div className="h-12 w-12 rounded-full bg-brand-accent/20 flex items-center justify-center mx-auto mb-3">
-                    <span className="text-brand-accent font-bold">{item.step}</span>
-                  </div>
-                  <h3 className="text-white font-medium mb-1">{item.title}</h3>
-                  <p className="text-slate-400 text-sm">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Error and Success Messages */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center space-x-3">
+          <AlertCircle className="w-5 h-5 text-red-400" />
+          <p className="text-red-400">{error}</p>
         </div>
-      ) : (
-        /* Results Section */
-        <div className="space-y-8">
-          {/* Score Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ChartCard title="Overall Score">
-              <div className="text-center py-8">
-                <div className="relative inline-flex items-center justify-center">
-                  <div className="h-32 w-32 rounded-full border-8 border-brand-surface"></div>
-                  <div 
-                    className="absolute inset-0 rounded-full border-8 border-brand-accent border-t-transparent transform rotate-45"
-                    style={{ 
-                      background: `conic-gradient(from 0deg, #3b82f6 0deg, #3b82f6 ${scanResults.score * 3.6}deg, transparent ${scanResults.score * 3.6}deg)` 
-                    }}
-                  ></div>
-                  <div className="absolute inset-4 bg-brand-surface rounded-full flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white">{scanResults.score}%</span>
-                  </div>
-                </div>
-                <p className="text-slate-400 mt-4">Resume Quality Score</p>
-              </div>
-            </ChartCard>
+      )}
 
-            <ChartCard title="Section Analysis">
-              <div className="space-y-4">
-                {Object.entries(scanResults.sections).map(([section, score]) => (
-                  <div key={section} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-300 capitalize">{section}</span>
-                      <span className="text-white">{score}%</span>
-                    </div>
-                    <div className="w-full bg-brand-surface rounded-full h-2">
-                      <div 
-                        className="bg-brand-accent h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${score}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ChartCard>
-          </div>
+      {successMessage && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-center space-x-3">
+          <CheckCircle className="w-5 h-5 text-green-400" />
+          <p className="text-green-400">{successMessage}</p>
+        </div>
+      )}
 
-          {/* Suggestions */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4">Improvement Suggestions</h2>
-            <div className="bg-card-gradient border border-slate-700/50 rounded-xl p-6">
-              <div className="space-y-4">
-                {scanResults.suggestions.map((suggestion: string, index: number) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <AlertCircle className="h-5 w-5 text-brand-warning mt-0.5 flex-shrink-0" />
-                    <p className="text-slate-300">{suggestion}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      {/* File Upload Section */}
+      <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-xl p-6">
+        <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+          <Upload className="w-5 h-5 mr-2 text-blue-400" />
+          Upload Resume
+        </h2>
+        
+        <FileUpload
+          onFileSelect={handleFileSelect}
+          onAnalysisComplete={handleAnalysisComplete}
+          onError={handleError}
+          isAnalyzing={isScanning}
+          acceptedFormats={brandConfig.features.supportedFormats}
+          maxFileSize={brandConfig.features.maxFileSize}
+        />
+      </div>
 
-          {/* Keywords */}
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-4">Recommended Keywords</h2>
-            <div className="flex flex-wrap gap-2">
-              {scanResults.keywords.map((keyword: string, index: number) => (
-                <span 
-                  key={index}
-                  className="px-3 py-1 bg-brand-accent/20 text-brand-accent rounded-full text-sm"
-                >
-                  {keyword}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-center space-x-4">
-            <button className="px-6 py-3 bg-brand-accent text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center">
-              <Download className="h-4 w-4 mr-2" />
-              Download Report
-            </button>
-            <button 
-              onClick={() => {
-                setScanResults(null)
-                setUploadedFile(null)
-              }}
-              className="px-6 py-3 bg-brand-surface text-white rounded-lg hover:bg-slate-700 transition-colors"
+      {/* Analysis Results */}
+      {scanResults && (
+        <div className="space-y-6">
+          {/* Results Header with Download */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Analysis Results</h2>
+            <button
+              onClick={handleDownloadReport}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
-              Scan Another Resume
+              <Download className="w-4 h-4" />
+              <span>Download Report</span>
             </button>
+          </div>
+          {/* Score Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <StatCard
+              title="Overall Score"
+              value={`${scanResults.overallScore}/10`}
+              trend={scanResults.interviewLikelihood ? {
+                value: `${scanResults.interviewLikelihood}% interview chance`,
+                isPositive: scanResults.interviewLikelihood > 50
+              } : undefined}
+              icon={Award}
+              className={getScoreBg(scanResults.overallScore)}
+            />
+            
+            <StatCard
+              title="ATS Compatibility"
+              value={`${scanResults.atsScore}/10`}
+              trend={{
+                value: "Applicant Tracking Systems",
+                isPositive: scanResults.atsScore >= 7
+              }}
+              icon={Target}
+              className={getScoreBg(scanResults.atsScore)}
+            />
+            
+            <StatCard
+              title="Content Quality"
+              value={`${scanResults.contentScore}/10`}
+              trend={{
+                value: "Achievement statements",
+                isPositive: scanResults.contentScore >= 7
+              }}
+              icon={FileText}
+              className={getScoreBg(scanResults.contentScore)}
+            />
+            
+            <StatCard
+              title="Structure Score"
+              value={`${scanResults.structureScore}/10`}
+              trend={{
+                value: "Formatting & organization",
+                isPositive: scanResults.structureScore >= 7
+              }}
+              icon={Shield}
+              className={getScoreBg(scanResults.structureScore)}
+            />
+          </div>
+
+          {/* Critical Issues */}
+          {scanResults.criticalIssues && scanResults.criticalIssues.length > 0 && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-red-400 mb-4 flex items-center">
+                <AlertCircle className="w-5 h-5 mr-2" />
+                Critical Issues to Fix
+              </h3>
+              <ul className="space-y-2">
+                {scanResults.criticalIssues.map((issue: string, index: number) => (
+                  <li key={index} className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-slate-300">{issue}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Key Improvements */}
+          {scanResults.improvements && scanResults.improvements.length > 0 && (
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Top 3 Improvements
+              </h3>
+              <ol className="space-y-3">
+                {scanResults.improvements.map((improvement: string, index: number) => (
+                  <li key={index} className="flex items-start space-x-3">
+                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                      {index + 1}
+                    </span>
+                    <span className="text-slate-300">{improvement}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* Missing Keywords */}
+          {scanResults.missingKeywords && scanResults.missingKeywords.length > 0 && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center">
+                <Zap className="w-5 h-5 mr-2" />
+                Missing Keywords for ATS
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {scanResults.missingKeywords.map((keyword: string, index: number) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm"
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Additional Recommendations */}
+          {scanResults.recommendations && scanResults.recommendations.length > 0 && (
+            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-green-400 mb-4 flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2" />
+                Additional Recommendations
+              </h3>
+              <ul className="space-y-2">
+                {scanResults.recommendations.map((rec: string, index: number) => (
+                  <li key={index} className="flex items-start space-x-2">
+                    <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-slate-300">{rec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Features Section */}
+      {!scanResults && (
+        <div>
+          <h2 className="text-xl font-semibold text-white mb-4">What We Analyze</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ActionCard
+              title="ATS Compatibility"
+              description="Check if your resume passes Applicant Tracking Systems used by 90% of companies."
+              icon={Target}
+              action={() => console.log('Learn more')}
+              actionText="Learn More"
+            />
+            <ActionCard
+              title="Keyword Optimization"
+              description="Ensure your resume contains the right keywords for your target roles."
+              icon={Zap}
+              action={() => console.log('Learn more')}
+              actionText="Learn More"
+            />
+            <ActionCard
+              title="Format & Structure"
+              description="Analyze formatting, length, and structure for maximum impact."
+              icon={Eye}
+              action={() => console.log('Learn more')}
+              actionText="Learn More"
+            />
           </div>
         </div>
       )}

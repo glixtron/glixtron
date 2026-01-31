@@ -6,32 +6,49 @@ import { useState, useEffect } from 'react'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { apiService } from '@/lib/api-service'
 import { 
   TrendingUp, 
   Brain, 
   Target,
-  BarChart3,
-  Briefcase,
   Award,
-  BookOpen,
+  FileText,
   Users,
-  Star,
-  CheckCircle,
-  Circle,
-  ArrowRight,
-  Zap,
+  Globe,
   Calendar,
-  Lightbulb,
-  Rocket,
-  Compass,
+  Circle,
+  CheckCircle,
+  MessageSquare,
   Code,
   Palette,
-  MessageSquare,
-  FileText,
-  Globe,
-  Building
+  Lightbulb,
+  Compass,
+  Building,
+  Rocket,
+  ArrowRight,
+  BarChart3,
+  Briefcase,
+  BookOpen
 } from 'lucide-react'
+
+interface ExtractedJD {
+  jobTitle: string
+  companyName: string
+  keySkills: string[]
+  experienceLevel: string
+  salaryRange: string
+  location: string
+  remote: string
+  employmentType: string
+  responsibilities: string[]
+  requirements: string[]
+  benefits: string[]
+  applicationDeadline: string
+  rawContent: string
+  extractedAt: string
+  aiEnhanced: boolean
+}
 
 interface RoadmapStep {
   id: string
@@ -62,17 +79,58 @@ export default function CareerGuidancePage() {
   const [skillGaps, setSkillGaps] = useState<SkillGap[]>([])
   const [marketInsights, setMarketInsights] = useState<MarketInsight[]>([])
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'roadmap' | 'skills' | 'insights'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'roadmap' | 'skills' | 'insights' | 'job-analysis'>('overview')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [extractedJD, setExtractedJD] = useState<ExtractedJD | null>(null)
+  const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
+  const [careerQuery, setCareerQuery] = useState('')
+  const [savedResumes, setSavedResumes] = useState<any[]>([])
+  const [dashboardStats, setDashboardStats] = useState<any>(null)
+
+  // Initialize searchParams safely
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+      setSearchParams(params)
+    } catch (error) {
+      console.error('Failed to initialize searchParams:', error)
+      setSearchParams(new URLSearchParams())
+    }
+  }, [])
 
   useEffect(() => {
+    // Only proceed when searchParams is available
+    if (!searchParams) {
+      console.warn('searchParams not available, skipping JD data loading')
+      loadCareerGuidance()
+      loadDashboardData()
+      loadSavedResumes()
+      return
+    }
+
+    // Check for JD data in URL parameters
+    const jdParam = searchParams.get('jd')
+    if (jdParam) {
+      try {
+        const jdData = JSON.parse(decodeURIComponent(jdParam))
+        setExtractedJD(jdData)
+        console.log('Loaded JD data from URL:', jdData)
+      } catch (error) {
+        console.error('Failed to parse JD data:', error)
+        // Don't crash the page, just continue without JD data
+      }
+    }
+    
     loadCareerGuidance()
-  }, [])
+    loadDashboardData()
+    loadSavedResumes()
+  }, [searchParams])
 
   const loadCareerGuidance = async () => {
     try {
       setIsLoading(true)
+      setError(null)
       const response = await apiService.getCareerGuidance()
       
       if (response.success) {
@@ -81,13 +139,61 @@ export default function CareerGuidancePage() {
         setMarketInsights(response.data.marketInsights || [])
       } else {
         // Use mock data if API fails
+        console.warn('API failed, using mock data:', response.error)
         loadMockData()
       }
     } catch (error) {
       console.error('Failed to load career guidance:', error)
+      setError('Failed to load career guidance. Using demo data.')
       loadMockData()
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadDashboardData = async () => {
+    try {
+      const response = await apiService.getDashboardStats()
+      if (response.success) {
+        setDashboardStats(response.data)
+      } else {
+        console.warn('Dashboard stats failed, using defaults')
+        setDashboardStats({
+          careerProgress: "65%",
+          careerTrend: "5% from last month",
+          projectsCompleted: "7",
+          projectTrend: "2 this week",
+          marketReadiness: "78%",
+          readinessTrend: "3% improvement"
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard stats:', error)
+      // Set default values to prevent crashes
+      setDashboardStats({
+        careerProgress: "65%",
+        careerTrend: "5% from last month",
+        projectsCompleted: "7",
+        projectTrend: "2 this week",
+        marketReadiness: "78%",
+        readinessTrend: "3% improvement"
+      })
+    }
+  }
+
+  const loadSavedResumes = async () => {
+    try {
+      const response = await apiService.getSavedResumes()
+      if (response.success) {
+        setSavedResumes(response.data || [])
+      } else {
+        console.warn('Saved resumes failed, using empty array')
+        setSavedResumes([])
+      }
+    } catch (error) {
+      console.error('Failed to load saved resumes:', error)
+      // Set empty array to prevent crashes
+      setSavedResumes([])
     }
   }
 
@@ -167,14 +273,53 @@ export default function CareerGuidancePage() {
   const generateRoadmap = async () => {
     setIsGeneratingRoadmap(true)
     try {
-      // Simulate API call
+      // Simulate API call for roadmap generation
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Update roadmap with personalized data
-      setRoadmap(prev => prev.map(step => ({
-        ...step,
-        completed: Math.random() > 0.7
-      })))
+      // Enhanced roadmap based on user's current skills and goals
+      const enhancedRoadmap = [
+        {
+          id: '1',
+          title: 'Skill Enhancement Phase',
+          description: 'Focus on closing critical skill gaps identified in your assessment',
+          duration: '2-3 months',
+          completed: false,
+          skills: ['React/Next.js', 'TypeScript', 'Cloud Architecture'],
+          resources: [
+            { title: 'Advanced React Patterns', type: 'course', url: '#' },
+            { title: 'TypeScript Mastery', type: 'course', url: '#' },
+            { title: 'AWS Cloud Practitioner', type: 'course', url: '#' }
+          ]
+        },
+        {
+          id: '2',
+          title: 'Project Portfolio Building',
+          description: 'Create impressive projects that showcase your skills to employers',
+          duration: '3-4 months',
+          completed: false,
+          skills: ['Full-stack Development', 'System Design', 'API Development'],
+          resources: [
+            { title: 'E-commerce Platform', type: 'project', url: '#' },
+            { title: 'Real-time Analytics Dashboard', type: 'project', url: '#' },
+            { title: 'Microservices Architecture', type: 'project', url: '#' }
+          ]
+        },
+        {
+          id: '3',
+          title: 'Interview Preparation',
+          description: 'Master technical and behavioral interviews for top companies',
+          duration: '1-2 months',
+          completed: false,
+          skills: ['Problem Solving', 'Communication', 'System Design'],
+          resources: [
+            { title: 'LeetCode Premium', type: 'course', url: '#' },
+            { title: 'Mock Interview Sessions', type: 'project', url: '#' },
+            { title: 'Salary Negotiation Guide', type: 'article', url: '#' }
+          ]
+        }
+      ]
+      
+      setRoadmap(enhancedRoadmap)
     } catch (error) {
       console.error('Failed to generate roadmap:', error)
     } finally {
@@ -182,17 +327,91 @@ export default function CareerGuidancePage() {
     }
   }
 
-  const getSkillIcon = (skill: string) => {
-    if (skill.toLowerCase().includes('react') || skill.toLowerCase().includes('next')) return <Code className="w-4 h-4" />
-    if (skill.toLowerCase().includes('design') || skill.toLowerCase().includes('ui')) return <Palette className="w-4 h-4" />
-    if (skill.toLowerCase().includes('communication') || skill.toLowerCase().includes('soft')) return <MessageSquare className="w-4 h-4" />
-    return <Lightbulb className="w-4 h-4" />
+  const handleCareerQuery = async () => {
+    if (!careerQuery.trim()) return
+    
+    try {
+      const response = await apiService.submitCareerQuery(careerQuery)
+      if (response.success) {
+        // Update UI with AI response
+        console.log('Career guidance response:', response.data)
+        // You could show the response in a modal or notification
+      } else {
+        console.error('Career query failed:', response.error)
+        // Show user-friendly error
+      }
+    } catch (error) {
+      console.error('Failed to submit career query:', error)
+      // Show user-friendly error message
+    }
   }
 
-  const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
-    if (trend === 'up') return <TrendingUp className="w-4 h-4 text-green-400" />
-    if (trend === 'down') return <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
-    return <div className="w-4 h-4 bg-gray-400 rounded-full" />
+  const handleJobMatching = async () => {
+    try {
+      // Navigate to job matching with user's skills
+      const userSkills = skillGaps.map(skill => skill.skill)
+      const queryParams = new URLSearchParams({
+        skills: userSkills.join(','),
+        experience: 'intermediate',
+        preferred: 'remote'
+      })
+      
+      window.location.href = `/job-matching?${queryParams.toString()}`
+    } catch (error) {
+      console.error('Failed to navigate to job matching:', error)
+      // Show user-friendly error
+    }
+  }
+
+  const handleSkillAssessment = async () => {
+    try {
+      const response = await apiService.startAssessment('full')
+      if (response.success) {
+        window.location.href = `/assessment?id=${response.data.assessmentId}`
+      } else {
+        window.location.href = '/assessment'
+      }
+    } catch (error) {
+      console.error('Failed to start assessment:', error)
+      // Fallback to direct navigation
+      window.location.href = '/assessment'
+    }
+  }
+
+  const handleResumeAnalysis = () => {
+    try {
+      if (savedResumes.length > 0) {
+        window.location.href = '/resume-scanner'
+      } else {
+        window.location.href = '/resume-scanner?upload=true'
+      }
+    } catch (error) {
+      console.error('Failed to navigate to resume scanner:', error)
+      // Show user-friendly error
+    }
+  }
+
+  const getSkillIcon = (skill: string) => {
+    const iconMap: { [key: string]: React.ComponentType<any> } = {
+      'React/Next.js': Code,
+      'TypeScript': Code,
+      'System Design': Target,
+      'Communication': Users,
+      'Leadership': Award,
+      'Cloud Architecture': Globe
+    }
+    return iconMap[skill] || Brain
+  }
+
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="w-4 h-4 text-green-400" />
+      case 'down':
+        return <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
+      default:
+        return <TrendingUp className="w-4 h-4 text-gray-400 rotate-90" />
+    }
   }
 
   if (isLoading) {
@@ -253,6 +472,18 @@ export default function CareerGuidancePage() {
             >
               Insights
             </button>
+            {extractedJD && (
+              <button
+                onClick={() => setActiveTab('job-analysis')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'job-analysis' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+                }`}
+              >
+                Job Analysis
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -262,31 +493,27 @@ export default function CareerGuidancePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="Career Progress"
-            value="65%"
-            icon={<TrendingUp className="w-6 h-6" />}
-            trend="up"
-            trendValue="12% from last month"
+            value={dashboardStats?.careerProgress || "65%"}
+            icon={TrendingUp}
+            trend={{ value: dashboardStats?.careerTrend || "12% from last month", isPositive: true }}
           />
           <StatCard
             title="Skills Mastered"
-            value="18/25"
-            icon={<Brain className="w-6 h-6" />}
-            trend="up"
-            trendValue="3 new skills"
+            value={`${skillGaps.filter(s => s.current >= s.target).length}/${skillGaps.length}`}
+            icon={Brain}
+            trend={{ value: `${skillGaps.filter(s => s.current < s.target).length} skills to improve`, isPositive: false }}
           />
           <StatCard
             title="Projects Completed"
-            value="7"
-            icon={<Target className="w-6 h-6" />}
-            trend="up"
-            trendValue="2 this month"
+            value={dashboardStats?.projectsCompleted || "7"}
+            icon={Target}
+            trend={{ value: dashboardStats?.projectTrend || "2 this month", isPositive: true }}
           />
           <StatCard
             title="Market Readiness"
-            value="78%"
-            icon={<Award className="w-6 h-6" />}
-            trend="up"
-            trendValue="5% improvement"
+            value={dashboardStats?.marketReadiness || "78%"}
+            icon={Award}
+            trend={{ value: dashboardStats?.readinessTrend || "5% improvement", isPositive: true }}
           />
         </div>
       )}
@@ -502,31 +729,168 @@ export default function CareerGuidancePage() {
               <ActionCard
                 title="Focus on High-Demand Skills"
                 description="Based on market analysis, React, TypeScript, and Cloud Architecture have the highest demand."
-                icon={<Target className="w-6 h-6" />}
+                icon={Target}
                 actionText="View Courses"
-                onAction={() => {}}
+                action={() => {}}
               />
               <ActionCard
                 title="Update Your Portfolio"
                 description="Add 2-3 more projects to reach the optimal portfolio size for job applications."
-                icon={<Briefcase className="w-6 h-6" />}
+                icon={Briefcase}
                 actionText="Build Projects"
-                onAction={() => {}}
+                action={() => {}}
               />
               <ActionCard
                 title="Network Actively"
                 description="Connect with professionals in your target field to increase opportunities by 40%."
-                icon={<Users className="w-6 h-6" />}
+                icon={Users}
                 actionText="Join Community"
-                onAction={() => {}}
+                action={() => {}}
               />
               <ActionCard
                 title="Prepare for Interviews"
                 description="Practice technical interviews to improve your success rate by 60%."
-                icon={<BookOpen className="w-6 h-6" />}
+                icon={BookOpen}
                 actionText="Start Practice"
-                onAction={() => {}}
+                action={() => {}}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Job Analysis Tab */}
+      {activeTab === 'job-analysis' && extractedJD && (
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg p-6 border border-blue-500/50 mb-6">
+            <div className="flex items-center space-x-3">
+              <Briefcase className="w-6 h-6 text-blue-400" />
+              <div>
+                <h2 className="text-2xl font-bold text-white">Job Analysis</h2>
+                <p className="text-gray-300">AI-powered analysis of extracted job description</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Job Details */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h3 className="text-xl font-semibold text-white mb-4">Job Details</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Position:</span>
+                  <span className="text-white font-medium">{extractedJD.jobTitle}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Company:</span>
+                  <span className="text-white font-medium">{extractedJD.companyName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Location:</span>
+                  <span className="text-white font-medium">{extractedJD.location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Experience:</span>
+                  <span className="text-white font-medium">{extractedJD.experienceLevel}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Salary:</span>
+                  <span className="text-white font-medium">{extractedJD.salaryRange}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Remote:</span>
+                  <span className="text-white font-medium">{extractedJD.remote}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Skills Match */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h3 className="text-xl font-semibold text-white mb-4">Required Skills</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {extractedJD.keySkills.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-sm font-medium"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+              <div className="text-sm text-gray-300">
+                <p className="mb-2">📊 <strong>Skills Analysis:</strong></p>
+                <p>• {extractedJD.keySkills.length} key skills identified</p>
+                <p>• Focus on mastering these technologies to qualify</p>
+                <p>• Consider building projects with these skills</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Responsibilities */}
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50 mb-6">
+            <h3 className="text-xl font-semibold text-white mb-4">Key Responsibilities</h3>
+            <ul className="space-y-2">
+              {extractedJD.responsibilities.map((responsibility, index) => (
+                <li key={index} className="flex items-start space-x-3">
+                  <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-300">{responsibility}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Requirements */}
+          {extractedJD.requirements.length > 0 && (
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50 mb-6">
+              <h3 className="text-xl font-semibold text-white mb-4">Requirements</h3>
+              <ul className="space-y-2">
+                {extractedJD.requirements.map((requirement, index) => (
+                  <li key={index} className="flex items-start space-x-3">
+                    <Target className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300">{requirement}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Benefits */}
+          {extractedJD.benefits.length > 0 && (
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50 mb-6">
+              <h3 className="text-xl font-semibold text-white mb-4">Benefits & Perks</h3>
+              <ul className="space-y-2">
+                {extractedJD.benefits.map((benefit, index) => (
+                  <li key={index} className="flex items-start space-x-3">
+                    <Award className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Action Items */}
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+            <h3 className="text-xl font-semibold text-white mb-4">Next Steps</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-600/20 rounded-lg p-4 border border-blue-500/50">
+                <h4 className="text-lg font-medium text-white mb-2">🎯 Skill Development</h4>
+                <p className="text-gray-300 text-sm mb-3">Focus on these key skills:</p>
+                <div className="flex flex-wrap gap-2">
+                  {extractedJD.keySkills.slice(0, 3).map((skill, index) => (
+                    <span key={index} className="px-2 py-1 bg-blue-600/30 text-blue-300 rounded text-xs">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-green-600/20 rounded-lg p-4 border border-green-500/50">
+                <h4 className="text-lg font-medium text-white mb-2">📝 Application Prep</h4>
+                <p className="text-gray-300 text-sm mb-3">Tailor your resume to highlight these skills</p>
+                <button className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors">
+                  Update Resume
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -538,25 +902,88 @@ export default function CareerGuidancePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ActionCard
             title="Resume Analysis"
-            description="Get AI-powered feedback on your resume and improve your chances."
-            icon={<FileText className="w-6 h-6" />}
-            actionText="Analyze Resume"
-            onAction={() => window.location.href = '/resume-scanner'}
+            description={`Get AI-powered feedback on your resume${savedResumes.length > 0 ? ` (${savedResumes.length} resumes available)` : ' and upload your first resume'}.`}
+            icon={FileText}
+            actionText={savedResumes.length > 0 ? "Analyze Resume" : "Upload Resume"}
+            action={handleResumeAnalysis}
           />
           <ActionCard
             title="Job Matching"
-            description="Find jobs that match your skills and career goals."
-            icon={<Target className="w-6 h-6" />}
+            description={`Find jobs that match your ${skillGaps.length} key skills and career goals.`}
+            icon={Target}
             actionText="Find Jobs"
-            onAction={() => {}}
+            action={handleJobMatching}
           />
           <ActionCard
             title="Skill Assessment"
-            description="Take a comprehensive assessment to identify your strengths."
-            icon={<Brain className="w-6 h-6" />}
+            description="Take a comprehensive assessment to identify your strengths and skill gaps."
+            icon={Brain}
             actionText="Start Assessment"
-            onAction={() => window.location.href = '/assessment'}
+            action={handleSkillAssessment}
           />
+        </div>
+      </div>
+
+      {/* AI Career Assistant */}
+      <div className="mt-8">
+        <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-lg p-6 border border-purple-500/50 mb-6">
+          <div className="flex items-center space-x-3">
+            <Brain className="w-6 h-6 text-purple-400" />
+            <div>
+              <h3 className="text-xl font-bold text-white">AI Career Assistant</h3>
+              <p className="text-gray-300">Get personalized career advice powered by AI</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+            <h4 className="text-lg font-semibold text-white mb-4">Ask Career Questions</h4>
+            <div className="space-y-4">
+              <textarea
+                value={careerQuery}
+                onChange={(e) => setCareerQuery(e.target.value)}
+                placeholder="Ask me anything about your career path, skill development, or job search..."
+                className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                rows={4}
+              />
+              <button
+                onClick={handleCareerQuery}
+                disabled={!careerQuery.trim()}
+                className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Get AI Advice</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+            <h4 className="text-lg font-semibold text-white mb-4">Quick Career Insights</h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                <span className="text-gray-300">Career Progress</span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-20 bg-slate-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style={{ width: '65%' }}></div>
+                  </div>
+                  <span className="text-white text-sm">65%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                <span className="text-gray-300">Skills Mastered</span>
+                <span className="text-white font-medium">{skillGaps.filter(s => s.current >= s.target).length}/{skillGaps.length}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                <span className="text-gray-300">Market Readiness</span>
+                <span className="text-green-400 font-medium">High</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
+                <span className="text-gray-300">Next Milestone</span>
+                <span className="text-blue-400 font-medium">2-3 months</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

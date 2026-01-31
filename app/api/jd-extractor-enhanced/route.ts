@@ -7,12 +7,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { extractJDFromURL } from '@/lib/jd-extractor-server'
 import { htmlJDParser } from '@/lib/html-jd-parser-fallback'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth-config'
+import { authConfig } from '@/lib/auth-config'
 import { userTierSystem } from '@/lib/user-tier-system'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authConfig)
     if (!session?.user?.email) {
       return NextResponse.json({
         success: false,
@@ -46,7 +46,18 @@ export async function POST(request: NextRequest) {
           }, { status: 400 })
         }
 
-        result = await extractJDFromURL(url)
+        const extractedContent = await extractJDFromURL(url)
+        result = {
+          success: !!extractedContent && extractedContent.length > 50,
+          content: extractedContent,
+          source: 'url-extraction',
+          metadata: {
+            extractedAt: new Date().toISOString(),
+            url,
+            wordCount: extractedContent?.split(/\s+/).length || 0,
+            readingTime: Math.ceil((extractedContent?.split(/\s+/).length || 0) / 200)
+          }
+        }
         
         if (result.success) {
           // Record usage

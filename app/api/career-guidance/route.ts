@@ -6,6 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { aiCareerGuidance, CareerGuidanceRequest } from '@/lib/ai-career-guidance'
 import { getServerSession } from 'next-auth'
+import { brandConfig } from '@/config/brand'
+
+// Extend timeout for Vercel Hobby tier (max 60 seconds)
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,11 +37,14 @@ export async function POST(request: NextRequest) {
       case 'analyze-skills':
         return await handleAnalyzeSkills(data)
 
+      case 'query':
+        return await handleCareerQuery(data)
+
       default:
         return NextResponse.json({
           success: false,
           error: 'Invalid action',
-          availableActions: ['generate-guidance', 'get-science-streams', 'get-job-types', 'analyze-skills']
+          availableActions: ['generate-guidance', 'get-science-streams', 'get-job-types', 'analyze-skills', 'query']
         }, { status: 400 })
     }
 
@@ -555,6 +562,187 @@ async function handleGetJobTypes(data: { stream: string }) {
     action: 'get-job-types',
     data: jobs
   })
+}
+
+/**
+ * Handle career query with personalized data from MongoDB
+ */
+async function handleCareerQuery(data: { query: string; userEmail?: string }) {
+  try {
+    const { query, userEmail } = data
+    
+    // Get user's personalized data from MongoDB
+    let userContext = {
+      marketReadiness: 65,
+      skillGaps: [],
+      careerProgress: 50,
+      recentActivity: [] as any[]
+    }
+    
+    if (userEmail) {
+      try {
+        // Fetch user's dashboard stats
+        const dashboardResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/dashboard/stats`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Email': userEmail
+          }
+        })
+        
+        if (dashboardResponse.ok) {
+          const dashboardData = await dashboardResponse.json()
+          if (dashboardData.success) {
+            userContext = {
+              marketReadiness: parseInt(dashboardData.data.marketReadiness?.replace('%', '') || 65),
+              skillGaps: dashboardData.data.skillGaps || [],
+              careerProgress: parseInt(dashboardData.data.careerProgress?.replace('%', '') || 50),
+              recentActivity: dashboardData.data.recentActivity || []
+            }
+          }
+        }
+        
+        // Fetch user's saved resumes for additional context
+        const resumeResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/resume/saved`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-User-Email': userEmail
+          }
+        })
+        
+        if (resumeResponse.ok) {
+          const resumeData = await resumeResponse.json()
+          if (resumeData.success && resumeData.data.length > 0) {
+            userContext.recentActivity.push({
+              type: 'resume_analysis',
+              count: resumeData.data.length,
+              lastActivity: resumeData.data[0]?.uploadDate || new Date().toISOString()
+            })
+          }
+        }
+      } catch (fetchError) {
+        console.warn('Failed to fetch user context, using defaults:', fetchError)
+      }
+    }
+    
+    // Create personalized prompt with user context
+    const personalizedPrompt = `${brandConfig.ai.systemPrompt}
+
+USER QUERY: ${query}
+
+USER CONTEXT:
+- Market Readiness Score: ${userContext.marketReadiness}%
+- Career Progress: ${userContext.careerProgress}%
+- Skill Gaps: ${userContext.skillGaps.length} identified gaps
+- Recent Activity: ${userContext.recentActivity.length} recent actions
+
+Provide a personalized response that:
+1. References their current readiness level (${userContext.marketReadiness}%)
+2. Addresses their specific skill gaps if any
+3. Considers their career progress (${userContext.careerProgress}%)
+4. Gives actionable next steps based on their context
+5. Maintains the elite career coach persona - data-driven, blunt but supportive, ROI-focused
+
+Format your response as JSON:
+{
+  "response": "Your personalized career advice here",
+  "actionItems": ["specific action 1", "specific action 2", "specific action 3"],
+  "timeline": "estimated timeline for results",
+  "resources": [{"title": "resource name", "type": "course|project|article", "url": "link"}],
+  "followUpQuestions": ["question 1", "question 2", "question 3"]
+}`
+
+    // Call AI service with personalized prompt
+    let aiResponse
+    try {
+      const { GoogleGenerativeAI } = await import('@google/generative-ai')
+      const apiKey = process.env.GEMINI_API_KEY
+      
+      if (apiKey) {
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
+        
+        const result = await model.generateContent(personalizedPrompt)
+        aiResponse = await result.response.text()
+      } else {
+        throw new Error('Gemini API key not available')
+      }
+    } catch (aiError) {
+      console.warn('AI service failed, using enhanced fallback:', aiError)
+      
+      // Enhanced fallback with user context
+      const baseResponses = {
+        default: `Based on your ${userContext.marketReadiness}% market readiness, focus on bridging your ${userContext.skillGaps.length} skill gaps. Your ${userContext.careerProgress}% career progress shows you're on the right track.`,
+        skills: `With your current readiness level of ${userContext.marketReadiness}%, prioritize skills that will move you to the 80%+ range. Focus on your identified skill gaps first.`,
+        jobs: `Your ${userContext.marketReadiness}% market readiness puts you in a good position. Target roles that match your ${userContext.careerProgress}% experience level.`,
+        career: `Your career progress of ${userContext.careerProgress}% suggests you're ready for the next level. Consider roles that leverage your current skills while addressing your ${userContext.skillGaps.length} skill gaps.`
+      }
+      
+      let response = baseResponses.default
+      if (query.toLowerCase().includes('skill')) {
+        response = baseResponses.skills
+      } else if (query.toLowerCase().includes('job')) {
+        response = baseResponses.jobs
+      } else if (query.toLowerCase().includes('career')) {
+        response = baseResponses.career
+      }
+      
+      aiResponse = JSON.stringify({
+        response,
+        actionItems: [
+          "Complete a skills assessment to identify specific gaps",
+          "Update your resume with recent achievements",
+          "Network with professionals in your target field"
+        ],
+        timeline: "2-3 months for noticeable improvement",
+        resources: [
+          { title: "Skills Assessment", type: "course", url: "/assessment" },
+          { title: "Resume Scanner", type: "project", url: "/resume-scanner" }
+        ],
+        followUpQuestions: [
+          "Which specific skill area would you like to focus on first?",
+          "Are you looking to transition to a new role or advance in your current field?",
+          "Would you like a personalized learning roadmap?"
+        ]
+      })
+    }
+    
+    // Parse AI response
+    let parsedResponse
+    try {
+      parsedResponse = JSON.parse(aiResponse)
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', parseError)
+      parsedResponse = {
+        response: aiResponse,
+        actionItems: ["Review your career goals", "Update your skills", "Seek mentorship"],
+        timeline: "3-6 months",
+        resources: [],
+        followUpQuestions: ["What specific area would you like to focus on?"]
+      }
+    }
+    
+    return NextResponse.json({
+      success: true,
+      action: 'query',
+      data: {
+        query,
+        userContext,
+        ...parsedResponse,
+        timestamp: new Date().toISOString(),
+        personalized: true
+      }
+    })
+    
+  } catch (error: any) {
+    console.error('Career query error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to process career query',
+      message: error.message
+    }, { status: 500 })
+  }
 }
 
 /**

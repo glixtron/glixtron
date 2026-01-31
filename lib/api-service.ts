@@ -1,11 +1,10 @@
 // API Service for Dashboard functionality
 import { brandConfig } from '@/lib/brand-config'
 
-const API_BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-
 class ApiService {
   private async request(endpoint: string, options: RequestInit = {}) {
-    const url = `${API_BASE_URL}/api${endpoint}`
+    // Use relative URLs for better compatibility
+    const url = `/api${endpoint}`
     
     const defaultOptions = {
       headers: {
@@ -18,12 +17,29 @@ class ApiService {
       const response = await fetch(url, { ...defaultOptions, ...options })
       
       if (!response.ok) {
+        // Handle different error types
+        if (response.status === 401) {
+          throw new Error('Authentication required. Please log in again.')
+        }
+        if (response.status === 404) {
+          throw new Error('API endpoint not found. Please check the server configuration.')
+        }
+        if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.')
+        }
         throw new Error(`API Error: ${response.status} ${response.statusText}`)
       }
 
       return await response.json()
     } catch (error) {
       console.error('API Request failed:', error)
+      
+      // Handle network errors specifically
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error. Please check your internet connection and ensure the server is running.')
+      }
+      
+      // Re-throw the error with more context
       throw error
     }
   }
@@ -57,15 +73,39 @@ class ApiService {
     return this.request(`/assessment/results/${assessmentId}`)
   }
 
+  // JD Extraction (Firecrawl)
+  async extractJDFromUrl(url: string) {
+    return this.request('/jd/firecrawl', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    })
+  }
+
+  // Resume vs JD Analysis (Gemini AI)
+  async analyzeResumeWithGemini(resume: string, jobDescription: string) {
+    return this.request('/resume/gemini-analyze', {
+      method: 'POST',
+      body: JSON.stringify({ resume, jobDescription }),
+    })
+  }
+
+  // Career Guidance (DeepSeek)
+  async getDeepSeekCareerAnalysis(resumeText: string, assessmentData?: any) {
+    return this.request('/career/deepseek', {
+      method: 'POST',
+      body: JSON.stringify({ resumeText, assessmentData }),
+    })
+  }
+
   // Career Guidance API calls
   async getCareerGuidance() {
     return this.request('/career-guidance')
   }
 
   async submitCareerQuery(query: string) {
-    return this.request('/career-guidance/query', {
+    return this.request('/career-guidance', {
       method: 'POST',
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ action: 'query', query }),
     })
   }
 

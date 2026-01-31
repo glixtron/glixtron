@@ -17,7 +17,10 @@ const optionalVars = [
   'GOOGLE_CLIENT_ID',
   'GOOGLE_CLIENT_SECRET',
   'GITHUB_CLIENT_ID',
-  'GITHUB_CLIENT_SECRET'
+  'GITHUB_CLIENT_SECRET',
+  'GEMINI_API_KEY',
+  'DEEPSEEK_API_KEY',
+  'FIRECRAWL_API_KEY'
 ];
 
 console.log('🔍 Validating environment variables...\n');

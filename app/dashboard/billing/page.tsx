@@ -96,6 +96,56 @@ export default function BillingPage() {
   const [selectedPlan, setSelectedPlan] = useState('Starter')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [isLoading, setIsLoading] = useState(false)
+  const [currentDate, setCurrentDate] = useState<string>('')
+  const [dateError, setDateError] = useState<boolean>(false)
+
+  // Get current date with internet fallback
+  useEffect(() => {
+    const getCurrentDate = async () => {
+      try {
+        // Try to get date from internet (World Time API)
+        const response = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC', {
+          signal: AbortSignal.timeout(3000) // 3 second timeout
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          const date = new Date(data.datetime)
+          const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+          setCurrentDate(formattedDate)
+          setDateError(false)
+        } else {
+          throw new Error('API not available')
+        }
+      } catch (error) {
+        // Fallback to local date if internet fails
+        try {
+          const localDate = new Date()
+          const formattedDate = localDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+          setCurrentDate(formattedDate)
+          setDateError(false)
+          console.log('Using local date as fallback')
+        } catch (localError) {
+          // If even local date fails, set a hardcoded date
+          setCurrentDate('January 31, 2026')
+          setDateError(true)
+          console.log('Using hardcoded date as final fallback')
+        }
+      }
+    }
+
+    getCurrentDate()
+  }, [])
 
   const handleUpgrade = async (planName: string) => {
     try {
@@ -129,6 +179,15 @@ export default function BillingPage() {
           Subscription & Payments
         </h1>
         <p className="text-slate-400">Manage your subscription and payment methods</p>
+        
+        {/* Current Date Display */}
+        <div className="mt-4 flex items-center space-x-2">
+          <div className={`h-2 w-2 rounded-full ${dateError ? 'bg-yellow-500' : 'bg-green-500'} animate-pulse`}></div>
+          <p className="text-sm text-slate-300">
+            {currentDate ? `Today is ${currentDate}` : 'Loading date...'}
+            {dateError && <span className="text-yellow-400 ml-2">(Using fallback date)</span>}
+          </p>
+        </div>
       </div>
 
       {/* Current Plan Status */}

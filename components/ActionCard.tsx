@@ -1,12 +1,12 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { Loader2, LucideIcon } from 'lucide-react'
 
 interface ActionCardProps {
   title: string
   description: string
-  icon: ReactNode
+  icon: LucideIcon
   action: () => void | Promise<void>
   actionText: string
   className?: string
@@ -16,7 +16,7 @@ interface ActionCardProps {
 export default function ActionCard({ 
   title, 
   description, 
-  icon, 
+  icon: Icon, 
   action, 
   actionText,
   className = '',
@@ -51,7 +51,7 @@ export default function ActionCard({
       <div className="relative z-10">
         <div className="flex items-start space-x-4">
           <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 group-hover:from-blue-500/20 group-hover:to-purple-500/20 transition-all duration-300 flex-shrink-0">
-            {icon}
+            <Icon className="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform group-hover:text-blue-300" />
           </div>
           
           <div className="flex-1">

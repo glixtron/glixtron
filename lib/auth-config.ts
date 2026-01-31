@@ -87,8 +87,15 @@ export const authConfig: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: ENV_CONFIG.TIMEOUTS.AUTH_SESSION
+    maxAge: ENV_CONFIG.TIMEOUTS.AUTH_SESSION,
+    updateAge: 60 * 60 * 24 // Update session every 24 hours
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development'
+  debug: process.env.NODE_ENV === 'development',
+  // Cross-device access: trust host, secure cookies only in production
+  trustHost: true,
+  useSecureCookies: process.env.NODE_ENV === 'production'
 }
+
+// Alias for backward compatibility
+export const authOptions = authConfig

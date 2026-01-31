@@ -36,6 +36,7 @@ export const analyzeResume = analyzeResumeOriginal
 
 /**
  * Extract job description from a URL with real content fetching
+ * Uses Firecrawl when API key is available, otherwise falls back to direct fetch
  */
 export async function extractJDFromURL(url: string): Promise<string> {
   try {
@@ -44,9 +45,27 @@ export async function extractJDFromURL(url: string): Promise<string> {
       throw new Error('Invalid URL provided')
     }
 
+    if (!url.startsWith('http')) {
+      url = url.startsWith('//') ? `https:${url}` : `https://${url}`
+    }
+
     console.log('🔍 Extracting job description from:', url)
     
-    // Try to fetch real content
+    // Try Firecrawl first when API key is available
+    if (process.env.FIRECRAWL_API_KEY) {
+      try {
+        const { firecrawlExtractJD } = await import('./ai-providers')
+        const result = await firecrawlExtractJD(url)
+        if (result.content && result.content.length > 100) {
+          console.log('✅ Successfully extracted via Firecrawl')
+          return result.content
+        }
+      } catch (firecrawlError: any) {
+        console.warn('⚠️ Firecrawl extraction failed:', firecrawlError?.message)
+      }
+    }
+    
+    // Fallback: Try direct fetch
     const content = await fetchJobDescriptionFromURL(url)
     
     if (content) {
