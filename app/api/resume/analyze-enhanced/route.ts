@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pdf from 'pdf-parse'
 import mammoth from 'mammoth'
-import { brandConfig } from '@/config/brand'
 
 // Extend timeout for Vercel Hobby tier (max 60 seconds)
 export const maxDuration = 60
@@ -14,7 +13,7 @@ const ALLOWED_TYPES = {
   'application/msword': 'doc'
 }
 
-const MAX_FILE_SIZE = brandConfig.maxFileSize // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
 // Extract text from different file types
 async function extractTextFromFile(file: File): Promise<string> {
@@ -47,8 +46,38 @@ async function extractTextFromFile(file: File): Promise<string> {
 }
 
 // Enhanced AI analysis prompt with user context
-function createAnalysisPrompt(resumeText: string, jobDescription?: string): string {
-  const basePrompt = `${brandConfig.ai.systemPrompt}
+async function createAnalysisPrompt(resumeText: string, jobDescription?: string): Promise<string> {
+  // Get dynamic brand config or fallback to default
+  let brandConfig
+  try {
+    const { brandConfig: importedConfig } = await import('@/config/brand')
+    brandConfig = importedConfig
+  } catch (error) {
+    brandConfig = {
+      aiPersona: {
+        name: "Aria",
+        style: "Professional & Data-Driven",
+        instruction: "You are an elite Silicon Valley recruiter. Be blunt about skill gaps but provide high-ROI solutions. Focus heavily on ATS optimization and salary negotiation.",
+        tone: "formal",
+        communication: {
+          greeting: "Hello! I'm Aria, your AI career advisor.",
+          signoff: "Best regards on your career journey!",
+          encouragement: "You're making great progress toward your goals."
+        }
+      },
+      name: "Glixtron Pilot"
+    }
+  }
+
+  const basePrompt = `
+IDENTITY: Your name is ${brandConfig.aiPersona.name}.
+ROLE: ${brandConfig.aiPersona.instruction}
+TONE: ${brandConfig.aiPersona.tone}.
+
+You are representing the brand "${brandConfig.name}". 
+Ensure all advice aligns with a ${brandConfig.aiPersona.style} methodology.
+
+${brandConfig.aiPersona.communication.greeting}
 
 Analyze the following extracted text from a professional resume and provide comprehensive feedback:
 
@@ -102,7 +131,11 @@ Please format your response as structured JSON with these sections:
   "recommendations": string[]
 }
 
-Be specific, data-driven, and provide actionable advice that will immediately improve the candidate's chances.`
+Be specific, data-driven, and provide actionable advice that will immediately improve the candidate's chances.
+
+${brandConfig.aiPersona.communication.encouragement}
+
+${brandConfig.aiPersona.communication.signoff}`
 
   return basePrompt
 }
@@ -149,7 +182,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Create analysis prompt
-    const analysisPrompt = createAnalysisPrompt(resumeText, jobDescription)
+    const analysisPrompt = await createAnalysisPrompt(resumeText, jobDescription)
     
     // Call AI service for analysis
     const aiResponse = await callAIService(analysisPrompt)
@@ -178,11 +211,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
+        ...analysisResult,
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
         extractedTextLength: resumeText.length,
-        analysis: analysisResult,
         processedAt: new Date().toISOString()
       }
     })
@@ -246,12 +279,27 @@ async function callAIService(prompt: string): Promise<string> {
 
 // GET endpoint for file upload configuration
 export async function GET() {
+  // Get brand config or fallback
+  let brandConfig
+  try {
+    const { brandConfig: importedConfig } = await import('@/config/brand')
+    brandConfig = importedConfig
+  } catch (error) {
+    brandConfig = {
+      supportedFormats: ['pdf', 'docx', 'txt'],
+      maxFileSize: 10 * 1024 * 1024,
+      name: "Glixtron Pilot",
+      tagline: "AI-Powered Career Intelligence Platform",
+      colors: { primary: "#3b82f6" }
+    }
+  }
+
   return NextResponse.json({
     success: true,
     data: {
       allowedTypes: Object.keys(ALLOWED_TYPES),
       maxFileSize: MAX_FILE_SIZE,
-      supportedFormats: brandConfig.supportedFormats,
+      supportedFormats: brandConfig.supportedFormats || ['pdf', 'docx', 'txt'],
       features: {
         realTimeAnalysis: true,
         atsOptimization: true,
@@ -261,9 +309,9 @@ export async function GET() {
         whiteLabelReports: true
       },
       brand: {
-        name: brandConfig.name,
-        tagline: brandConfig.tagline,
-        primaryColor: brandConfig.colors.primary
+        name: brandConfig.name || "Glixtron Pilot",
+        tagline: brandConfig.tagline || "AI-Powered Career Intelligence Platform",
+        primaryColor: brandConfig.colors?.primary || "#3b82f6"
       }
     }
   })

@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, FileText, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import { brandConfig } from '@/config/brand'
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void
@@ -19,8 +18,8 @@ export default function FileUpload({
   onAnalysisComplete,
   onError,
   isAnalyzing = false,
-  acceptedFormats = brandConfig.features.supportedFormats,
-  maxFileSize = brandConfig.features.maxFileSize
+  acceptedFormats = ['pdf', 'docx', 'txt'],
+  maxFileSize = 10 * 1024 * 1024
 }: FileUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
