@@ -5,6 +5,7 @@ import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
 import FileUpload from '@/components/FileUpload'
+import { SafeComponent, SafeIcon, useSafeAsync } from '@/components/SafetyWrapper'
 import { brandConfig } from '@/config/brand'
 import { apiService } from '@/lib/api-service'
 import { useResumeReport } from '@/lib/resume-report-generator'
@@ -21,7 +22,8 @@ import {
   Sparkles,
   BarChart3,
   Award,
-  Shield
+  Shield,
+  AlertTriangle
 } from 'lucide-react'
 
 export default function ResumeScannerPage() {
@@ -34,28 +36,23 @@ export default function ResumeScannerPage() {
   const handleFileSelect = (file: File) => {
     setError(null)
     setSuccessMessage(null)
-    setIsScanning(true)
+    console.log('File selected:', file.name)
   }
 
-  const handleAnalysisComplete = (result: any) => {
+  const handleAnalysisComplete = (results: any) => {
+    setScanResults(results)
     setIsScanning(false)
-    setScanResults(result.analysis)
-    setSuccessMessage(`Resume analysis complete! Overall score: ${result.analysis.overallScore}/10`)
+    setSuccessMessage('Analysis completed successfully!')
   }
 
   const handleError = (errorMessage: string) => {
-    setIsScanning(false)
     setError(errorMessage)
+    setIsScanning(false)
   }
 
   const handleDownloadReport = () => {
     if (scanResults) {
-      const reportData = {
-        ...scanResults,
-        fileName: 'resume.pdf',
-        processedAt: new Date().toISOString()
-      }
-      downloadReport(reportData)
+      downloadReport(scanResults)
     }
   }
 
@@ -72,217 +69,202 @@ export default function ResumeScannerPage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-          AI Resume Scanner
-        </h1>
-        <p className="text-slate-400">
-          Upload your resume for instant AI-powered analysis and ATS optimization
-        </p>
-      </div>
-
-      {/* Error and Success Messages */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-center space-x-3">
-          <AlertCircle className="w-5 h-5 text-red-400" />
-          <p className="text-red-400">{error}</p>
+    <div className="min-h-screen bg-slate-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Resume Scanner</h1>
+          <p className="text-gray-400">AI-powered resume analysis with instant feedback</p>
         </div>
-      )}
 
-      {successMessage && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-center space-x-3">
-          <CheckCircle className="w-5 h-5 text-green-400" />
-          <p className="text-green-400">{successMessage}</p>
-        </div>
-      )}
-
-      {/* File Upload Section */}
-      <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-xl p-6">
-        <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-          <Upload className="w-5 h-5 mr-2 text-blue-400" />
-          Upload Resume
-        </h2>
-        
-        <FileUpload
-          onFileSelect={handleFileSelect}
-          onAnalysisComplete={handleAnalysisComplete}
-          onError={handleError}
-          isAnalyzing={isScanning}
-          acceptedFormats={brandConfig.features.supportedFormats}
-          maxFileSize={brandConfig.features.maxFileSize}
-        />
-      </div>
-
-      {/* Analysis Results */}
-      {scanResults && (
-        <div className="space-y-6">
-          {/* Results Header with Download */}
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Analysis Results</h2>
-            <button
-              onClick={handleDownloadReport}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Report</span>
-            </button>
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+            <div className="flex items-center space-x-3">
+              <SafeIcon icon={AlertCircle} className="w-5 h-5 text-red-400" />
+              <span className="text-red-400">{error}</span>
+            </div>
           </div>
-          {/* Score Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <StatCard
-              title="Overall Score"
-              value={`${scanResults.overallScore}/10`}
-              trend={scanResults.interviewLikelihood ? {
-                value: `${scanResults.interviewLikelihood}% interview chance`,
-                isPositive: scanResults.interviewLikelihood > 50
-              } : undefined}
-              icon={Award}
-              className={getScoreBg(scanResults.overallScore)}
-            />
+        )}
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+            <div className="flex items-center space-x-3">
+              <SafeIcon icon={CheckCircle} className="w-5 h-5 text-green-400" />
+              <span className="text-green-400">{successMessage}</span>
+            </div>
+          </div>
+        )}
+
+        {/* File Upload Section */}
+        <SafeComponent>
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+              <SafeIcon icon={Upload} className="w-5 h-5 mr-2 text-blue-400" />
+              Upload Resume
+            </h2>
             
-            <StatCard
-              title="ATS Compatibility"
-              value={`${scanResults.atsScore}/10`}
-              trend={{
-                value: "Applicant Tracking Systems",
-                isPositive: scanResults.atsScore >= 7
-              }}
-              icon={Target}
-              className={getScoreBg(scanResults.atsScore)}
-            />
-            
-            <StatCard
-              title="Content Quality"
-              value={`${scanResults.contentScore}/10`}
-              trend={{
-                value: "Achievement statements",
-                isPositive: scanResults.contentScore >= 7
-              }}
-              icon={FileText}
-              className={getScoreBg(scanResults.contentScore)}
-            />
-            
-            <StatCard
-              title="Structure Score"
-              value={`${scanResults.structureScore}/10`}
-              trend={{
-                value: "Formatting & organization",
-                isPositive: scanResults.structureScore >= 7
-              }}
-              icon={Shield}
-              className={getScoreBg(scanResults.structureScore)}
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              onAnalysisComplete={handleAnalysisComplete}
+              onError={handleError}
+              isAnalyzing={isScanning}
+              acceptedFormats={brandConfig.supportedFormats || ['pdf', 'docx', 'txt']}
+              maxFileSize={brandConfig.maxFileSize || 10 * 1024 * 1024}
             />
           </div>
+        </SafeComponent>
 
-          {/* Critical Issues */}
-          {scanResults.criticalIssues && scanResults.criticalIssues.length > 0 && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-red-400 mb-4 flex items-center">
-                <AlertCircle className="w-5 h-5 mr-2" />
-                Critical Issues to Fix
-              </h3>
-              <ul className="space-y-2">
-                {scanResults.criticalIssues.map((issue: string, index: number) => (
-                  <li key={index} className="flex items-start space-x-2">
-                    <div className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-slate-300">{issue}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Key Improvements */}
-          {scanResults.improvements && scanResults.improvements.length > 0 && (
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2" />
-                Top 3 Improvements
-              </h3>
-              <ol className="space-y-3">
-                {scanResults.improvements.map((improvement: string, index: number) => (
-                  <li key={index} className="flex items-start space-x-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      {index + 1}
-                    </span>
-                    <span className="text-slate-300">{improvement}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-
-          {/* Missing Keywords */}
-          {scanResults.missingKeywords && scanResults.missingKeywords.length > 0 && (
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center">
-                <Zap className="w-5 h-5 mr-2" />
-                Missing Keywords for ATS
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {scanResults.missingKeywords.map((keyword: string, index: number) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm"
-                  >
-                    {keyword}
-                  </span>
-                ))}
+        {/* Analysis Results */}
+        {scanResults && (
+          <SafeComponent>
+            <div className="space-y-6">
+              {/* Results Header with Download */}
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Analysis Results</h2>
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <SafeIcon icon={Download} size={16} />
+                  <span>Download Report</span>
+                </button>
               </div>
-            </div>
-          )}
+              
+              {/* Score Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <StatCard
+                  title="Overall Score"
+                  value={`${scanResults.overallScore}/10`}
+                  trend={scanResults.interviewLikelihood ? {
+                    value: `${scanResults.interviewLikelihood}% interview chance`,
+                    isPositive: scanResults.interviewLikelihood > 50
+                  } : undefined}
+                  icon={Award}
+                  className={getScoreBg(scanResults.overallScore)}
+                />
+                
+                <StatCard
+                  title="ATS Compatibility"
+                  value={`${scanResults.atsScore}/10`}
+                  trend={{
+                    value: "Applicant Tracking Systems",
+                    isPositive: scanResults.atsScore >= 7
+                  }}
+                  icon={Target}
+                  className={getScoreBg(scanResults.atsScore)}
+                />
+                
+                <StatCard
+                  title="Content Quality"
+                  value={`${scanResults.contentScore}/10`}
+                  trend={{
+                    value: "Achievement statements",
+                    isPositive: scanResults.contentScore >= 7
+                  }}
+                  icon={Sparkles}
+                  className={getScoreBg(scanResults.contentScore)}
+                />
+                
+                <StatCard
+                  title="Structure"
+                  value={`${scanResults.structureScore}/10`}
+                  trend={{
+                    value: "Resume formatting",
+                    isPositive: scanResults.structureScore >= 7
+                  }}
+                  icon={Shield}
+                  className={getScoreBg(scanResults.structureScore)}
+                />
+              </div>
 
-          {/* Additional Recommendations */}
-          {scanResults.recommendations && scanResults.recommendations.length > 0 && (
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-green-400 mb-4 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Additional Recommendations
-              </h3>
-              <ul className="space-y-2">
-                {scanResults.recommendations.map((rec: string, index: number) => (
-                  <li key={index} className="flex items-start space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-slate-300">{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
+              {/* Critical Issues */}
+              {scanResults.criticalIssues && scanResults.criticalIssues.length > 0 && (
+                <ChartCard
+                  title="Critical Issues"
+                  description="Items that need immediate attention"
+                >
+                  <div className="space-y-3">
+                    {scanResults.criticalIssues.map((issue: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <SafeIcon icon={AlertCircle} className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-red-400 text-sm">{issue}</span>
+                      </div>
+                    ))}
+                  </div>
+                </ChartCard>
+              )}
 
-      {/* Features Section */}
-      {!scanResults && (
-        <div>
-          <h2 className="text-xl font-semibold text-white mb-4">What We Analyze</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Improvements */}
+              {scanResults.improvements && scanResults.improvements.length > 0 && (
+                <ChartCard
+                  title="Recommended Improvements"
+                  description="Suggestions to enhance your resume"
+                >
+                  <div className="space-y-3">
+                    {scanResults.improvements.map((improvement: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <SafeIcon icon={TrendingUp} className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-blue-400 text-sm">{improvement}</span>
+                      </div>
+                    ))}
+                  </div>
+                </ChartCard>
+              )}
+
+              {/* Missing Keywords */}
+              {scanResults.missingKeywords && scanResults.missingKeywords.length > 0 && (
+                <ChartCard
+                  title="Missing Keywords"
+                  description="Important keywords for your target role"
+                >
+                  <div className="flex flex-wrap gap-2">
+                    {scanResults.missingKeywords.map((keyword: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-full text-sm"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </ChartCard>
+              )}
+            </div>
+          </SafeComponent>
+        )}
+
+        {/* Features Section */}
+        {!scanResults && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             <ActionCard
-              title="ATS Compatibility"
-              description="Check if your resume passes Applicant Tracking Systems used by 90% of companies."
-              icon={Target}
-              action={() => console.log('Learn more')}
-              actionText="Learn More"
-            />
-            <ActionCard
-              title="Keyword Optimization"
-              description="Ensure your resume contains the right keywords for your target roles."
+              title="AI Analysis"
+              description="Advanced AI analyzes your resume for ATS optimization"
               icon={Zap}
-              action={() => console.log('Learn more')}
+              action={() => {}}
               actionText="Learn More"
+              className="from-purple-500 to-purple-600"
             />
             <ActionCard
-              title="Format & Structure"
-              description="Analyze formatting, length, and structure for maximum impact."
-              icon={Eye}
-              action={() => console.log('Learn more')}
+              title="Keyword Matching"
+              description="Industry-specific keyword analysis for your role"
+              icon={Target}
+              action={() => {}}
               actionText="Learn More"
+              className="from-emerald-500 to-emerald-600"
+            />
+            <ActionCard
+              title="Professional Reports"
+              description="Download detailed PDF analysis reports"
+              icon={FileText}
+              action={() => {}}
+              actionText="Learn More"
+              className="from-blue-500 to-blue-600"
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
