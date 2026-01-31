@@ -60,6 +60,13 @@ interface RoadmapStep {
   resources: { title: string; type: 'course' | 'project' | 'article'; url: string }[]
 }
 
+interface RoadmapState {
+  steps: RoadmapStep[]
+  currentMilestone: string
+  targetDate: string
+  progressScore: number
+}
+
 interface SkillGap {
   skill: string
   current: number
@@ -75,13 +82,19 @@ interface MarketInsight {
 }
 
 export default function CareerGuidancePage() {
-  const [roadmap, setRoadmap] = useState<RoadmapStep[]>([])
+  const [roadmap, setRoadmap] = useState<RoadmapState>({
+    steps: [],
+    currentMilestone: 'Getting Started',
+    targetDate: '6 months',
+    progressScore: 25
+  })
   const [skillGaps, setSkillGaps] = useState<SkillGap[]>([])
   const [marketInsights, setMarketInsights] = useState<MarketInsight[]>([])
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'roadmap' | 'skills' | 'insights' | 'job-analysis'>('overview')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [extractedJD, setExtractedJD] = useState<ExtractedJD | null>(null)
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null)
   const [careerQuery, setCareerQuery] = useState('')
@@ -134,7 +147,12 @@ export default function CareerGuidancePage() {
       const response = await apiService.getCareerGuidance()
       
       if (response.success) {
-        setRoadmap(response.data.roadmap || [])
+        setRoadmap({
+          steps: response.data.roadmap || [],
+          currentMilestone: response.data.currentMilestone || 'Getting Started',
+          targetDate: response.data.targetDate || '6 months',
+          progressScore: response.data.progressScore || 25
+        })
         setSkillGaps(response.data.skillGaps || [])
         setMarketInsights(response.data.marketInsights || [])
       } else {
@@ -198,10 +216,11 @@ export default function CareerGuidancePage() {
   }
 
   const loadMockData = () => {
-    setRoadmap([
-      {
-        id: '1',
-        title: 'Foundation Building',
+    setRoadmap({
+      steps: [
+        {
+          id: '1',
+          title: 'Foundation Building',
         description: 'Master core technical skills and build fundamental knowledge',
         duration: '3-4 months',
         completed: false,
@@ -251,7 +270,11 @@ export default function CareerGuidancePage() {
           { title: 'Technical Interview Guide', type: 'article', url: '#' }
         ]
       }
-    ])
+    ],
+    currentMilestone: 'Foundation Building',
+    targetDate: '6 months',
+    progressScore: 25
+    })
 
     setSkillGaps([
       { skill: 'React/Next.js', current: 75, target: 90, category: 'technical' },
@@ -286,40 +309,32 @@ export default function CareerGuidancePage() {
           completed: false,
           skills: ['React/Next.js', 'TypeScript', 'Cloud Architecture'],
           resources: [
-            { title: 'Advanced React Patterns', type: 'course', url: '#' },
-            { title: 'TypeScript Mastery', type: 'course', url: '#' },
-            { title: 'AWS Cloud Practitioner', type: 'course', url: '#' }
+            { title: 'Advanced React Patterns', type: 'course' as const, url: '#' },
+            { title: 'TypeScript Mastery', type: 'course' as const, url: '#' },
+            { title: 'AWS Cloud Practitioner', type: 'course' as const, url: '#' }
           ]
         },
         {
           id: '2',
           title: 'Project Portfolio Building',
-          description: 'Create impressive projects that showcase your skills to employers',
-          duration: '3-4 months',
-          completed: false,
-          skills: ['Full-stack Development', 'System Design', 'API Development'],
-          resources: [
-            { title: 'E-commerce Platform', type: 'project', url: '#' },
-            { title: 'Real-time Analytics Dashboard', type: 'project', url: '#' },
-            { title: 'Microservices Architecture', type: 'project', url: '#' }
-          ]
-        },
-        {
-          id: '3',
-          title: 'Interview Preparation',
           description: 'Master technical and behavioral interviews for top companies',
           duration: '1-2 months',
           completed: false,
           skills: ['Problem Solving', 'Communication', 'System Design'],
           resources: [
-            { title: 'LeetCode Premium', type: 'course', url: '#' },
-            { title: 'Mock Interview Sessions', type: 'project', url: '#' },
-            { title: 'Salary Negotiation Guide', type: 'article', url: '#' }
+            { title: 'LeetCode Premium', type: 'course' as const, url: '#' },
+            { title: 'Mock Interview Sessions', type: 'project' as const, url: '#' },
+            { title: 'Salary Negotiation Guide', type: 'article' as const, url: '#' }
           ]
         }
       ]
       
-      setRoadmap(enhancedRoadmap)
+      setRoadmap({
+        steps: enhancedRoadmap,
+        currentMilestone: 'Skill Enhancement',
+        targetDate: '4 months',
+        progressScore: 35
+      })
     } catch (error) {
       console.error('Failed to generate roadmap:', error)
     } finally {
@@ -330,19 +345,82 @@ export default function CareerGuidancePage() {
   const handleCareerQuery = async () => {
     if (!careerQuery.trim()) return
     
+    setIsLoading(true)
+    setError(null)
+    
     try {
+      console.log('🚀 Submitting career query:', careerQuery)
+      
       const response = await apiService.submitCareerQuery(careerQuery)
+      console.log('📊 API response:', response)
+      
       if (response.success) {
         // Update UI with AI response
-        console.log('Career guidance response:', response.data)
+        console.log('✅ Career guidance response:', response.data)
+        
+        // Extract roadmap update from AI response
+        const aiResponse = response.data.response || response.data.message || ''
+        console.log('🤖 AI Response:', aiResponse)
+        
+        // Look for ROADMAP_UPDATE JSON block in AI response
+        const roadmapMatch = aiResponse.match(/ROADMAP_UPDATE:\s*({.*?})/m)
+        if (roadmapMatch) {
+          try {
+            const roadmapData = JSON.parse(roadmapMatch[1])
+            console.log('🗺️ Roadmap Update Found:', roadmapData)
+            
+            // Update roadmap state
+            setRoadmap(prev => ({
+              ...prev,
+              currentMilestone: roadmapData.milestone || prev.currentMilestone,
+              targetDate: roadmapData.targetDate || prev.targetDate,
+              progressScore: roadmapData.progressScore || prev.progressScore
+            }))
+            
+            // Save to MongoDB
+            await updateRoadmapInDB(roadmapData)
+            
+            // Show success message
+            setSuccess('Career advice received and roadmap updated!')
+          } catch (parseError) {
+            console.warn('⚠️ Failed to parse roadmap update:', parseError)
+            setSuccess('Career advice received!')
+          }
+        } else {
+          setSuccess('Career advice received!')
+        }
+        
         // You could show the response in a modal or notification
       } else {
-        console.error('Career query failed:', response.error)
-        // Show user-friendly error
+        console.error('❌ Career query failed:', response.error)
+        setError(response.error || 'Failed to get career advice. Please try again.')
       }
     } catch (error) {
-      console.error('Failed to submit career query:', error)
-      // Show user-friendly error message
+      console.error('❌ Failed to submit career query:', error)
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Update roadmap in MongoDB
+  const updateRoadmapInDB = async (roadmapData: any) => {
+    try {
+      const response = await fetch('/api/user/roadmap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roadmapData)
+      })
+      
+      if (response.ok) {
+        console.log('✅ Roadmap updated in database')
+      } else {
+        console.warn('⚠️ Failed to update roadmap in database')
+      }
+    } catch (error) {
+      console.warn('⚠️ Error updating roadmap in database:', error)
     }
   }
 
@@ -543,10 +621,10 @@ export default function CareerGuidancePage() {
           </div>
 
           <div className="space-y-6">
-            {roadmap.map((step, index) => (
+            {roadmap.steps.map((step: RoadmapStep, index: number) => (
               <div key={step.id} className="relative">
                 {/* Connection Line */}
-                {index < roadmap.length - 1 && (
+                {index < roadmap.steps.length - 1 && (
                   <div className="absolute left-6 top-12 w-0.5 h-full bg-slate-700"></div>
                 )}
                 
