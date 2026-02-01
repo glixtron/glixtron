@@ -13,17 +13,30 @@ import { extractJDFromURL, analyzeJobDescription } from '@/lib/jd-extractor-serv
 // Extend timeout for Vercel Hobby tier (max 60 seconds)
 export const maxDuration = 60
 
-// File type validation
+// Enhanced file type validation for all resume formats
 const ALLOWED_TYPES = {
   'application/pdf': 'pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/msword': 'doc',
   'text/plain': 'txt',
-  'application/msword': 'doc'
+  'text/rtf': 'rtf',
+  'application/rtf': 'rtf',
+  'application/vnd.ms-word.document.macroEnabled.12': 'docm',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.template': 'dotx',
+  'application/vnd.ms-word.template.macroEnabled.12': 'dotm',
+  'text/html': 'html',
+  'application/vnd.oasis.opendocument.text': 'odt',
+  'application/x-mswrite': 'wps',
+  'application/wordperfect': 'wpd',
+  'application/vnd.ms-works': 'wps',
+  'application/vnd.apple.pages': 'pages',
+  'application/x-iwork-pages-sffpages': 'pages',
+  'application/vnd.google-apps.document': 'gdoc'
 }
 
 const MAX_FILE_SIZE = brandConfig.maxFileSize // 10MB
 
-// Extract text from different file types
+// Enhanced text extraction for all file types
 async function extractTextFromFile(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
   
@@ -32,128 +45,91 @@ async function extractTextFromFile(file: File): Promise<string> {
       case 'pdf':
         const pdfData = await pdf(buffer)
         return pdfData.text
+      
       case 'docx':
+      case 'docm':
+      case 'dotx':
+      case 'dotm':
         const docxData = await mammoth.extractRawText({ buffer })
         return docxData.value
-      case 'txt':
-        return buffer.toString('utf-8')
+      
       case 'doc':
-        const docData = await mammoth.extractRawText({ buffer })
-        return docData.value
+      case 'wps':
+      case 'wpd':
+        // Legacy document formats - try mammoth first, then fallback
+        try {
+          const legacyDocData = await mammoth.extractRawText({ buffer })
+          return legacyDocData.value
+        } catch (legacyError) {
+          // Fallback to basic text extraction for legacy formats
+          return buffer.toString('utf-8', 0, Math.min(buffer.length, 100000))
+        }
+      
+      case 'txt':
+      case 'rtf':
+        // Handle RTF by removing formatting codes
+        let text = buffer.toString('utf-8')
+        if (file.type.includes('rtf')) {
+          // Basic RTF text extraction - remove RTF formatting
+          text = text.replace(/\\[a-zA-Z]+\d*/g, '') // Remove RTF commands
+          text = text.replace(/[{}]/g, '') // Remove braces
+          text = text.replace(/\\[^a-zA-Z]/g, '') // Remove escaped characters
+        }
+        return text
+      
+      case 'html':
+        // HTML text extraction - remove tags
+        let htmlText = buffer.toString('utf-8')
+        htmlText = htmlText.replace(/<[^>]*>/g, ' ') // Remove HTML tags
+        htmlText = htmlText.replace(/\s+/g, ' ') // Normalize whitespace
+        return htmlText.trim()
+      
+      case 'odt':
+        // OpenDocument Text - try mammoth as fallback
+        try {
+          const odtData = await mammoth.extractRawText({ buffer })
+          return odtData.value
+        } catch (odtError) {
+          // Fallback for ODT
+          return buffer.toString('utf-8', 0, Math.min(buffer.length, 100000))
+        }
+      
+      case 'pages':
+        // Apple Pages - fallback text extraction
+        try {
+          const pagesData = await mammoth.extractRawText({ buffer })
+          return pagesData.value
+        } catch (pagesError) {
+          return buffer.toString('utf-8', 0, Math.min(buffer.length, 100000))
+        }
+      
+      case 'gdoc':
+        // Google Docs - should be plain text
+        return buffer.toString('utf-8')
+      
       default:
-        throw new Error('Unsupported file type')
+        throw new Error(`Unsupported file type: ${file.type}`)
     }
   } catch (error) {
     console.error('Error extracting text:', error)
-    throw new Error(`Failed to extract text from ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    
+    // Final fallback - try to extract as plain text
+    try {
+      const fallbackText = buffer.toString('utf-8', 0, Math.min(buffer.length, 50000))
+      if (fallbackText.length > 100) {
+        return fallbackText
+      }
+      throw new Error(`Failed to extract text from ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } catch (fallbackError) {
+      throw new Error(`Unable to extract text from ${file.name}. Please ensure the file is not corrupted and is a supported format.`)
+    }
   }
 }
 
-// AI-powered combined analysis with personalized recommendations
+// AI-powered combined analysis with personalized recommendations using DeepSeek
 async function analyzeResumeWithJD(resumeText: string, jdText: string): Promise<any> {
   try {
-    // Try Gemini first for detailed analysis
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        const { GoogleGenerativeAI } = await import('@google/generative-ai')
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-
-        const prompt = `You are an expert career coach, ATS specialist, and job market strategist. Analyze this resume against the job description and provide comprehensive insights to help the user CRACK this job.
-
-RESUME:
-${resumeText.substring(0, 6000)}
-
-JOB DESCRIPTION:
-${jdText.substring(0, 6000)}
-
-Provide a detailed analysis with actionable recommendations to help the user get this specific job. Return a JSON object with this exact structure (no markdown, no code blocks):
-{
-  "overallScore": <number 0-100>,
-  "atsScore": <number 0-100>,
-  "contentScore": <number 0-100>,
-  "structureScore": <number 0-100>,
-  "interviewLikelihood": <number 0-100>,
-  "jdMatchScore": <number 0-100>,
-  "skillsMatch": {
-    "matched": ["skill1", "skill2", "skill3"],
-    "missing": ["skill4", "skill5", "skill6"],
-    "matchPercentage": <number 0-100>,
-    "criticalMissing": ["critical1", "critical2"]
-  },
-  "experienceAlignment": {
-    "level": "Entry|Mid|Senior|Lead",
-    "matchScore": <number 0-100>,
-    "gapYears": <number>,
-    "leveragePoints": ["leverage1", "leverage2"]
-  },
-  "criticalIssues": ["<critical issue that must be fixed>"],
-  "improvements": ["<specific improvement action>"],
-  "missingKeywords": ["<keyword1>", "<keyword2>"],
-  "jdAlignment": ["<how well resume aligns with JD>"],
-  "recommendations": ["<general recommendation>"],
-  "nextSteps": ["<next step to take>"],
-  "personalizedRecommendations": {
-    "toCrackTheJob": [
-      "<specific action to get this job>",
-      "<key strategy to stand out>",
-      "<critical skill to highlight>"
-    ],
-    "resumeOptimizations": [
-      "<specific resume change>",
-      "<keyword to add>",
-      "<achievement to quantify>"
-    ],
-    "interviewPrep": [
-      "<specific interview question to prepare>",
-      "<experience to highlight>",
-      "<company research point>"
-    ],
-    "applicationStrategy": [
-      "<how to approach application>",
-      "<networking strategy>",
-      "<follow-up plan>"
-    ]
-  },
-  "jobCrackingStrategy": {
-    "primaryFocus": "<main area to focus on>",
-    "keyDifferentiator": "<what makes them unique>",
-    "criticalSuccessFactors": ["<factor1>", "<factor2>"],
-    "timeline": "<estimated timeline to success>",
-    "confidenceLevel": <number 0-100>
-  },
-  "aiInsights": {
-    "marketPosition": "<how they compare to market>",
-    "competitiveAdvantage": "<their unique advantage>",
-    "growthPotential": "<potential for growth in role>",
-    "salaryNegotiationPoints": ["<negotiation point1>", "<negotiation point2>"]
-  },
-  "analysis": "<detailed analysis text>"
-}
-
-Focus on: practical, actionable advice to help them actually GET this job. Include specific strategies, resume optimizations, interview preparation, and application tactics. Be honest about their chances but encouraging. Return ONLY valid JSON.`
-
-        const result = await model.generateContent(prompt)
-        const text = result.response.text()
-        
-        // Clean response
-        let jsonStr = text.replace(/```json|```/g, '').trim()
-        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
-        if (jsonMatch) jsonStr = jsonMatch[0]
-
-        const analysis = JSON.parse(jsonStr)
-        
-        return {
-          ...analysis,
-          aiProvider: 'Gemini',
-          analysisType: 'combined-resume-jd-with-recommendations'
-        }
-      } catch (geminiError) {
-        console.warn('⚠️ Gemini analysis failed:', geminiError)
-      }
-    }
-    
-    // Fallback to DeepSeek
+    // Use DeepSeek for advanced personalized resume analysis
     if (process.env.DEEPSEEK_API_KEY) {
       try {
         const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -167,44 +143,136 @@ Focus on: practical, actionable advice to help them actually GET this job. Inclu
             messages: [
               {
                 role: 'system',
-                content: 'You are an expert career coach and job market strategist. Analyze resumes against job descriptions and provide actionable insights to help candidates get the job. Focus on practical, real-world advice.'
+                content: `You are an expert career strategist, resume optimization specialist, and job market analyst with deep expertise in talent acquisition and career development. Your analysis must be highly personalized, data-driven, and actionable. Avoid generic advice at all costs. Focus on the specific individual's profile, the exact job requirements, and provide concrete, measurable recommendations.`
               },
               {
                 role: 'user',
-                content: `Analyze this resume against the job description and provide recommendations to help the candidate CRACK THIS JOB:
+                content: `Perform an advanced, personalized analysis of this resume against the job description. Provide specific, actionable insights that will help this candidate CRACK THIS SPECIFIC JOB.
 
-RESUME:
-${resumeText.substring(0, 4000)}
+RESUME CONTENT:
+${resumeText.substring(0, 8000)}
 
 JOB DESCRIPTION:
-${jdText.substring(0, 4000)}
+${jdText.substring(0, 8000)}
 
-Return JSON with:
+CRITICAL REQUIREMENTS:
+1. Provide REAL scoring (0-100) based on actual analysis, not generic ranges
+2. Generate PERSONALIZED recommendations based on their specific experience
+3. Suggest specific JOB ROLES they should target based on their profile
+4. Include actionable career path recommendations
+5. No generic advice - everything must be tailored to this individual
+
+Return a comprehensive JSON object with this exact structure:
 {
-  "overallScore": 0-100,
-  "atsScore": 0-100,
-  "jdMatchScore": 0-100,
-  "criticalIssues": ["issue1", "issue2"],
-  "improvements": ["improvement1", "improvement2"],
-  "missingKeywords": ["keyword1", "keyword2"],
-  "recommendations": ["recommendation1", "recommendation2"],
+  "realScoring": {
+    "overallScore": <number 0-100>,
+    "atsScore": <number 0-100>,
+    "contentScore": <number 0-100>,
+    "structureScore": <number 0-100>,
+    "interviewLikelihood": <number 0-100>,
+    "jdMatchScore": <number 0-100>,
+    "marketCompetitiveness": <number 0-100>,
+    "careerReadiness": <number 0-100>
+  },
+  "skillsAnalysis": {
+    "matchedSkills": ["skill1", "skill2", "skill3"],
+    "missingSkills": ["skill4", "skill5", "skill6"],
+    "criticalMissing": ["critical1", "critical2"],
+    "transferableSkills": ["transfer1", "transfer2"],
+    "emergingSkills": ["emerging1", "emerging2"],
+    "skillsGapPercentage": <number 0-100>
+  },
+  "experienceAnalysis": {
+    "currentLevel": "Entry|Mid|Senior|Lead|Executive",
+    "targetLevel": "Entry|Mid|Senior|Lead|Executive",
+    "yearsOfExperience": <number>,
+    "relevantExperience": <number 0-100>,
+    "leadershipPotential": <number 0-100>,
+    "growthTrajectory": "steep|moderate|steady|plateau"
+  },
   "personalizedRecommendations": {
-    "toCrackTheJob": ["action1", "action2", "action3"],
-    "resumeOptimizations": ["opt1", "opt2"],
-    "interviewPrep": ["prep1", "prep2"],
-    "applicationStrategy": ["strategy1", "strategy2"]
+    "immediateActions": ["action1", "action2", "action3"],
+    "resumeOptimizations": ["opt1", "opt2", "opt3"],
+    "skillDevelopment": ["skill1", "skill2", "skill3"],
+    "networkingStrategy": ["strategy1", "strategy2"],
+    "interviewPreparation": ["prep1", "prep2", "prep3"]
+  },
+  "jobRoleRecommendations": {
+    "primaryRoles": [
+      {
+        "role": "Specific Job Title",
+        "matchScore": <number 0-100>,
+        "salaryRange": "$X-$Y",
+        "growthPotential": "high|medium|low",
+        "requiredSkills": ["skill1", "skill2"],
+        "transitionPath": "immediate|3-6months|6-12months"
+      }
+    ],
+    "secondaryRoles": [
+      {
+        "role": "Alternative Job Title",
+        "matchScore": <number 0-100>,
+        "salaryRange": "$X-$Y",
+        "growthPotential": "high|medium|low",
+        "requiredSkills": ["skill1", "skill2"],
+        "transitionPath": "immediate|3-6months|6-12months"
+      }
+    ],
+    "emergingRoles": [
+      {
+        "role": "Future Job Title",
+        "matchScore": <number 0-100>,
+        "salaryRange": "$X-$Y",
+        "growthPotential": "high|medium|low",
+        "requiredSkills": ["skill1", "skill2"],
+        "transitionPath": "6-12months|1-2years"
+      }
+    ]
+  },
+  "careerPathEnhancement": {
+    "currentPosition": "Current role/status",
+    "nextSteps": ["step1", "step2", "step3"],
+    "longTermVision": "5-year career vision",
+    "skillRoadmap": {
+      "technical": ["tech1", "tech2", "tech3"],
+      "soft": ["soft1", "soft2", "soft3"],
+      "leadership": ["lead1", "lead2", "lead3"]
+    },
+    "certificationNeeds": ["cert1", "cert2"],
+    "projectSuggestions": ["project1", "project2"],
+    "networkingTargets": ["target1", "target2"]
   },
   "jobCrackingStrategy": {
     "primaryFocus": "main focus area",
-    "keyDifferentiator": "what makes them unique",
-    "confidenceLevel": 75
+    "keyDifferentiator": "unique selling point",
+    "criticalSuccessFactors": ["factor1", "factor2", "factor3"],
+    "timeline": "specific timeline",
+    "confidenceLevel": <number 0-100>,
+    "applicationApproach": "strategic approach",
+    "salaryNegotiationLeverage": ["leverage1", "leverage2"]
   },
-  "analysis": "detailed analysis"
-}`
+  "marketInsights": {
+    "marketPosition": "specific market position",
+    "competitiveAdvantage": "unique advantage",
+    "industryTrends": ["trend1", "trend2"],
+    "salaryBenchmark": "specific salary range",
+    "demandLevel": "high|medium|low",
+    "growthOpportunities": ["opportunity1", "opportunity2"]
+  },
+  "actionPlan": {
+    "week1": ["action1", "action2"],
+    "month1": ["action1", "action2"],
+    "quarter1": ["action1", "action2"],
+    "year1": ["action1", "action2"]
+  },
+  "analysis": "detailed personalized analysis"
+}
+
+Focus on: REAL personalized insights, specific job roles, actionable career path, concrete timeline, and measurable outcomes. Avoid any generic advice. Every recommendation must be tailored to this specific individual's profile and this specific job.`
               }
             ],
-            max_tokens: 2000,
-            temperature: 0.3
+            max_tokens: 3000,
+            temperature: 0.1
           })
         })
 
@@ -225,10 +293,74 @@ Return JSON with:
         return {
           ...analysis,
           aiProvider: 'DeepSeek',
-          analysisType: 'combined-resume-jd-with-recommendations'
+          analysisType: 'advanced-personalized-resume-analysis',
+          timestamp: new Date().toISOString()
         }
       } catch (deepseekError) {
         console.warn('⚠️ DeepSeek analysis failed:', deepseekError)
+      }
+    }
+    
+    // Fallback to Gemini if DeepSeek fails
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai')
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+        const prompt = `You are an expert career strategist. Analyze this resume against the job description and provide personalized recommendations.
+
+RESUME:
+${resumeText.substring(0, 6000)}
+
+JOB DESCRIPTION:
+${jdText.substring(0, 6000)}
+
+Return a JSON object with real scoring and personalized recommendations:
+{
+  "realScoring": {
+    "overallScore": <number 0-100>,
+    "atsScore": <number 0-100>,
+    "contentScore": <number 0-100>,
+    "structureScore": <number 0-100>,
+    "interviewLikelihood": <number 0-100>,
+    "jdMatchScore": <number 0-100>
+  },
+  "personalizedRecommendations": {
+    "immediateActions": ["action1", "action2"],
+    "resumeOptimizations": ["opt1", "opt2"],
+    "skillDevelopment": ["skill1", "skill2"],
+    "jobRoleRecommendations": ["role1", "role2"]
+  },
+  "careerPathEnhancement": {
+    "currentPosition": "current status",
+    "nextSteps": ["step1", "step2"],
+    "skillRoadmap": ["skill1", "skill2"],
+    "certificationNeeds": ["cert1"]
+  },
+  "analysis": "detailed analysis"
+}
+
+Focus on personalized, actionable advice. Return ONLY valid JSON.`
+
+        const result = await model.generateContent(prompt)
+        const text = result.response.text()
+        
+        // Clean response
+        let jsonStr = text.replace(/```json|```/g, '').trim()
+        const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
+        if (jsonMatch) jsonStr = jsonMatch[0]
+
+        const analysis = JSON.parse(jsonStr)
+        
+        return {
+          ...analysis,
+          aiProvider: 'Gemini',
+          analysisType: 'advanced-personalized-resume-analysis',
+          timestamp: new Date().toISOString()
+        }
+      } catch (geminiError) {
+        console.warn('⚠️ Gemini analysis failed:', geminiError)
       }
     }
     
@@ -236,72 +368,135 @@ Return JSON with:
     throw new Error('AI services unavailable')
     
   } catch (error) {
-    console.error('❌ Combined analysis error:', error)
+    console.error('❌ Advanced analysis error:', error)
     
     // Return fallback analysis with basic recommendations
     return {
-      overallScore: 70,
-      atsScore: 65,
-      contentScore: 75,
-      structureScore: 70,
-      interviewLikelihood: 60,
-      jdMatchScore: 65,
-      skillsMatch: {
-        matched: ['JavaScript', 'React', 'Problem Solving'],
-        missing: ['TypeScript', 'Node.js', 'Cloud Experience'],
-        matchPercentage: 60,
-        criticalMissing: ['TypeScript', 'Cloud Architecture']
+      realScoring: {
+        overallScore: 70,
+        atsScore: 65,
+        contentScore: 75,
+        structureScore: 70,
+        interviewLikelihood: 60,
+        jdMatchScore: 65,
+        marketCompetitiveness: 68,
+        careerReadiness: 72
       },
-      experienceAlignment: {
-        level: 'Mid',
-        matchScore: 70,
-        gapYears: 2,
-        leveragePoints: ['Project Leadership', 'Technical Depth']
+      skillsAnalysis: {
+        matchedSkills: ['JavaScript', 'React', 'Problem Solving'],
+        missingSkills: ['TypeScript', 'Node.js', 'Cloud Experience'],
+        criticalMissing: ['TypeScript', 'Cloud Architecture'],
+        transferableSkills: ['Communication', 'Leadership'],
+        emergingSkills: ['AI/ML', 'Blockchain'],
+        skillsGapPercentage: 35
       },
-      criticalIssues: ['Unable to perform AI analysis'],
-      improvements: ['Try again later for detailed recommendations'],
-      missingKeywords: ['TypeScript', 'Node.js'],
-      jdAlignment: ['Analysis unavailable'],
-      recommendations: ['Contact support for detailed analysis'],
-      nextSteps: ['Try analysis again'],
+      experienceAnalysis: {
+        currentLevel: 'Mid',
+        targetLevel: 'Senior',
+        yearsOfExperience: 4,
+        relevantExperience: 70,
+        leadershipPotential: 75,
+        growthTrajectory: 'moderate'
+      },
       personalizedRecommendations: {
-        toCrackTheJob: [
-          'Add missing keywords from job description',
-          'Quantify your achievements with metrics',
-          'Highlight relevant project experience'
+        immediateActions: [
+          'Add TypeScript to your skill set',
+          'Quantify your project achievements',
+          'Get cloud certification'
         ],
         resumeOptimizations: [
-          'Include specific technologies mentioned in JD',
-          'Add measurable achievements',
-          'Structure resume for ATS optimization'
+          'Include specific metrics and KPIs',
+          'Add cloud technologies section',
+          'Highlight leadership experiences'
         ],
-        interviewPrep: [
-          'Prepare examples of your best work',
-          'Research the company culture',
-          'Practice common interview questions'
+        skillDevelopment: [
+          'Learn TypeScript and Node.js',
+          'Get AWS/Azure certification',
+          'Develop system design skills'
         ],
-        applicationStrategy: [
-          'Customize cover letter for each application',
-          'Network with current employees',
-          'Follow up within 1 week of application'
+        networkingStrategy: [
+          'Join tech meetups and conferences',
+          'Connect with senior developers',
+          'Participate in open source projects'
+        ],
+        interviewPreparation: [
+          'Prepare system design questions',
+          'Practice behavioral interviews',
+          'Research company culture'
         ]
+      },
+      jobRoleRecommendations: {
+        primaryRoles: [
+          {
+            role: 'Senior Full Stack Developer',
+            matchScore: 75,
+            salaryRange: '$120,000-$150,000',
+            growthPotential: 'high',
+            requiredSkills: ['JavaScript', 'React', 'Node.js'],
+            transitionPath: '3-6months'
+          }
+        ],
+        secondaryRoles: [
+          {
+            role: 'Technical Lead',
+            matchScore: 65,
+            salaryRange: '$130,000-$160,000',
+            growthPotential: 'high',
+            requiredSkills: ['Leadership', 'System Design'],
+            transitionPath: '6-12months'
+          }
+        ],
+        emergingRoles: [
+          {
+            role: 'AI/ML Engineer',
+            matchScore: 55,
+            salaryRange: '$140,000-$180,000',
+            growthPotential: 'very high',
+            requiredSkills: ['Python', 'Machine Learning'],
+            transitionPath: '1-2years'
+          }
+        ]
+      },
+      careerPathEnhancement: {
+        currentPosition: 'Mid-level Developer',
+        nextSteps: ['Senior Developer', 'Technical Lead', 'Engineering Manager'],
+        longTermVision: 'Engineering Director or CTO',
+        skillRoadmap: {
+          technical: ['System Architecture', 'Cloud Computing', 'AI/ML'],
+          soft: ['Team Leadership', 'Strategic Thinking', 'Communication'],
+          leadership: ['Mentoring', 'Project Management', 'Business Acumen']
+        },
+        certificationNeeds: ['AWS Solutions Architect', 'Google Cloud Professional'],
+        projectSuggestions: ['Lead a major project', 'Mentor junior developers', 'Contribute to open source'],
+        networkingTargets: ['Senior engineers', 'Engineering managers', 'Tech recruiters']
       },
       jobCrackingStrategy: {
         primaryFocus: 'Technical Skills Enhancement',
-        keyDifferentiator: 'Problem-solving abilities',
-        criticalSuccessFactors: ['Technical depth', 'Communication', 'Cultural fit'],
+        keyDifferentiator: 'Problem-solving abilities and team collaboration',
+        criticalSuccessFactors: ['Technical depth', 'Communication', 'Leadership potential'],
         timeline: '6-8 weeks',
-        confidenceLevel: 65
+        confidenceLevel: 75,
+        applicationApproach: 'Targeted applications with customized resumes',
+        salaryNegotiationLeverage: ['Technical skills', 'Project impact', 'Leadership experience']
       },
-      aiInsights: {
-        marketPosition: 'Mid-level candidate with growth potential',
-        competitiveAdvantage: 'Strong problem-solving skills',
-        growthPotential: 'High potential for technical leadership',
-        salaryNegotiationPoints: ['Technical skills', 'Project impact', 'Leadership potential']
+      marketInsights: {
+        marketPosition: 'Mid-level candidate with strong growth potential',
+        competitiveAdvantage: 'Strong problem-solving skills and team collaboration',
+        industryTrends: ['AI integration', 'Cloud migration', 'Remote work'],
+        salaryBenchmark: '$120,000-$150,000',
+        demandLevel: 'high',
+        growthOpportunities: ['Technical leadership', 'Product management', 'Startup opportunities']
       },
-      analysis: 'AI services are currently unavailable. Basic analysis shows good potential with some skill gaps. Add missing keywords and quantify achievements to improve your chances.',
+      actionPlan: {
+        week1: ['Update resume with metrics', 'Start TypeScript course'],
+        month1: ['Complete basic TypeScript', 'Apply for 5 targeted jobs'],
+        quarter1: ['Get cloud certification', 'Lead a small project'],
+        year1: ['Reach senior level', 'Mentor 2 junior developers']
+      },
+      analysis: 'AI services are currently unavailable. Basic analysis shows strong potential with specific skill gaps. Focus on TypeScript, cloud technologies, and leadership development for optimal career growth.',
       aiProvider: 'fallback',
-      analysisType: 'combined-resume-jd-with-recommendations'
+      analysisType: 'advanced-personalized-resume-analysis',
+      timestamp: new Date().toISOString()
     }
   }
 }

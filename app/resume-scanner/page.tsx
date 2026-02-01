@@ -26,7 +26,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Trash2,
-  Brain
+  Brain,
+  Calendar
 } from 'lucide-react'
 
 export default function ResumeScannerPage() {
@@ -175,7 +176,7 @@ export default function ResumeScannerPage() {
   }
 
   // Use saved analysis if available
-  const displayData = scanResults || resumeData?.analysis
+  const displayData = scanResults?.resumeAnalysis || scanResults || resumeData?.analysis
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -404,46 +405,46 @@ export default function ResumeScannerPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <StatCard
                   title="Overall Score"
-                  value={`${displayData.overallScore}/10`}
-                  trend={displayData.interviewLikelihood ? {
-                    value: `${displayData.interviewLikelihood}% interview chance`,
-                    isPositive: displayData.interviewLikelihood > 50
+                  value={`${displayData.realScoring?.overallScore || displayData.overallScore}/100`}
+                  trend={displayData.realScoring?.interviewLikelihood || displayData.interviewLikelihood ? {
+                    value: `${displayData.realScoring?.interviewLikelihood || displayData.interviewLikelihood}% interview chance`,
+                    isPositive: (displayData.realScoring?.interviewLikelihood || displayData.interviewLikelihood) > 50
                   } : undefined}
                   icon={Award}
-                  className={getScoreBg(displayData.overallScore)}
+                  className={getScoreBg((displayData.realScoring?.overallScore || displayData.overallScore) / 10)}
                 />
                 
                 <StatCard
                   title="ATS Compatibility"
-                  value={`${displayData.atsScore}/10`}
+                  value={`${displayData.realScoring?.atsScore || displayData.atsScore}/100`}
                   trend={{
                     value: "Applicant Tracking Systems",
-                    isPositive: displayData.atsScore >= 7
+                    isPositive: (displayData.realScoring?.atsScore || displayData.atsScore) >= 70
                   }}
                   icon={Target}
-                  className={getScoreBg(displayData.atsScore)}
+                  className={getScoreBg((displayData.realScoring?.atsScore || displayData.atsScore) / 10)}
                 />
                 
                 <StatCard
                   title="JD Match Score"
-                  value={`${displayData.jdMatchScore || displayData.resumeAnalysis?.jdMatchScore || 0}/10`}
+                  value={`${displayData.realScoring?.jdMatchScore || displayData.jdMatchScore || 0}/100`}
                   trend={{
                     value: "Job description alignment",
-                    isPositive: (displayData.jdMatchScore || displayData.resumeAnalysis?.jdMatchScore || 0) >= 7
+                    isPositive: (displayData.realScoring?.jdMatchScore || displayData.jdMatchScore || 0) >= 70
                   }}
                   icon={Target}
-                  className={getScoreBg(displayData.jdMatchScore || displayData.resumeAnalysis?.jdMatchScore || 0)}
+                  className={getScoreBg((displayData.realScoring?.jdMatchScore || displayData.jdMatchScore || 0) / 10)}
                 />
                 
                 <StatCard
-                  title="Confidence Level"
-                  value={`${displayData.jobCrackingStrategy?.confidenceLevel || displayData.resumeAnalysis?.jobCrackingStrategy?.confidenceLevel || 0}%`}
+                  title="Career Readiness"
+                  value={`${displayData.realScoring?.careerReadiness || displayData.jobCrackingStrategy?.confidenceLevel || 0}/100`}
                   trend={{
-                    value: "Job cracking potential",
-                    isPositive: (displayData.jobCrackingStrategy?.confidenceLevel || displayData.resumeAnalysis?.jobCrackingStrategy?.confidenceLevel || 0) >= 70
+                    value: "Career advancement readiness",
+                    isPositive: (displayData.realScoring?.careerReadiness || displayData.jobCrackingStrategy?.confidenceLevel || 0) >= 70
                   }}
                   icon={Zap}
-                  className={getScoreBg((displayData.jobCrackingStrategy?.confidenceLevel || displayData.resumeAnalysis?.jobCrackingStrategy?.confidenceLevel || 0) / 10)}
+                  className={getScoreBg((displayData.realScoring?.careerReadiness || displayData.jobCrackingStrategy?.confidenceLevel || 0) / 10)}
                 />
               </div>
 
@@ -502,84 +503,232 @@ export default function ResumeScannerPage() {
                 </ChartCard>
               )}
 
-              {/* Personalized Recommendations */}
-              {displayData.personalizedRecommendations && (
+              {/* Job Role Recommendations */}
+              {displayData.jobRoleRecommendations && (
                 <ChartCard
-                  title="💡 Personalized Recommendations"
-                  description="Actionable advice to help you crack this job"
+                  title="💼 Job Role Recommendations"
+                  description="AI-suggested roles based on your profile"
                 >
                   <div className="space-y-6">
-                    {/* To Crack The Job */}
+                    {/* Primary Roles */}
                     <div>
                       <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
-                        <Target className="w-5 h-5 mr-2 text-yellow-400" />
-                        To Crack This Job
+                        <Target className="w-5 h-5 mr-2 text-green-400" />
+                        Primary Roles
                       </h4>
-                      <div className="space-y-2">
-                        {displayData.personalizedRecommendations.toCrackTheJob?.map((action: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-yellow-400 text-sm font-bold">{index + 1}</span>
+                      <div className="space-y-3">
+                        {displayData.jobRoleRecommendations.primaryRoles?.map((role: any, index: number) => (
+                          <div key={index} className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="text-white font-medium">{role.role}</h5>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-green-400 text-sm font-bold">{role.matchScore}%</span>
+                                <span className="text-gray-400 text-sm">{role.salaryRange}</span>
+                              </div>
                             </div>
-                            <span className="text-gray-300 text-sm">{action}</span>
+                            <div className="text-sm text-gray-300 mb-2">
+                              <span className="text-gray-400">Growth:</span> {role.growthPotential} | 
+                              <span className="text-gray-400"> Timeline:</span> {role.transitionPath}
+                            </div>
+                            <div className="text-sm text-gray-300">
+                              <span className="text-gray-400">Required Skills:</span> {role.requiredSkills?.join(', ')}
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Resume Optimizations */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
-                        <FileText className="w-5 h-5 mr-2 text-blue-400" />
-                        Resume Optimizations
-                      </h4>
-                      <div className="space-y-2">
-                        {displayData.personalizedRecommendations.resumeOptimizations?.map((opt: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                            <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-blue-400 text-sm font-bold">{index + 1}</span>
+                    {/* Secondary Roles */}
+                    {displayData.jobRoleRecommendations.secondaryRoles?.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                          <TrendingUp className="w-5 h-5 mr-2 text-blue-400" />
+                          Secondary Roles
+                        </h4>
+                        <div className="space-y-3">
+                          {displayData.jobRoleRecommendations.secondaryRoles?.map((role: any, index: number) => (
+                            <div key={index} className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="text-white font-medium">{role.role}</h5>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-blue-400 text-sm font-bold">{role.matchScore}%</span>
+                                  <span className="text-gray-400 text-sm">{role.salaryRange}</span>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-300">
+                                <span className="text-gray-400">Timeline:</span> {role.transitionPath}
+                              </div>
                             </div>
-                            <span className="text-gray-300 text-sm">{opt}</span>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Emerging Roles */}
+                    {displayData.jobRoleRecommendations.emergingRoles?.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                          <Sparkles className="w-5 h-5 mr-2 text-purple-400" />
+                          Emerging Roles
+                        </h4>
+                        <div className="space-y-3">
+                          {displayData.jobRoleRecommendations.emergingRoles?.map((role: any, index: number) => (
+                            <div key={index} className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <h5 className="text-white font-medium">{role.role}</h5>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-purple-400 text-sm font-bold">{role.matchScore}%</span>
+                                  <span className="text-gray-400 text-sm">{role.salaryRange}</span>
+                                </div>
+                              </div>
+                              <div className="text-sm text-gray-300">
+                                <span className="text-gray-400">Timeline:</span> {role.transitionPath}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ChartCard>
+              )}
+
+              {/* Career Path Enhancement */}
+              {displayData.careerPathEnhancement && (
+                <ChartCard
+                  title="🚀 Career Path Enhancement"
+                  description="Personalized career development roadmap"
+                >
+                  <div className="space-y-6">
+                    {/* Current Position & Vision */}
+                    <div className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-lg">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-white font-medium mb-2">Current Position</h4>
+                          <p className="text-blue-400">{displayData.careerPathEnhancement.currentPosition}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium mb-2">Long-term Vision</h4>
+                          <p className="text-purple-400">{displayData.careerPathEnhancement.longTermVision}</p>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Interview Preparation */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
-                        <Brain className="w-5 h-5 mr-2 text-purple-400" />
-                        Interview Preparation
-                      </h4>
-                      <div className="space-y-2">
-                        {displayData.personalizedRecommendations.interviewPrep?.map((prep: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                            <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-purple-400 text-sm font-bold">{index + 1}</span>
-                            </div>
-                            <span className="text-gray-300 text-sm">{prep}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Application Strategy */}
+                    {/* Next Steps */}
                     <div>
                       <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
                         <TrendingUp className="w-5 h-5 mr-2 text-green-400" />
-                        Application Strategy
+                        Career Next Steps
                       </h4>
                       <div className="space-y-2">
-                        {displayData.personalizedRecommendations.applicationStrategy?.map((strategy: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                            <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {displayData.careerPathEnhancement.nextSteps?.map((step: string, index: number) => (
+                          <div key={index} className="flex items-center space-x-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                            <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
                               <span className="text-green-400 text-sm font-bold">{index + 1}</span>
                             </div>
-                            <span className="text-gray-300 text-sm">{strategy}</span>
+                            <span className="text-gray-300 text-sm">{step}</span>
                           </div>
                         ))}
                       </div>
                     </div>
+
+                    {/* Skill Roadmap */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                        <Brain className="w-5 h-5 mr-2 text-blue-400" />
+                        Skill Development Roadmap
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <h5 className="text-white font-medium mb-2">Technical Skills</h5>
+                          <div className="space-y-1">
+                            {displayData.careerPathEnhancement.skillRoadmap?.technical?.map((skill: string, index: number) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                                <span className="text-gray-300 text-sm">{skill}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h5 className="text-white font-medium mb-2">Soft Skills</h5>
+                          <div className="space-y-1">
+                            {displayData.careerPathEnhancement.skillRoadmap?.soft?.map((skill: string, index: number) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                <span className="text-gray-300 text-sm">{skill}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h5 className="text-white font-medium mb-2">Leadership Skills</h5>
+                          <div className="space-y-1">
+                            {displayData.careerPathEnhancement.skillRoadmap?.leadership?.map((skill: string, index: number) => (
+                              <div key={index} className="flex items-center space-x-2">
+                                <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                                <span className="text-gray-300 text-sm">{skill}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Certifications & Projects */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Certification Needs</h4>
+                        <div className="space-y-1">
+                          {displayData.careerPathEnhancement.certificationNeeds?.map((cert: string, index: number) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <Award className="w-4 h-4 text-yellow-400" />
+                              <span className="text-gray-300 text-sm">{cert}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Project Suggestions</h4>
+                        <div className="space-y-1">
+                          {displayData.careerPathEnhancement.projectSuggestions?.map((project: string, index: number) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <FileText className="w-4 h-4 text-blue-400" />
+                              <span className="text-gray-300 text-sm">{project}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ChartCard>
+              )}
+
+              {/* Action Plan */}
+              {displayData.actionPlan && (
+                <ChartCard
+                  title="📅 Personalized Action Plan"
+                  description="Timeline-based action items for career growth"
+                >
+                  <div className="space-y-6">
+                    {Object.entries(displayData.actionPlan).map(([period, actions]) => (
+                      <div key={period}>
+                        <h4 className="text-lg font-semibold text-white mb-3 capitalize flex items-center">
+                          <Calendar className="w-5 h-5 mr-2 text-yellow-400" />
+                          {period.replace(/([A-Z])/g, ' $1').trim()}
+                        </h4>
+                        <div className="space-y-2">
+                          {(actions as string[])?.map((action: string, index: number) => (
+                            <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                              <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-yellow-400 text-sm font-bold">{index + 1}</span>
+                              </div>
+                              <span className="text-gray-300 text-sm">{action}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </ChartCard>
               )}
