@@ -214,7 +214,7 @@ export default function ResumeScannerPage() {
                     <span>Refresh</span>
                   </button>
                   <button
-                    onClick={handleDownloadReport}
+                    onClick={() => handleDownloadReport()}
                     className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                   >
                     <Download size={16} />

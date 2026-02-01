@@ -123,7 +123,7 @@ export default function CollapsibleSidebar() {
       `}>
         {/* Sidebar header */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-slate-700/50">
-          <div className="flex items-center space-x-3">
+          <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-glow">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
@@ -132,7 +132,7 @@ export default function CollapsibleSidebar() {
                 {brandConfig.appName}
               </span>
             )}
-          </div>
+          </Link>
           
           {/* Toggle button */}
           <button
