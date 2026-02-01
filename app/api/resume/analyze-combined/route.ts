@@ -36,15 +36,15 @@ const ALLOWED_TYPES = {
 
 const MAX_FILE_SIZE = brandConfig.maxFileSize // 10MB
 
-// Enhanced text extraction for all file types
+// Enhanced text extraction for all file types with advanced PDF techniques
 async function extractTextFromFile(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer())
   
   try {
     switch (ALLOWED_TYPES[file.type as keyof typeof ALLOWED_TYPES]) {
       case 'pdf':
-        const pdfData = await pdf(buffer)
-        return pdfData.text
+        // Advanced PDF extraction with multiple techniques
+        return await extractTextFromPDF(buffer)
       
       case 'docx':
       case 'docm':
@@ -123,6 +123,241 @@ async function extractTextFromFile(file: File): Promise<string> {
     } catch (fallbackError) {
       throw new Error(`Unable to extract text from ${file.name}. Please ensure the file is not corrupted and is a supported format.`)
     }
+  }
+}
+
+// Advanced PDF text extraction with multiple techniques
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  let extractedText = ''
+  
+  try {
+    console.log('🔍 Starting advanced PDF text extraction...')
+    
+    // Method 1: Standard pdf-parse extraction
+    try {
+      const pdfData = await pdf(buffer)
+      extractedText = pdfData.text
+      console.log(`✅ Standard PDF extraction: ${extractedText.length} characters`)
+      
+      // If we got substantial text, try to enhance it further
+      if (extractedText.length > 500) {
+        extractedText = enhancePDFText(extractedText)
+      }
+    } catch (pdfError) {
+      console.warn('⚠️ Standard PDF extraction failed:', pdfError)
+      extractedText = ''
+    }
+    
+    // Method 2: If standard extraction failed or gave minimal text, try alternative approach
+    if (extractedText.length < 200) {
+      try {
+        console.log('🔄 Trying alternative PDF extraction...')
+        extractedText = await alternativePDFExtraction(buffer)
+      } catch (altError) {
+        console.warn('⚠️ Alternative PDF extraction failed:', altError)
+      }
+    }
+    
+    // Method 3: Final cleanup and enhancement
+    if (extractedText.length > 0) {
+      extractedText = postProcessPDFText(extractedText)
+      console.log(`✅ Final PDF text: ${extractedText.length} characters`)
+      return extractedText
+    }
+    
+    throw new Error('All PDF extraction methods failed')
+    
+  } catch (error) {
+    console.error('❌ Advanced PDF extraction error:', error)
+    
+    // Last resort - try to extract any readable text
+    try {
+      const fallbackText = buffer.toString('utf-8', 0, Math.min(buffer.length, 50000))
+      const cleanedText = fallbackText.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim()
+      
+      if (cleanedText.length > 100) {
+        console.log(`🔧 Using fallback extraction: ${cleanedText.length} characters`)
+        return cleanedText
+      }
+    } catch (fallbackError) {
+      console.error('❌ Fallback extraction failed:', fallbackError)
+    }
+    
+    throw new Error(`Unable to extract text from PDF. The file may be corrupted, password-protected, or contain only images.`)
+  }
+}
+
+// Enhance extracted PDF text with various cleaning techniques
+function enhancePDFText(text: string): string {
+  try {
+    // Remove common PDF artifacts
+    let enhanced = text
+    
+    // Remove page numbers and headers/footers patterns
+    enhanced = enhanced.replace(/\n\s*\d+\s*\n/g, '\n') // Standalone page numbers
+    enhanced = enhanced.replace(/^\d+\s*$/gm, '') // Numbers at line start
+    enhanced = enhanced.replace(/\d+\s*$/gm, '') // Numbers at line end
+    
+    // Remove common PDF formatting artifacts
+    enhanced = enhanced.replace(/\f/g, '\n\n') // Form feeds to double newlines
+    enhanced = enhanced.replace(/\x0B/g, '\n') // Vertical tabs
+    enhanced = enhanced.replace(/\x0C/g, '\n') // Form feeds
+    
+    // Fix broken words (common in PDF extraction)
+    enhanced = enhanced.replace(/([a-zA-Z])-\n([a-zA-Z])/g, '$1$2') // Hyphenated words across lines
+    enhanced = enhanced.replace(/([a-zA-Z])\s+([a-zA-Z])\s+([a-zA-Z])/g, '$1 $2$3') // Excess spaces
+    
+    // Remove excessive whitespace while preserving paragraph structure
+    enhanced = enhanced.replace(/\n\s*\n\s*\n/g, '\n\n') // Multiple empty lines
+    enhanced = enhanced.replace(/[ \t]+/g, ' ') // Multiple spaces/tabs to single space
+    enhanced = enhanced.replace(/^\s+|\s+$/gm, '') // Trim line whitespace
+    
+    // Fix common PDF encoding issues
+    enhanced = enhanced.replace(/â€™/g, "'") // Right single quote
+    enhanced = enhanced.replace(/â€œ/g, '"') // Left double quote
+    enhanced = enhanced.replace(/â€/g, '"') // Right double quote
+    enhanced = enhanced.replace(/â€"/g, '"') // Double quote
+    enhanced = enhanced.replace(/â€"/g, '"') // Double quote
+    enhanced = enhanced.replace(/â€¦/g, '...') // Ellipsis
+    enhanced = enhanced.replace(/â€"/g, '—') // Em dash
+    enhanced = enhanced.replace(/â€"/g, '–') // En dash
+    
+    // Remove bullet point artifacts
+    enhanced = enhanced.replace(/[•·]/g, '•') // Normalize bullets
+    enhanced = enhanced.replace(/â¢/g, '•') // Bullet encoding fix
+    
+    return enhanced.trim()
+  } catch (error) {
+    console.warn('⚠️ Text enhancement failed:', error)
+    return text
+  }
+}
+
+// Alternative PDF extraction using different techniques
+async function alternativePDFExtraction(buffer: Buffer): Promise<string> {
+  try {
+    // Try different encoding approaches
+    const encodings = ['utf8', 'latin1', 'ascii', 'utf16le']
+    
+    for (const encoding of encodings) {
+      try {
+        const text = buffer.toString(encoding as BufferEncoding)
+        const cleaned = cleanPDFText(text)
+        
+        if (cleaned.length > 200 && containsReadableText(cleaned)) {
+          console.log(`✅ Alternative extraction with ${encoding}: ${cleaned.length} characters`)
+          return cleaned
+        }
+      } catch (encodingError) {
+        continue
+      }
+    }
+    
+    // Try binary pattern matching for text
+    const binaryText = extractTextFromBinary(buffer)
+    if (binaryText.length > 200) {
+      console.log(`✅ Binary extraction: ${binaryText.length} characters`)
+      return binaryText
+    }
+    
+    throw new Error('Alternative extraction methods failed')
+    
+  } catch (error) {
+    throw new Error(`Alternative PDF extraction failed: ${error}`)
+  }
+}
+
+// Clean PDF text using various techniques
+function cleanPDFText(text: string): string {
+  try {
+    // Remove non-printable characters except newlines and tabs
+    let cleaned = text.replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+    
+    // Normalize whitespace
+    cleaned = cleaned.replace(/\s+/g, ' ')
+    cleaned = cleaned.replace(/\n\s*\n\s*\n/g, '\n\n')
+    
+    // Remove common PDF artifacts
+    cleaned = cleaned.replace(/\b\d+\b/g, (match) => {
+      // Keep numbers that might be part of content (years, experience, etc.)
+      // But remove likely page numbers
+      const num = parseInt(match)
+      return (num > 1900 && num < 2100) || num < 100 ? match : ''
+    })
+    
+    return cleaned.trim()
+  } catch (error) {
+    return text
+  }
+}
+
+// Check if text contains readable content
+function containsReadableText(text: string): boolean {
+  try {
+    // Check for common words and patterns
+    const readablePatterns = [
+      /\b(experience|education|skills|work|project|development)\b/i,
+      /\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i,
+      /\b(university|college|school|degree|bachelor|master|phd)\b/i,
+      /\b(engineering|development|management|analysis|design)\b/i,
+      /\b(java|python|javascript|react|node|sql|aws|azure)\b/i
+    ]
+    
+    return readablePatterns.some(pattern => pattern.test(text))
+  } catch (error) {
+    return false
+  }
+}
+
+// Extract text from binary data using pattern matching
+function extractTextFromBinary(buffer: Buffer): string {
+  try {
+    const text = buffer.toString('latin1')
+    
+    // Find text segments between common PDF operators
+    const segments = text.split(/BT|ET|ET|Td|Tm|Tj|TJ|'/)
+    
+    let extractedText = ''
+    for (const segment of segments) {
+      // Look for readable text patterns
+      const readable = segment.match(/[a-zA-Z0-9\s.,;:!?()-]/g)
+      if (readable && readable.join('').length > 10) {
+        extractedText += readable.join('') + ' '
+      }
+    }
+    
+    return cleanPDFText(extractedText)
+  } catch (error) {
+    return ''
+  }
+}
+
+// Post-process PDF text for final cleanup
+function postProcessPDFText(text: string): string {
+  try {
+    let processed = text
+    
+    // Fix paragraph breaks
+    processed = processed.replace(/\n([a-z])/g, ' $1') // Lowercase after newline = same sentence
+    processed = processed.replace(/([.!?])\s*\n([A-Z])/g, '$1\n\n$2') // Sentence breaks to paragraphs
+    
+    // Fix common resume formatting issues
+    processed = processed.replace(/\s*[:]\s*/g, ': ') // Colon spacing
+    processed = processed.replace(/\s*[;]\s*/g, '; ') // Semicolon spacing
+    processed = processed.replace(/\s*[,]\s*/g, ', ') // Comma spacing
+    
+    // Remove duplicate lines (common in PDF extraction)
+    const lines = processed.split('\n')
+    const uniqueLines = Array.from(new Set(lines))
+    processed = uniqueLines.join('\n')
+    
+    // Final cleanup
+    processed = processed.replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
+    processed = processed.replace(/[ \t]{2,}/g, ' ') // Max 1 consecutive space
+    
+    return processed.trim()
+  } catch (error) {
+    return text
   }
 }
 
