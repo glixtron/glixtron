@@ -51,9 +51,14 @@ export default function ResumeScannerPage() {
     setIsScanning(false)
   }
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     if (scanResults) {
-      downloadReport(scanResults)
+      try {
+        await downloadReport(scanResults)
+      } catch (error) {
+        console.error('Failed to download report:', error)
+        setError('Failed to generate report. Please try again.')
+      }
     }
   }
 
@@ -72,24 +77,11 @@ export default function ResumeScannerPage() {
   return (
     <div className="min-h-screen bg-slate-900">
       <div className="container mx-auto px-4 py-8">
-        {/* Loading State */}
-        {configLoading && (
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading Resume Scanner...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        {!configLoading && (
-          <>
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Resume Scanner</h1>
-              <p className="text-gray-400">AI-powered resume analysis with instant feedback</p>
-            </div>
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Resume Scanner</h1>
+          <p className="text-gray-400">AI-powered resume analysis with instant feedback</p>
+        </div>
 
         {/* Error Message */}
         {error && (
@@ -277,8 +269,6 @@ export default function ResumeScannerPage() {
               className="from-blue-500 to-blue-600"
             />
           </div>
-        )}
-          </>
         )}
       </div>
     </div>

@@ -1,4 +1,14 @@
-import jsPDF from 'jspdf'
+// Dynamic import for client-side compatibility
+let jsPDF: any = null;
+
+const loadJsPDF = async () => {
+  if (!jsPDF) {
+    const pdfModule = await import('jspdf');
+    jsPDF = pdfModule.default;
+  }
+  return jsPDF;
+};
+
 import { brandConfig } from '@/config/brand'
 
 interface ResumeAnalysisData {
@@ -16,14 +26,24 @@ interface ResumeAnalysisData {
 }
 
 export class ResumeReportGenerator {
-  private doc: jsPDF
-  private brandColors = BRAND_CONFIG.colors
+  private doc: any = null
+  private brandColors = brandConfig.colors
 
   constructor() {
-    this.doc = new jsPDF()
+    // Will be initialized when needed
   }
 
-  generateReport(data: ResumeAnalysisData): void {
+  private async initializeDoc() {
+    if (!this.doc) {
+      const JsPDF = await loadJsPDF();
+      this.doc = new JsPDF();
+    }
+    return this.doc;
+  }
+
+  async generateReport(data: ResumeAnalysisData): Promise<void> {
+    await this.initializeDoc();
+    
     // Set up document
     this.doc.setFillColor(15, 23, 42) // Dark background
     this.doc.rect(0, 0, 210, 297, 'F')
@@ -200,8 +220,8 @@ export class ResumeReportGenerator {
     this.doc.text('Page 1 of 1', 180, yPosition)
   }
 
-  downloadPDF(data: ResumeAnalysisData): void {
-    this.generateReport(data)
+  async downloadPDF(data: ResumeAnalysisData): Promise<void> {
+    await this.generateReport(data)
     
     // Generate filename
     const fileName = `${brandConfig.name.toLowerCase()}-resume-analysis-${new Date().getTime()}.pdf`
@@ -210,8 +230,8 @@ export class ResumeReportGenerator {
     this.doc.save(fileName)
   }
 
-  getPDFBlob(data: ResumeAnalysisData): Blob {
-    this.generateReport(data)
+  async getPDFBlob(data: ResumeAnalysisData): Promise<Blob> {
+    await this.generateReport(data)
     return this.doc.output('blob')
   }
 }
@@ -220,12 +240,12 @@ export class ResumeReportGenerator {
 export const useResumeReport = () => {
   const generator = new ResumeReportGenerator()
 
-  const downloadReport = (data: ResumeAnalysisData) => {
-    generator.downloadPDF(data)
+  const downloadReport = async (data: ResumeAnalysisData) => {
+    await generator.downloadPDF(data)
   }
 
-  const getPDFBlob = (data: ResumeAnalysisData) => {
-    return generator.getPDFBlob(data)
+  const getPDFBlob = async (data: ResumeAnalysisData) => {
+    return await generator.getPDFBlob(data)
   }
 
   return { downloadReport, getPDFBlob }

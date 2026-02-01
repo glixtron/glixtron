@@ -56,7 +56,7 @@ const defaultConfig: BrandConfig = {
 
 export function useBrandConfig() {
   const [config, setConfig] = useState<BrandConfig>(defaultConfig)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // Start with false to prevent loading state
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -65,7 +65,10 @@ export function useBrandConfig() {
 
   const loadBrandConfig = async () => {
     try {
-      setIsLoading(true)
+      // Don't show loading initially to prevent client-side exceptions
+      if (config !== defaultConfig) {
+        setIsLoading(true)
+      }
       setError(null)
       
       // Try to load from API first (for dynamic config)
