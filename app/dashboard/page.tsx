@@ -1,6 +1,8 @@
 'use client'
 
 import { Suspense } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
@@ -192,6 +194,23 @@ async function DynamicProgressChart() {
 
 // Main dashboard with PPR
 export default function DashboardPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  
+  // Redirect to login if not authenticated
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    router.push('/login')
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-slate-900">
       <div className="container mx-auto px-4 py-8">
@@ -199,7 +218,7 @@ export default function DashboardPage() {
         <StaticHeader />
         <StaticActionCards />
         
-        {/* Dynamic Holes - Stream in when ready */}
+        {/* Dynamic Content - Stream in when ready */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Stats Grid - Dynamic */}
@@ -214,12 +233,12 @@ export default function DashboardPage() {
           </div>
           
           <div className="space-y-8">
-            {/* Roadmap Widget - Dynamic */}
+            {/* Roadmap Widget - Simplified loading */}
             <Suspense fallback={<SkeletonLoader type="card" />}>
               <RoadmapWidget />
             </Suspense>
             
-            {/* Recent Activity - Dynamic */}
+            {/* Recent Activity - Simplified loading */}
             <Suspense fallback={<ActivitySkeleton />}>
               <DynamicActivity />
             </Suspense>

@@ -35,26 +35,50 @@ export default function LandingPage() {
     {
       icon: FileText,
       title: 'AI Resume Analysis',
-      description: 'Get instant feedback on your resume with our advanced AI analysis and optimization suggestions.',
+      description: 'Get instant feedback on your resume with our advanced AI analysis and optimization suggestions. Improve your ATS score by 40%.',
       color: 'from-blue-500 to-blue-600'
     },
     {
       icon: Briefcase,
       title: 'Smart Job Matching',
-      description: 'Find the perfect job opportunities with our intelligent matching algorithm.',
+      description: 'Find the perfect job opportunities with our intelligent matching algorithm. 95% success rate in finding relevant positions.',
       color: 'from-green-500 to-green-600'
     },
     {
       icon: Target,
       title: 'Career DNA Assessment',
-      description: 'Discover your unique career profile with our comprehensive assessment tools.',
+      description: 'Discover your unique career profile with our comprehensive assessment tools. Personalized roadmap for your success.',
       color: 'from-purple-500 to-purple-600'
     },
     {
       icon: BarChart3,
       title: 'Progress Analytics',
-      description: 'Track your job search progress with detailed analytics and insights.',
+      description: 'Track your job search progress with detailed analytics and insights. Data-driven decisions for better outcomes.',
       color: 'from-orange-500 to-orange-600'
+    },
+    {
+      icon: Users,
+      title: 'Career Guidance',
+      description: 'Get personalized career advice from AI experts. Navigate your professional journey with confidence.',
+      color: 'from-pink-500 to-pink-600'
+    },
+    {
+      icon: Globe,
+      title: 'Global Opportunities',
+      description: 'Access job opportunities worldwide. Remote, hybrid, and on-site positions tailored to your preferences.',
+      color: 'from-cyan-500 to-cyan-600'
+    },
+    {
+      icon: Shield,
+      title: 'ATS Optimization',
+      description: 'Ensure your resume passes Applicant Tracking Systems. Industry-tested templates and optimization tips.',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
+      icon: Zap,
+      title: 'Real-time Analysis',
+      description: 'Get instant feedback on your resume and job applications. Make improvements in real-time for better results.',
+      color: 'from-yellow-500 to-yellow-600'
     }
   ]
 
@@ -103,6 +127,7 @@ export default function LandingPage() {
             </div>
             
             <div className="hidden md:flex items-center space-x-8">
+              <Link href="/resume-scanner" className="text-slate-300 hover:text-white transition-colors">Resume Scanner</Link>
               <Link href="#features" className="text-slate-300 hover:text-white transition-colors">Features</Link>
               <Link href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Testimonials</Link>
               <Link href="#pricing" className="text-slate-300 hover:text-white transition-colors">Pricing</Link>
@@ -137,7 +162,13 @@ export default function LandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/register" className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg text-white font-medium transition-all transform hover:scale-105">
+            <Link href="/resume-scanner" className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg text-white font-medium transition-all transform hover:scale-105">
+              <FileText className="h-5 w-5 mr-2" />
+              Scan Resume Free
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </Link>
+            
+            <Link href="/register" className="inline-flex items-center px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-lg text-white font-medium transition-colors">
               Get Started Free
               <ArrowRight className="h-5 w-5 ml-2" />
             </Link>

@@ -124,14 +124,16 @@ export async function GET(request: NextRequest) {
         }
       )
       
+      // Return roadmap data in the expected format
+      const roadmapData = user?.roadmap || []
+      
       return NextResponse.json({
         success: true,
         data: {
-          roadmap: user?.roadmap || {
-            currentMilestone: 'Getting Started',
-            targetDate: '6 months',
-            progressScore: 25
-          }
+          milestones: Array.isArray(roadmapData) ? roadmapData : [],
+          currentMilestone: 'Getting Started',
+          targetDate: '6 months',
+          progressScore: 25
         }
       })
       

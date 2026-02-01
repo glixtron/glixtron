@@ -3,6 +3,8 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import StatCard from '@/components/StatCard'
 import ActionCard from '@/components/ActionCard'
 import ChartCard from '@/components/ChartCard'
@@ -82,6 +84,10 @@ interface MarketInsight {
 }
 
 export default function CareerGuidancePage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  
+  // Initialize all hooks before any early returns
   const [roadmap, setRoadmap] = useState<RoadmapState>({
     steps: [],
     currentMilestone: 'Getting Started',
@@ -101,6 +107,15 @@ export default function CareerGuidancePage() {
   const [savedResumes, setSavedResumes] = useState<any[]>([])
   const [dashboardStats, setDashboardStats] = useState<any>(null)
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === 'loading') return // Still loading
+    if (!session) {
+      router.push('/login')
+      return
+    }
+  }, [session, status, router])
+
   // Initialize searchParams safely
   useEffect(() => {
     try {
@@ -113,8 +128,9 @@ export default function CareerGuidancePage() {
   }, [])
 
   useEffect(() => {
-    // Only proceed when searchParams is available
-    if (!searchParams) {
+    // Only proceed when searchParams is available and user is authenticated
+    if (!searchParams || !session) {
+      if (!session) return // Don't load data if not authenticated
       console.warn('searchParams not available, skipping JD data loading')
       loadCareerGuidance()
       loadDashboardData()
@@ -138,7 +154,21 @@ export default function CareerGuidancePage() {
     loadCareerGuidance()
     loadDashboardData()
     loadSavedResumes()
-  }, [searchParams])
+  }, [searchParams, session])
+
+  // Show loading while checking authentication
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    )
+  }
+
+  // Don't render if not authenticated
+  if (!session) {
+    return null
+  }
 
   const loadCareerGuidance = async () => {
     try {
@@ -485,7 +515,8 @@ export default function CareerGuidancePage() {
       'Leadership': Award,
       'Cloud Architecture': Globe
     }
-    return iconMap[skill] || Brain
+    const IconComponent = iconMap[skill] || Brain
+    return <IconComponent className="w-4 h-4" />
   }
 
   const getTrendIcon = (trend: string) => {
