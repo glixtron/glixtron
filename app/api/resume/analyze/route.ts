@@ -190,9 +190,55 @@ Please respond in JSON format:
 }`
 }
 
-// Enhanced AI service call with context
-async function callAIService(prompt: string) {
+// Enhanced AI service call with context and JD integration
+async function callAIService(prompt: string, resumeText?: string, jdText?: string) {
   try {
+    // If both resume and JD are provided, use Gemini for combined analysis
+    if (resumeText && jdText && process.env.GEMINI_API_KEY) {
+      const { GoogleGenerativeAI } = await import('@google/generative-ai')
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+      const combinedPrompt = `You are an expert career coach and ATS specialist. Analyze this resume against the job description.
+
+RESUME:
+${resumeText.substring(0, 6000)}
+
+JOB DESCRIPTION:
+${jdText.substring(0, 6000)}
+
+${prompt}
+
+Return a JSON object with this exact structure (no markdown, no code blocks):
+{
+  "overallScore": <number 0-100>,
+  "atsScore": <number 0-100>,
+  "contentScore": <number 0-100>,
+  "structureScore": <number 0-100>,
+  "interviewLikelihood": <number 0-100>,
+  "jdMatchScore": <number 0-100>,
+  "criticalIssues": ["<issue1>", "<issue2>"],
+  "improvements": ["<improvement1>", "<improvement2>"],
+  "missingKeywords": ["<keyword1>", "<keyword2>"],
+  "jdAlignment": ["<alignment1>", "<alignment2>"],
+  "recommendations": ["<recommendation1>", "<recommendation2>"],
+  "analysis": "<detailed analysis text>"
+}
+
+Focus on: resume-JD alignment, missing keywords from JD, experience match, ATS optimization, and concrete improvement actions. Return ONLY valid JSON.`
+
+      const result = await model.generateContent(combinedPrompt)
+      const response = await result.response.text()
+      
+      // Clean response
+      let jsonStr = response.replace(/```json|```/g, '').trim()
+      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
+      if (jsonMatch) jsonStr = jsonMatch[0]
+
+      return JSON.parse(jsonStr)
+    }
+    
+    // Fallback to regular analysis
     const { GoogleGenerativeAI } = await import('@google/generative-ai')
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
@@ -305,9 +351,14 @@ export async function POST(request: NextRequest) {
     // Get AI analysis
     let aiAnalysis
     try {
-      const aiResponse = await callAIService(personalizedPrompt)
+      const aiResponse = await callAIService(personalizedPrompt, resumeText, jobDescription)
       aiAnalysis = parseAIResponse(aiResponse)
       console.log('🤖 AI analysis completed')
+      
+      // If JD was provided, add JD-specific analysis
+      if (jobDescription && aiAnalysis.jdMatchScore !== undefined) {
+        console.log(`📋 JD Match Score: ${aiAnalysis.jdMatchScore}%`)
+      }
     } catch (error) {
       console.error('AI analysis failed:', error)
       aiAnalysis = {
@@ -316,9 +367,11 @@ export async function POST(request: NextRequest) {
         contentScore: 75,
         structureScore: 80,
         interviewLikelihood: 65,
+        jdMatchScore: jobDescription ? 60 : undefined,
         criticalIssues: ['AI service temporarily unavailable'],
         improvements: ['Review keyword matches below'],
         missingKeywords: keywordAnalysis.missing,
+        jdAlignment: jobDescription ? ['Unable to analyze JD alignment due to AI service issue'] : [],
         recommendations: ['Add missing keywords to improve ATS score'],
         analysis: 'AI service temporarily unavailable. Showing keyword-based analysis.'
       }

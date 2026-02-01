@@ -25,7 +25,8 @@ import {
   Shield,
   AlertTriangle,
   RefreshCw,
-  Trash2
+  Trash2,
+  Brain
 } from 'lucide-react'
 
 export default function ResumeScannerPage() {
@@ -33,6 +34,11 @@ export default function ResumeScannerPage() {
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [jdText, setJdText] = useState('')
+  const [jdUrl, setJdUrl] = useState('')
+  const [jdAnalysis, setJdAnalysis] = useState<any>(null)
+  const [isExtractingJD, setIsExtractingJD] = useState(false)
+  const [analysisMode, setAnalysisMode] = useState<'resume' | 'combined'>('combined')
   const { config: brandConfig, isLoading: configLoading } = useBrandConfig()
   const { downloadReport } = useResumeReport()
   const { resumeData, isLoading: resumeLoading, hasResume, deleteResume, uploadResume } = useResume()
@@ -43,10 +49,79 @@ export default function ResumeScannerPage() {
     console.log('File selected:', file.name)
   }
 
-  const handleAnalysisComplete = (results: any) => {
-    setScanResults(results)
-    setIsScanning(false)
-    setSuccessMessage('Analysis completed successfully!')
+  const handleExtractJD = async () => {
+    if (!jdUrl.trim() && !jdText.trim()) {
+      setError('Please provide a job description URL or text')
+      return
+    }
+
+    setIsExtractingJD(true)
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/jd/extract', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: jdUrl.trim(),
+          analyze: true
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setJdAnalysis(data.data.analysis)
+        if (data.data.jobDescription) {
+          setJdText(data.data.jobDescription)
+        }
+        setSuccessMessage('Job description extracted and analyzed successfully!')
+      } else {
+        setError(data.error || 'Failed to extract job description')
+      }
+    } catch (error) {
+      console.error('JD extraction error:', error)
+      setError('Failed to extract job description. Please try again.')
+    } finally {
+      setIsExtractingJD(false)
+    }
+  }
+
+  const handleCombinedAnalysis = async (file: File) => {
+    setIsScanning(true)
+    setError(null)
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      if (jdText.trim()) {
+        formData.append('jdText', jdText)
+      } else if (jdUrl.trim()) {
+        formData.append('jdUrl', jdUrl)
+      }
+
+      const response = await fetch('/api/resume/analyze-combined', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setScanResults(data.data)
+        setSuccessMessage('Combined resume-JD analysis completed!')
+      } else {
+        setError(data.error || 'Failed to analyze resume')
+      }
+    } catch (error) {
+      console.error('Combined analysis error:', error)
+      setError('Failed to analyze resume. Please try again.')
+    } finally {
+      setIsScanning(false)
+    }
   }
 
   const handleError = (errorMessage: string) => {
@@ -179,6 +254,102 @@ export default function ResumeScannerPage() {
           </SafeComponent>
         )}
 
+        {/* Job Description Section */}
+        <SafeComponent>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white flex items-center">
+                <Target className="w-5 h-5 mr-2 text-purple-400" />
+                Job Description
+              </h2>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setAnalysisMode(analysisMode === 'resume' ? 'combined' : 'resume')}
+                  className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                    analysisMode === 'combined' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-slate-700 text-gray-300'
+                  }`}
+                >
+                  {analysisMode === 'combined' ? 'Combined Mode' : 'Resume Only'}
+                </button>
+              </div>
+            </div>
+
+            {analysisMode === 'combined' && (
+              <div className="space-y-4">
+                {/* JD URL Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Job Description URL (Optional)
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="url"
+                      value={jdUrl}
+                      onChange={(e) => setJdUrl(e.target.value)}
+                      placeholder="https://linkedin.com/jobs/view/123456789"
+                      className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                    />
+                    <button
+                      onClick={handleExtractJD}
+                      disabled={isExtractingJD || !jdUrl.trim()}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center"
+                    >
+                      {isExtractingJD ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Extracting...
+                        </>
+                      ) : (
+                        <>
+                          <Target className="w-4 h-4 mr-2" />
+                          Extract JD
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* JD Text Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Job Description Text
+                  </label>
+                  <textarea
+                    value={jdText}
+                    onChange={(e) => setJdText(e.target.value)}
+                    placeholder="Paste the job description here..."
+                    rows={6}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"
+                  />
+                </div>
+
+                {/* JD Analysis Results */}
+                {jdAnalysis && (
+                  <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-2">Job Description Analysis</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Experience Level:</span>
+                        <span className="text-purple-400">{jdAnalysis.experienceLevel}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Key Skills:</span>
+                        <span className="text-purple-400">{jdAnalysis.keySkills?.slice(0, 3).join(', ')}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Match Score:</span>
+                        <span className="text-purple-400">{jdAnalysis.matchScore || 'N/A'}/10</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </SafeComponent>
+
         {/* File Upload Section */}
         <SafeComponent>
           <div className="mb-8">
@@ -189,7 +360,13 @@ export default function ResumeScannerPage() {
             
             <FileUpload
               onFileSelect={handleFileSelect}
-              onAnalysisComplete={handleAnalysisComplete}
+              onAnalysisComplete={(file) => {
+                if (analysisMode === 'combined' && (jdText.trim() || jdUrl.trim())) {
+                  handleCombinedAnalysis(file)
+                } else {
+                  handleError('Please provide job description for combined analysis or switch to resume-only mode')
+                }
+              }}
               onError={handleError}
               isAnalyzing={isScanning}
               acceptedFormats={['pdf', 'docx', 'txt']}
@@ -224,7 +401,7 @@ export default function ResumeScannerPage() {
               </div>
               
               {/* Score Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <StatCard
                   title="Overall Score"
                   value={`${displayData.overallScore}/10`}
@@ -248,27 +425,164 @@ export default function ResumeScannerPage() {
                 />
                 
                 <StatCard
-                  title="Content Quality"
-                  value={`${displayData.contentScore}/10`}
+                  title="JD Match Score"
+                  value={`${displayData.jdMatchScore || displayData.resumeAnalysis?.jdMatchScore || 0}/10`}
                   trend={{
-                    value: "Achievement statements",
-                    isPositive: displayData.contentScore >= 7
+                    value: "Job description alignment",
+                    isPositive: (displayData.jdMatchScore || displayData.resumeAnalysis?.jdMatchScore || 0) >= 7
                   }}
-                  icon={Sparkles}
-                  className={getScoreBg(displayData.contentScore)}
+                  icon={Target}
+                  className={getScoreBg(displayData.jdMatchScore || displayData.resumeAnalysis?.jdMatchScore || 0)}
                 />
                 
                 <StatCard
-                  title="Structure"
-                  value={`${displayData.structureScore}/10`}
+                  title="Confidence Level"
+                  value={`${displayData.jobCrackingStrategy?.confidenceLevel || displayData.resumeAnalysis?.jobCrackingStrategy?.confidenceLevel || 0}%`}
                   trend={{
-                    value: "Resume formatting",
-                    isPositive: displayData.structureScore >= 7
+                    value: "Job cracking potential",
+                    isPositive: (displayData.jobCrackingStrategy?.confidenceLevel || displayData.resumeAnalysis?.jobCrackingStrategy?.confidenceLevel || 0) >= 70
                   }}
-                  icon={Shield}
-                  className={getScoreBg(displayData.structureScore)}
+                  icon={Zap}
+                  className={getScoreBg((displayData.jobCrackingStrategy?.confidenceLevel || displayData.resumeAnalysis?.jobCrackingStrategy?.confidenceLevel || 0) / 10)}
                 />
               </div>
+
+              {/* Job Cracking Strategy */}
+              {displayData.jobCrackingStrategy && (
+                <ChartCard
+                  title="🎯 Job Cracking Strategy"
+                  description="Personalized strategy to help you get this job"
+                >
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-white font-medium">Primary Focus</span>
+                        <span className="text-purple-400">{displayData.jobCrackingStrategy.primaryFocus}</span>
+                      </div>
+                      <div className="text-sm text-gray-300">
+                        <span className="text-gray-400">Key Differentiator:</span> {displayData.jobCrackingStrategy.keyDifferentiator}
+                      </div>
+                      <div className="text-sm text-gray-300">
+                        <span className="text-gray-400">Timeline:</span> {displayData.jobCrackingStrategy.timeline}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-white font-medium mb-2">Critical Success Factors</h4>
+                        <div className="space-y-2">
+                          {displayData.jobCrackingStrategy.criticalSuccessFactors?.map((factor: string, index: number) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                              <span className="text-gray-300 text-sm">{factor}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-white font-medium mb-2">AI Insights</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Market Position:</span>
+                            <span className="text-blue-400">{displayData.aiInsights?.marketPosition}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Growth Potential:</span>
+                            <span className="text-green-400">{displayData.aiInsights?.growthPotential}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Competitive Edge:</span>
+                            <span className="text-purple-400">{displayData.aiInsights?.competitiveAdvantage}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ChartCard>
+              )}
+
+              {/* Personalized Recommendations */}
+              {displayData.personalizedRecommendations && (
+                <ChartCard
+                  title="💡 Personalized Recommendations"
+                  description="Actionable advice to help you crack this job"
+                >
+                  <div className="space-y-6">
+                    {/* To Crack The Job */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                        <Target className="w-5 h-5 mr-2 text-yellow-400" />
+                        To Crack This Job
+                      </h4>
+                      <div className="space-y-2">
+                        {displayData.personalizedRecommendations.toCrackTheJob?.map((action: string, index: number) => (
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-yellow-400 text-sm font-bold">{index + 1}</span>
+                            </div>
+                            <span className="text-gray-300 text-sm">{action}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Resume Optimizations */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                        <FileText className="w-5 h-5 mr-2 text-blue-400" />
+                        Resume Optimizations
+                      </h4>
+                      <div className="space-y-2">
+                        {displayData.personalizedRecommendations.resumeOptimizations?.map((opt: string, index: number) => (
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-blue-400 text-sm font-bold">{index + 1}</span>
+                            </div>
+                            <span className="text-gray-300 text-sm">{opt}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Interview Preparation */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                        <Brain className="w-5 h-5 mr-2 text-purple-400" />
+                        Interview Preparation
+                      </h4>
+                      <div className="space-y-2">
+                        {displayData.personalizedRecommendations.interviewPrep?.map((prep: string, index: number) => (
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                            <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-purple-400 text-sm font-bold">{index + 1}</span>
+                            </div>
+                            <span className="text-gray-300 text-sm">{prep}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Application Strategy */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
+                        <TrendingUp className="w-5 h-5 mr-2 text-green-400" />
+                        Application Strategy
+                      </h4>
+                      <div className="space-y-2">
+                        {displayData.personalizedRecommendations.applicationStrategy?.map((strategy: string, index: number) => (
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+                            <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-green-400 text-sm font-bold">{index + 1}</span>
+                            </div>
+                            <span className="text-gray-300 text-sm">{strategy}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </ChartCard>
+              )}
 
               {/* Critical Issues */}
               {displayData.criticalIssues && displayData.criticalIssues.length > 0 && (

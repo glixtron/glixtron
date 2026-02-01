@@ -145,7 +145,7 @@ function extractJobDescriptionFromHTML(html: string, url: string): JDExtractionR
         company: /(?:at|@)\s*([A-Za-z0-9\s&]+?)(?:\s|\n|\.)/i
       },
       'indeed.com': {
-        title: /job description[^:]*:(.*?)(?:requirements|qualifications)/is,
+        title: /job description[^:]*:([\s\S]*?)(?:requirements|qualifications)/i,
         content: /(?:requirements|qualifications|responsibilities)[:\s]*([^.]*(?:\.[^.]*){10,50})/gi,
         company: /(?:at|@)\s*([A-Za-z0-9\s&]+?)(?:\s|\n|\.)/i
       },
@@ -213,21 +213,159 @@ function extractJobDescriptionFromHTML(html: string, url: string): JDExtractionR
 }
 
 /**
- * Analyze job description using AI (Gemini/GPT)
+ * Analyze job description using AI (Gemini/DeepSeek)
  */
 export async function analyzeJobDescription(jdText: string): Promise<AIAnalysisResult> {
   try {
     console.log('🤖 Analyzing job description with AI...')
     
-    // For now, use a rule-based approach until AI is integrated
-    const analysis = await analyzeJobDescriptionRules(jdText)
+    // Try Gemini first for detailed analysis
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const analysis = await analyzeJobDescriptionWithGemini(jdText)
+        console.log('✅ Job description analyzed with Gemini')
+        return analysis
+      } catch (geminiError) {
+        console.warn('⚠️ Gemini analysis failed:', geminiError)
+      }
+    }
     
-    console.log('✅ Job description analysis completed')
+    // Fallback to DeepSeek
+    if (process.env.DEEPSEEK_API_KEY) {
+      try {
+        const analysis = await analyzeJobDescriptionWithDeepSeek(jdText)
+        console.log('✅ Job description analyzed with DeepSeek')
+        return analysis
+      } catch (deepseekError) {
+        console.warn('⚠️ DeepSeek analysis failed:', deepseekError)
+      }
+    }
+    
+    // Final fallback to rule-based analysis
+    console.log('⚠️ Using rule-based analysis as fallback')
+    const analysis = await analyzeJobDescriptionRules(jdText)
     return analysis
     
   } catch (error) {
     console.error('❌ AI Analysis error:', error)
     throw new Error('Failed to analyze job description')
+  }
+}
+
+/**
+ * Analyze job description using Gemini AI
+ */
+async function analyzeJobDescriptionWithGemini(jdText: string): Promise<AIAnalysisResult> {
+  const { GoogleGenerativeAI } = await import('@google/generative-ai')
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+  const prompt = `You are an expert job market analyst and career coach. Analyze this job description and provide detailed insights.
+
+JOB DESCRIPTION:
+${jdText.substring(0, 8000)}
+
+Return a JSON object with this exact structure (no markdown, no code blocks):
+{
+  "summary": "<brief 2-3 sentence summary of the role>",
+  "keySkills": ["<skill1>", "<skill2>", "<skill3>", "<skill4>", "<skill5>"],
+  "experienceLevel": "<Entry Level|Mid Level|Senior Level|Lead Level>",
+  "responsibilities": ["<responsibility1>", "<responsibility2>", "<responsibility3>"],
+  "qualifications": ["<qualification1>", "<qualification2>", "<qualification3>"],
+  "matchScore": <estimated difficulty score 1-10>,
+  "recommendations": ["<recommendation1>", "<recommendation2>", "<recommendation3>"]
+}
+
+Focus on: key technical and soft skills, experience requirements, main responsibilities, and actionable advice for candidates. Return ONLY valid JSON.`
+
+  const result = await model.generateContent(prompt)
+  const text = result.response.text()
+  
+  // Clean response
+  let jsonStr = text.replace(/```json|```/g, '').trim()
+  const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
+  if (jsonMatch) jsonStr = jsonMatch[0]
+
+  const analysis = JSON.parse(jsonStr)
+  
+  return {
+    summary: analysis.summary || 'No summary available',
+    keySkills: analysis.keySkills || [],
+    experienceLevel: analysis.experienceLevel || 'Not specified',
+    responsibilities: analysis.responsibilities || [],
+    qualifications: analysis.qualifications || [],
+    matchScore: analysis.matchScore || 5,
+    recommendations: analysis.recommendations || []
+  }
+}
+
+/**
+ * Analyze job description using DeepSeek AI
+ */
+async function analyzeJobDescriptionWithDeepSeek(jdText: string): Promise<AIAnalysisResult> {
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert job market analyst. Analyze job descriptions and provide structured insights in JSON format.'
+        },
+        {
+          role: 'user',
+          content: `Analyze this job description and return a JSON object:
+
+${jdText.substring(0, 6000)}
+
+Return format:
+{
+  "summary": "Brief summary of the role",
+  "keySkills": ["skill1", "skill2", "skill3"],
+  "experienceLevel": "Entry Level|Mid Level|Senior Level",
+  "responsibilities": ["responsibility1", "responsibility2"],
+  "qualifications": ["qualification1", "qualification2"],
+  "matchScore": 7,
+  "recommendations": ["advice1", "advice2"]
+}`
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.3
+    })
+  })
+
+  if (!response.ok) {
+    throw new Error(`DeepSeek API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const content = data.choices[0]?.message?.content || ''
+  
+  // Extract JSON from response
+  let jsonStr = content.replace(/```json|```/g, '').trim()
+  const jsonMatch = jsonStr.match(/\{[\s\S]*\}/)
+  if (jsonMatch) jsonStr = jsonMatch[0]
+
+  try {
+    const analysis = JSON.parse(jsonStr)
+    
+    return {
+      summary: analysis.summary || 'No summary available',
+      keySkills: analysis.keySkills || [],
+      experienceLevel: analysis.experienceLevel || 'Not specified',
+      responsibilities: analysis.responsibilities || [],
+      qualifications: analysis.qualifications || [],
+      matchScore: analysis.matchScore || 5,
+      recommendations: analysis.recommendations || []
+    }
+  } catch (parseError) {
+    console.warn('Failed to parse DeepSeek response, using fallback')
+    throw parseError
   }
 }
 
