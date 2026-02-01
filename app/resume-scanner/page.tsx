@@ -7,7 +7,7 @@ import ChartCard from '@/components/ChartCard'
 import FileUpload from '@/components/FileUpload'
 import { SafeComponent, SafeIcon, useSafeAsync } from '@/components/SafetyWrapper'
 import { useBrandConfig } from '@/hooks/useBrandConfig'
-import { apiService } from '@/lib/api-service'
+import { useResume } from '@/hooks/useResume'
 import { useResumeReport } from '@/lib/resume-report-generator'
 import { 
   FileText, 
@@ -23,7 +23,9 @@ import {
   BarChart3,
   Award,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  Trash2
 } from 'lucide-react'
 
 export default function ResumeScannerPage() {
@@ -33,6 +35,7 @@ export default function ResumeScannerPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const { config: brandConfig, isLoading: configLoading } = useBrandConfig()
   const { downloadReport } = useResumeReport()
+  const { resumeData, isLoading: resumeLoading, hasResume, deleteResume, uploadResume } = useResume()
 
   const handleFileSelect = (file: File) => {
     setError(null)
@@ -52,13 +55,35 @@ export default function ResumeScannerPage() {
   }
 
   const handleDownloadReport = async () => {
-    if (scanResults) {
+    const dataToUse = scanResults || resumeData?.analysis
+    if (dataToUse) {
       try {
-        await downloadReport(scanResults)
+        await downloadReport(dataToUse)
       } catch (error) {
         console.error('Failed to download report:', error)
         setError('Failed to generate report. Please try again.')
       }
+    }
+  }
+
+  const handleDeleteResume = async () => {
+    if (confirm('Are you sure you want to delete your resume? This action cannot be undone.')) {
+      try {
+        await deleteResume()
+        setScanResults(null)
+        setSuccessMessage('Resume deleted successfully!')
+        setTimeout(() => setSuccessMessage(null), 3000)
+      } catch (error) {
+        setError('Failed to delete resume. Please try again.')
+      }
+    }
+  }
+
+  const handleRefreshAnalysis = () => {
+    if (resumeData?.analysis) {
+      setScanResults(resumeData.analysis)
+      setSuccessMessage('Loaded your saved resume analysis!')
+      setTimeout(() => setSuccessMessage(null), 3000)
     }
   }
 
@@ -73,6 +98,9 @@ export default function ResumeScannerPage() {
     if (score >= 6) return 'bg-yellow-500/10 border-yellow-500/30'
     return 'bg-red-500/10 border-red-500/30'
   }
+
+  // Use saved analysis if available
+  const displayData = scanResults || resumeData?.analysis
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -103,12 +131,60 @@ export default function ResumeScannerPage() {
           </div>
         )}
 
+        {/* Resume Status Section */}
+        {hasResume && (
+          <SafeComponent>
+            <div className="mb-8 p-6 bg-slate-800/50 border border-slate-700 rounded-xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <SafeIcon icon={FileText} className="w-6 h-6 text-green-400" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Your Resume</h3>
+                    <p className="text-sm text-gray-400">
+                      {resumeData?.fileName} • Uploaded {new Date(resumeData?.uploadedAt || '').toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleRefreshAnalysis}
+                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-slate-700 rounded-lg transition-colors"
+                    title="Load saved analysis"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleDeleteResume}
+                    className="p-2 text-red-400 hover:text-red-300 hover:bg-slate-700 rounded-lg transition-colors"
+                    title="Delete resume"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              {resumeData?.analysis && (
+                <div className="flex items-center space-x-4 text-sm">
+                  <span className="text-gray-400">Overall Score:</span>
+                  <span className={`font-bold ${getScoreColor(resumeData.analysis.overallScore)}`}>
+                    {resumeData.analysis.overallScore}/10
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-400">Interview Chance:</span>
+                  <span className={`font-bold ${getScoreColor(resumeData.analysis.interviewLikelihood / 10)}`}>
+                    {resumeData.analysis.interviewLikelihood}%
+                  </span>
+                </div>
+              )}
+            </div>
+          </SafeComponent>
+        )}
+
         {/* File Upload Section */}
         <SafeComponent>
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
               <SafeIcon icon={Upload} className="w-5 h-5 mr-2 text-blue-400" />
-              Upload Resume
+              {hasResume ? 'Update Resume' : 'Upload Resume'}
             </h2>
             
             <FileUpload
@@ -123,76 +199,85 @@ export default function ResumeScannerPage() {
         </SafeComponent>
 
         {/* Analysis Results */}
-        {scanResults && (
+        {displayData && (
           <SafeComponent>
             <div className="space-y-6">
               {/* Results Header with Download */}
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-white">Analysis Results</h2>
-                <button
-                  onClick={handleDownloadReport}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                >
-                  <SafeIcon icon={Download} size={16} />
-                  <span>Download Report</span>
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={handleRefreshAnalysis}
+                    className="flex items-center space-x-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Refresh</span>
+                  </button>
+                  <button
+                    onClick={handleDownloadReport}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    <Download size={16} />
+                    <span>Download Report</span>
+                  </button>
+                </div>
               </div>
               
               {/* Score Overview */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <StatCard
                   title="Overall Score"
-                  value={`${scanResults.overallScore}/10`}
-                  trend={scanResults.interviewLikelihood ? {
-                    value: `${scanResults.interviewLikelihood}% interview chance`,
-                    isPositive: scanResults.interviewLikelihood > 50
+                  value={`${displayData.overallScore}/10`}
+                  trend={displayData.interviewLikelihood ? {
+                    value: `${displayData.interviewLikelihood}% interview chance`,
+                    isPositive: displayData.interviewLikelihood > 50
                   } : undefined}
                   icon={Award}
-                  className={getScoreBg(scanResults.overallScore)}
+                  className={getScoreBg(displayData.overallScore)}
                 />
                 
                 <StatCard
                   title="ATS Compatibility"
-                  value={`${scanResults.atsScore}/10`}
+                  value={`${displayData.atsScore}/10`}
                   trend={{
                     value: "Applicant Tracking Systems",
-                    isPositive: scanResults.atsScore >= 7
+                    isPositive: displayData.atsScore >= 7
                   }}
                   icon={Target}
-                  className={getScoreBg(scanResults.atsScore)}
+                  className={getScoreBg(displayData.atsScore)}
                 />
                 
                 <StatCard
                   title="Content Quality"
-                  value={`${scanResults.contentScore}/10`}
+                  value={`${displayData.contentScore}/10`}
                   trend={{
                     value: "Achievement statements",
-                    isPositive: scanResults.contentScore >= 7
+                    isPositive: displayData.contentScore >= 7
                   }}
                   icon={Sparkles}
-                  className={getScoreBg(scanResults.contentScore)}
+                  className={getScoreBg(displayData.contentScore)}
                 />
                 
                 <StatCard
                   title="Structure"
-                  value={`${scanResults.structureScore}/10`}
+                  value={`${displayData.structureScore}/10`}
                   trend={{
                     value: "Resume formatting",
-                    isPositive: scanResults.structureScore >= 7
+                    isPositive: displayData.structureScore >= 7
                   }}
                   icon={Shield}
-                  className={getScoreBg(scanResults.structureScore)}
+                  className={getScoreBg(displayData.structureScore)}
                 />
               </div>
 
               {/* Critical Issues */}
-              {scanResults.criticalIssues && scanResults.criticalIssues.length > 0 && (
+              {displayData.criticalIssues && displayData.criticalIssues.length > 0 && (
                 <ChartCard
                   title="Critical Issues"
                   description="Items that need immediate attention"
                 >
                   <div className="space-y-3">
-                    {scanResults.criticalIssues.map((issue: string, index: number) => (
+                    {displayData.criticalIssues.map((issue: string, index: number) => (
                       <div key={index} className="flex items-start space-x-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                         <SafeIcon icon={AlertCircle} className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
                         <span className="text-red-400 text-sm">{issue}</span>
@@ -203,13 +288,13 @@ export default function ResumeScannerPage() {
               )}
 
               {/* Improvements */}
-              {scanResults.improvements && scanResults.improvements.length > 0 && (
+              {displayData.improvements && displayData.improvements.length > 0 && (
                 <ChartCard
                   title="Recommended Improvements"
                   description="Suggestions to enhance your resume"
                 >
                   <div className="space-y-3">
-                    {scanResults.improvements.map((improvement: string, index: number) => (
+                    {displayData.improvements.map((improvement: string, index: number) => (
                       <div key={index} className="flex items-start space-x-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                         <SafeIcon icon={TrendingUp} className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                         <span className="text-blue-400 text-sm">{improvement}</span>
@@ -220,13 +305,13 @@ export default function ResumeScannerPage() {
               )}
 
               {/* Missing Keywords */}
-              {scanResults.missingKeywords && scanResults.missingKeywords.length > 0 && (
+              {displayData.missingKeywords && displayData.missingKeywords.length > 0 && (
                 <ChartCard
                   title="Missing Keywords"
                   description="Important keywords for your target role"
                 >
                   <div className="flex flex-wrap gap-2">
-                    {scanResults.missingKeywords.map((keyword: string, index: number) => (
+                    {displayData.missingKeywords.map((keyword: string, index: number) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 rounded-full text-sm"

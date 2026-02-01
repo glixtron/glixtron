@@ -1,9 +1,141 @@
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, Brain, Network, TrendingUp, FileText, CheckCircle2, ArrowRight, Zap, Shield, Target, Users, Star, BarChart3, Lightbulb, Rocket, Award, Globe, Code2, Cpu, Database, Cloud, Lock, Heart, MessageSquare, TrendingDown, Mail, Phone, MapPin, Clock, CheckCircle, AlertCircle, BookOpen, GraduationCap, Briefcase, UserCheck, Building2, Linkedin, Twitter, Github, Instagram, ChevronRight, Play, Video, FileCheck, Search, PieChart, Activity, Eye } from 'lucide-react'
+import { Sparkles, Brain, Network, TrendingUp, FileText, CheckCircle2, ArrowRight, Zap, Shield, Target, Users, Star, BarChart3, Lightbulb, Rocket, Award, Globe, Code2, Cpu, Database, Cloud, Lock, Heart, MessageSquare, TrendingDown, Mail, Phone, MapPin, Clock, CheckCircle, AlertCircle, BookOpen, GraduationCap, Briefcase, UserCheck, Building2, Linkedin, Twitter, Github, Instagram, ChevronRight, Play, Video, FileCheck, Search, PieChart, Activity, Eye, RefreshCw, Upload, Trash2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { brandConfig } from '@/lib/brand-config'
+import { useResume } from '@/hooks/useResume'
+
+// Resume Status Card Component
+function ResumeStatusCard() {
+  const { resumeData, isLoading, hasResume, deleteResume, uploadResume } = useResume()
+  const [isUploading, setIsUploading] = useState(false)
+
+  const handleUploadResume = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      await uploadResume(file)
+    } catch (error) {
+      console.error('Upload failed:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleDeleteResume = async () => {
+    if (confirm('Are you sure you want to delete your resume?')) {
+      try {
+        await deleteResume()
+      } catch (error) {
+        console.error('Delete failed:', error)
+      }
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="glass rounded-2xl p-8 border border-slate-700/50">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-slate-400">Loading resume status...</span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="glass rounded-2xl p-8 border border-slate-700/50">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <FileText className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-white">Your Resume</h3>
+            <p className="text-sm text-slate-400">
+              {hasResume ? 'Resume uploaded and analyzed' : 'No resume uploaded yet'}
+            </p>
+          </div>
+        </div>
+        {hasResume && (
+          <button
+            onClick={handleDeleteResume}
+            className="p-2 text-red-400 hover:text-red-300 hover:bg-slate-700 rounded-lg transition-colors"
+            title="Delete resume"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {hasResume && resumeData ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+            <div>
+              <p className="text-white font-medium">{resumeData.fileName}</p>
+              <p className="text-sm text-slate-400">
+                Uploaded {new Date(resumeData.uploadedAt).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-slate-400">Overall Score</p>
+              <p className="text-2xl font-bold text-green-400">{resumeData.analysis.overallScore}/10</p>
+            </div>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Link
+              href="/resume-scanner"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              <span>View Analysis</span>
+            </Link>
+            <button
+              onClick={() => window.location.href = '/resume-scanner'}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Update</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4">
+            <Upload className="w-8 h-8 text-slate-400" />
+          </div>
+          <h4 className="text-lg font-semibold text-white mb-2">Upload Your Resume</h4>
+          <p className="text-slate-400 mb-6">Get AI-powered analysis and career insights</p>
+          
+          <div className="flex space-x-3">
+            <label className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors">
+              <Upload className="w-4 h-4" />
+              <span>{isUploading ? 'Uploading...' : 'Choose File'}</span>
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt"
+                onChange={handleUploadResume}
+                disabled={isUploading}
+                className="hidden"
+              />
+            </label>
+            <Link
+              href="/resume-scanner"
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Learn More</span>
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0)
@@ -144,6 +276,14 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Resume Status Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-800" />
+        <div className="relative max-w-4xl mx-auto">
+          <ResumeStatusCard />
         </div>
       </section>
 

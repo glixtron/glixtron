@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import pdf from 'pdf-parse'
 import mammoth from 'mammoth'
+import { getServerSession } from 'next-auth'
+import { MongoClient } from 'mongodb'
 
 // Extend timeout for Vercel Hobby tier (max 60 seconds)
 export const maxDuration = 60
@@ -142,6 +144,10 @@ ${brandConfig.aiPersona.communication.signoff}`
 
 export async function POST(req: NextRequest) {
   try {
+    // Check authentication
+    const session = await getServerSession()
+    const userEmail = session?.user?.email
+    
     // Parse form data
     const formData = await req.formData()
     const file = formData.get('resume') as File
@@ -207,6 +213,50 @@ export async function POST(req: NextRequest) {
       }
     }
     
+    // Save resume data for logged-in users
+    if (userEmail) {
+      try {
+        const client = new MongoClient(process.env.MONGODB_URI!)
+        await client.connect()
+        
+        const db = client.db('glixtron')
+        const users = db.collection('users')
+        
+        // Convert file to buffer for storage
+        const fileBuffer = Buffer.from(await file.arrayBuffer())
+        const fileBase64 = fileBuffer.toString('base64')
+        
+        // Save/update user's resume data
+        const resumeData = {
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          extractedText: resumeText,
+          analysis: analysisResult,
+          fileData: fileBase64, // Store file for reuse
+          uploadedAt: new Date().toISOString(),
+          lastAnalyzed: new Date().toISOString()
+        }
+        
+        await users.updateOne(
+          { email: userEmail },
+          { 
+            $set: { 
+              resume: resumeData,
+              updatedAt: new Date().toISOString()
+            }
+          },
+          { upsert: true }
+        )
+        
+        await client.close()
+        console.log('✅ Resume data saved for user:', userEmail)
+      } catch (dbError) {
+        console.error('Failed to save resume data:', dbError)
+        // Continue without failing the request
+      }
+    }
+    
     // Return successful analysis
     return NextResponse.json({
       success: true,
@@ -216,7 +266,8 @@ export async function POST(req: NextRequest) {
         fileType: file.type,
         fileSize: file.size,
         extractedTextLength: resumeText.length,
-        processedAt: new Date().toISOString()
+        processedAt: new Date().toISOString(),
+        savedToProfile: !!userEmail // Indicate if saved to user profile
       }
     })
     
