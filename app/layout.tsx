@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from './providers'
 import CollapsibleSidebar from '@/components/CollapsibleSidebar'
@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -29,10 +36,10 @@ export default function RootLayout({
             <CollapsibleSidebar />
             
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden md:ml-0">
               {/* Main Content */}
               <main className="flex-1 overflow-y-auto">
-                <div className="p-4 sm:p-6 lg:p-8">
+                <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
                   {children}
                 </div>
               </main>

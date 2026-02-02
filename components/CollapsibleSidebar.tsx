@@ -33,12 +33,28 @@ const navigation = [
 
 export default function CollapsibleSidebar() {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [userProfile, setUserProfile] = useState<any>(null)
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+      if (window.innerWidth >= 768) {
+        setIsMobileOpen(false) // Close mobile sidebar when switching to desktop
+      }
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Load user profile
   useEffect(() => {
@@ -111,15 +127,37 @@ export default function CollapsibleSidebar() {
   }
 
   const toggleSidebar = () => {
-    setIsExpanded(!isExpanded)
+    if (isMobile) {
+      setIsMobileOpen(!isMobileOpen)
+    } else {
+      setIsExpanded(!isExpanded)
+    }
+  }
+
+  const closeMobileSidebar = () => {
+    if (isMobile) {
+      setIsMobileOpen(false)
+    }
   }
 
   return (
     <>
+      {/* Mobile overlay */}
+      {isMobile && isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
+      
       {/* Sidebar */}
       <div className={`
         fixed inset-y-0 left-0 z-50 bg-slate-900/95 backdrop-blur-md border-r border-slate-700/50 transition-all duration-300 ease-in-out
-        ${isExpanded ? 'w-64' : 'w-20'}
+        ${isMobile 
+          ? isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'
+          : isExpanded ? 'w-64' : 'w-20'
+        }
+        md:translate-x-0
       `}>
         {/* Sidebar header */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-slate-700/50">
@@ -127,7 +165,7 @@ export default function CollapsibleSidebar() {
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-glow">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
-            {isExpanded && (
+            {(isExpanded || isMobile) && (
               <span className="text-white font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 {brandConfig.appName}
               </span>
@@ -153,6 +191,7 @@ export default function CollapsibleSidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={isMobile ? closeMobileSidebar : undefined}
               className={`
                 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 group relative
                 ${isActive(item.href)
@@ -162,14 +201,14 @@ export default function CollapsibleSidebar() {
               `}
             >
               <item.icon className="h-5 w-5 flex-shrink-0 group-hover:scale-110 transition-transform" />
-              {isExpanded && (
+              {(isExpanded || isMobile) && (
                 <span className="ml-3 group-hover:translate-x-1 transition-transform">
                   {item.name}
                 </span>
               )}
               
-              {/* Tooltip for collapsed state */}
-              {!isExpanded && (
+              {/* Tooltip for collapsed state (desktop only) */}
+              {!isExpanded && !isMobile && (
                 <div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                   {item.name}
                 </div>

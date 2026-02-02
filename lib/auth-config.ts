@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import GoogleProvider from 'next-auth/providers/google'
 import { MongoDBAdapter } from '@auth/mongodb-adapter'
 import { ENV_CONFIG } from './env-config'
 import { findUserByEmail, validatePassword } from './auth-helpers'
@@ -9,6 +10,17 @@ import { clientPromise } from '@/lib/mongodb-adapter'
 export const authConfig: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code'
+        }
+      }
+    }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -55,13 +67,13 @@ export const authConfig: NextAuthOptions = {
         
         console.log('✅ Authentication successful!')
         return {
-          id: user._id?.toString() || user.id?.toString() || '',
+          id: user._id?.toString() || '',
           email: user.email,
           name: user.name,
           image: user.avatar_url || undefined,
           role: 'user',
           avatar_url: user.avatar_url || undefined
-        } as any
+        }
       }
     })
   ],
@@ -92,8 +104,7 @@ export const authConfig: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
-  // Cross-device access: trust host, secure cookies only in production
-  trustHost: true,
+  // Cross-device access: secure cookies only in production
   useSecureCookies: process.env.NODE_ENV === 'production'
 }
 
