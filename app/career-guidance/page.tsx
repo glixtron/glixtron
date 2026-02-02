@@ -31,7 +31,8 @@ import {
   ArrowRight,
   BarChart3,
   Briefcase,
-  BookOpen
+  BookOpen,
+  Loader2
 } from 'lucide-react'
 
 interface ExtractedJD {
@@ -83,6 +84,85 @@ interface MarketInsight {
   change: string
 }
 
+interface PersonalizedCareerPath {
+  careerPath: {
+    currentPosition: string
+    targetPosition: string
+    timeline: string
+    confidenceLevel: number
+    marketDemand: string
+    salaryPotential: string
+  }
+  stepByStepPath: Array<{
+    step: number
+    title: string
+    description: string
+    duration: string
+    skills: string[]
+    actions: string[]
+    milestones: string[]
+    resources: string[]
+  }>
+  skillEnhancement: {
+    technicalSkills: Array<{
+      skill: string
+      currentLevel: string
+      targetLevel: string
+      importance: string
+      courses: Array<{
+        name: string
+        provider: string
+        duration: string
+        level: string
+        url: string
+        price: string
+        certificate: boolean
+        description: string
+      }>
+    }>
+    softSkills: Array<{
+      skill: string
+      currentLevel: string
+      targetLevel: string
+      importance: string
+      courses: Array<{
+        name: string
+        provider: string
+        duration: string
+        level: string
+        url: string
+        price: string
+        certificate: boolean
+        description: string
+      }>
+    }>
+  }
+  industryInsights: {
+    marketTrends: string[]
+    growthAreas: string[]
+    salaryRanges: {
+      entry: string
+      mid: string
+      senior: string
+      executive: string
+    }
+    jobTitles: string[]
+    companies: string[]
+  }
+  personalizedRecommendations: {
+    immediateActions: string[]
+    networkingStrategy: string[]
+    portfolioProjects: string[]
+    certificationPriorities: string[]
+    learningResources: string[]
+  }
+  successMetrics: {
+    keyIndicators: string[]
+    timeBoundGoals: string[]
+    skillMilestones: string[]
+  }
+}
+
 export default function CareerGuidancePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -106,6 +186,14 @@ export default function CareerGuidancePage() {
   const [careerQuery, setCareerQuery] = useState('')
   const [savedResumes, setSavedResumes] = useState<any[]>([])
   const [dashboardStats, setDashboardStats] = useState<any>(null)
+  
+  // Personalized Career Path state
+  const [personalizedCareerPath, setPersonalizedCareerPath] = useState<any>(null)
+  const [showCareerPathInput, setShowCareerPathInput] = useState(false)
+  const [careerPathInput, setCareerPathInput] = useState('')
+  const [userProfileInput, setUserProfileInput] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [careerPathError, setCareerPathError] = useState<string | null>(null)
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -242,6 +330,48 @@ export default function CareerGuidancePage() {
       console.error('Failed to load saved resumes:', error)
       // Set empty array to prevent crashes
       setSavedResumes([])
+    }
+  }
+
+  const handleGenerateCareerPath = async () => {
+    if (!careerPathInput.trim()) return
+    
+    setIsGenerating(true)
+    setCareerPathError(null)
+    
+    try {
+      const response = await fetch('/api/user/roadmap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userInput: careerPathInput,
+          userProfile: userProfileInput ? {
+            skills: userProfileInput,
+            experience: userProfileInput,
+            education: userProfileInput,
+            interests: userProfileInput
+          } : undefined
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setPersonalizedCareerPath(data.data.careerPath)
+        setShowCareerPathInput(false)
+        setCareerPathInput('')
+        setUserProfileInput('')
+        setSuccess('Personalized career path generated successfully!')
+      } else {
+        setCareerPathError(data.error || 'Failed to generate career path')
+      }
+    } catch (error) {
+      console.error('Career path generation error:', error)
+      setCareerPathError('Failed to generate career path. Please try again.')
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -1038,6 +1168,391 @@ export default function CareerGuidancePage() {
             action={handleSkillAssessment}
           />
         </div>
+      </div>
+
+      {/* Personalized Career Path */}
+      <div className="mt-8">
+        <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-lg p-6 border border-green-500/50 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Brain className="w-6 h-6 text-green-400" />
+              <div>
+                <h3 className="text-xl font-bold text-white">AI-Powered Career Path</h3>
+                <p className="text-gray-300">Get personalized step-by-step career guidance with AI recommendations</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowCareerPathInput(true)}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200"
+            >
+              Generate Path
+            </button>
+          </div>
+        </div>
+
+        {/* Career Path Input Modal */}
+        {showCareerPathInput && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-900 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-700">
+              <h3 className="text-xl font-bold text-white mb-4">Generate Your Personalized Career Path</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    What are your career goals and aspirations? *
+                  </label>
+                  <textarea
+                    value={careerPathInput}
+                    onChange={(e) => setCareerPathInput(e.target.value)}
+                    placeholder="e.g., I want to become a senior software engineer at a tech company, specializing in full-stack development with expertise in cloud architecture..."
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Your current profile (optional)
+                  </label>
+                  <textarea
+                    value={userProfileInput}
+                    onChange={(e) => setUserProfileInput(e.target.value)}
+                    placeholder="Tell us about your current skills, experience, education, and interests..."
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                {careerPathError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
+                    {careerPathError}
+                  </div>
+                )}
+
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleGenerateCareerPath}
+                    disabled={!careerPathInput.trim() || isGenerating}
+                    className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="w-4 h-4" />
+                        <span>Generate Career Path</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCareerPathInput(false)
+                      setCareerPathError(null)
+                    }}
+                    className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Display Generated Career Path */}
+        {personalizedCareerPath && (
+          <div className="space-y-6">
+            {/* Career Overview */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h4 className="text-lg font-semibold text-white mb-4">Your Career Journey</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-slate-800 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Current Position</div>
+                  <div className="text-white font-medium">{personalizedCareerPath.careerPath.currentPosition}</div>
+                </div>
+                <div className="text-center p-4 bg-slate-800 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Target Position</div>
+                  <div className="text-white font-medium">{personalizedCareerPath.careerPath.targetPosition}</div>
+                </div>
+                <div className="text-center p-4 bg-slate-800 rounded-lg">
+                  <div className="text-sm text-gray-400 mb-1">Timeline</div>
+                  <div className="text-white font-medium">{personalizedCareerPath.careerPath.timeline}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step-by-Step Path */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h4 className="text-lg font-semibold text-white mb-4">Step-by-Step Career Path</h4>
+              <div className="space-y-4">
+                {personalizedCareerPath.stepByStepPath.map((step, index) => (
+                  <div key={step.step} className="border-l-2 border-green-500 pl-6 relative">
+                    <div className="absolute -left-2 top-0 w-4 h-4 bg-green-500 rounded-full"></div>
+                    <div className="bg-slate-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-white font-medium">Step {step.step}: {step.title}</h5>
+                        <span className="text-sm text-gray-400">{step.duration}</span>
+                      </div>
+                      <p className="text-gray-300 mb-3">{step.description}</p>
+                      
+                      <div className="mb-3">
+                        <h6 className="text-sm font-medium text-white mb-2">Skills to Develop:</h6>
+                        <div className="flex flex-wrap gap-2">
+                          {step.skills.map((skill, skillIndex) => (
+                            <span key={skillIndex} className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded-full">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <h6 className="text-sm font-medium text-white mb-2">Key Actions:</h6>
+                        <ul className="text-sm text-gray-300 space-y-1">
+                          {step.actions.map((action, actionIndex) => (
+                            <li key={actionIndex} className="flex items-start">
+                              <span className="text-green-400 mr-2">•</span>
+                              {action}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h6 className="text-sm font-medium text-white mb-2">Milestones:</h6>
+                        <div className="flex flex-wrap gap-2">
+                          {step.milestones.map((milestone, milestoneIndex) => (
+                            <span key={milestoneIndex} className="px-2 py-1 bg-green-600/20 text-green-400 text-xs rounded-full">
+                              {milestone}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Skill Enhancement */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h4 className="text-lg font-semibold text-white mb-4">Skill Enhancement Plan</h4>
+              
+              {/* Technical Skills */}
+              <div className="mb-6">
+                <h5 className="text-white font-medium mb-3">Technical Skills</h5>
+                <div className="space-y-4">
+                  {personalizedCareerPath.skillEnhancement.technicalSkills.map((skill, index) => (
+                    <div key={index} className="bg-slate-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h6 className="text-white font-medium">{skill.skill}</h6>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          skill.importance === 'Critical' ? 'bg-red-600/20 text-red-400' :
+                          skill.importance === 'Important' ? 'bg-yellow-600/20 text-yellow-400' :
+                          'bg-gray-600/20 text-gray-400'
+                        }`}>
+                          {skill.importance}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-4 mb-3">
+                        <span className="text-sm text-gray-400">Current: {skill.currentLevel}</span>
+                        <span className="text-sm text-green-400">→</span>
+                        <span className="text-sm text-green-400">Target: {skill.targetLevel}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <h6 className="text-sm font-medium text-white">Recommended Courses:</h6>
+                        {skill.courses.map((course, courseIndex) => (
+                          <div key={courseIndex} className="bg-slate-700 rounded p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-white font-medium text-sm">{course.name}</span>
+                              <span className="text-xs text-gray-400">{course.duration}</span>
+                            </div>
+                            <p className="text-xs text-gray-300 mb-2">{course.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-400">{course.provider}</span>
+                              <div className="flex items-center space-x-2">
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  course.price === 'Free' ? 'bg-green-600/20 text-green-400' :
+                                  'bg-blue-600/20 text-blue-400'
+                                }`}>
+                                  {course.price}
+                                </span>
+                                {course.certificate && (
+                                  <span className="text-xs bg-purple-600/20 text-purple-400 px-2 py-1 rounded">
+                                    Certificate
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Soft Skills */}
+              <div>
+                <h5 className="text-white font-medium mb-3">Soft Skills</h5>
+                <div className="space-y-4">
+                  {personalizedCareerPath.skillEnhancement.softSkills.map((skill, index) => (
+                    <div key={index} className="bg-slate-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h6 className="text-white font-medium">{skill.skill}</h6>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          skill.importance === 'Critical' ? 'bg-red-600/20 text-red-400' :
+                          skill.importance === 'Important' ? 'bg-yellow-600/20 text-yellow-400' :
+                          'bg-gray-600/20 text-gray-400'
+                        }`}>
+                          {skill.importance}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-4 mb-3">
+                        <span className="text-sm text-gray-400">Current: {skill.currentLevel}</span>
+                        <span className="text-sm text-green-400">→</span>
+                        <span className="text-sm text-green-400">Target: {skill.targetLevel}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <h6 className="text-sm font-medium text-white">Recommended Courses:</h6>
+                        {skill.courses.map((course, courseIndex) => (
+                          <div key={courseIndex} className="bg-slate-700 rounded p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-white font-medium text-sm">{course.name}</span>
+                              <span className="text-xs text-gray-400">{course.duration}</span>
+                            </div>
+                            <p className="text-xs text-gray-300 mb-2">{course.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-400">{course.provider}</span>
+                              <div className="flex items-center space-x-2">
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  course.price === 'Free' ? 'bg-green-600/20 text-green-400' :
+                                  'bg-blue-600/20 text-blue-400'
+                                }`}>
+                                  {course.price}
+                                </span>
+                                {course.certificate && (
+                                  <span className="text-xs bg-purple-600/20 text-purple-400 px-2 py-1 rounded">
+                                    Certificate
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Industry Insights */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h4 className="text-lg font-semibold text-white mb-4">Industry Insights</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 className="text-white font-medium mb-3">Market Trends</h5>
+                  <ul className="space-y-2">
+                    {personalizedCareerPath.industryInsights.marketTrends.map((trend, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-green-400 mr-2">•</span>
+                        <span className="text-gray-300 text-sm">{trend}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="text-white font-medium mb-3">Growth Areas</h5>
+                  <ul className="space-y-2">
+                    {personalizedCareerPath.industryInsights.growthAreas.map((area, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-blue-400 mr-2">•</span>
+                        <span className="text-gray-300 text-sm">{area}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <h5 className="text-white font-medium mb-3">Salary Ranges</h5>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-slate-800 rounded">
+                    <div className="text-xs text-gray-400 mb-1">Entry</div>
+                    <div className="text-white font-medium">{personalizedCareerPath.industryInsights.salaryRanges.entry}</div>
+                  </div>
+                  <div className="text-center p-3 bg-slate-800 rounded">
+                    <div className="text-xs text-gray-400 mb-1">Mid</div>
+                    <div className="text-white font-medium">{personalizedCareerPath.industryInsights.salaryRanges.mid}</div>
+                  </div>
+                  <div className="text-center p-3 bg-slate-800 rounded">
+                    <div className="text-xs text-gray-400 mb-1">Senior</div>
+                    <div className="text-white font-medium">{personalizedCareerPath.industryInsights.salaryRanges.senior}</div>
+                  </div>
+                  <div className="text-center p-3 bg-slate-800 rounded">
+                    <div className="text-xs text-gray-400 mb-1">Executive</div>
+                    <div className="text-white font-medium">{personalizedCareerPath.industryInsights.salaryRanges.executive}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Personalized Recommendations */}
+            <div className="bg-slate-900/50 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50">
+              <h4 className="text-lg font-semibold text-white mb-4">Personalized Recommendations</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h5 className="text-white font-medium mb-3">Immediate Actions</h5>
+                  <ul className="space-y-2">
+                    {personalizedCareerPath.personalizedRecommendations.immediateActions.map((action, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-yellow-400 mr-2">→</span>
+                        <span className="text-gray-300 text-sm">{action}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="text-white font-medium mb-3">Networking Strategy</h5>
+                  <ul className="space-y-2">
+                    {personalizedCareerPath.personalizedRecommendations.networkingStrategy.map((strategy, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-blue-400 mr-2">→</span>
+                        <span className="text-gray-300 text-sm">{strategy}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="text-white font-medium mb-3">Portfolio Projects</h5>
+                  <ul className="space-y-2">
+                    {personalizedCareerPath.personalizedRecommendations.portfolioProjects.map((project, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-green-400 mr-2">→</span>
+                        <span className="text-gray-300 text-sm">{project}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h5 className="text-white font-medium mb-3">Certification Priorities</h5>
+                  <ul className="space-y-2">
+                    {personalizedCareerPath.personalizedRecommendations.certificationPriorities.map((cert, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-purple-400 mr-2">→</span>
+                        <span className="text-gray-300 text-sm">{cert}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* AI Career Assistant */}
