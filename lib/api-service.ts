@@ -59,9 +59,16 @@ class ApiService {
 
   // Assessment API calls
   async startAssessment(type: 'full' | 'quick') {
-    return this.request('/assessment/start', {
+    return this.request('/assessment', {
       method: 'POST',
       body: JSON.stringify({ type }),
+    })
+  }
+
+  async submitAssessmentStep(sessionId: string, step: number, data: any) {
+    return this.request('/assessment', {
+      method: 'PUT',
+      body: JSON.stringify({ sessionId, step, data }),
     })
   }
 
@@ -70,7 +77,10 @@ class ApiService {
   }
 
   async getAssessmentResults(assessmentId: string) {
-    return this.request(`/assessment/results/${assessmentId}`)
+    if (assessmentId) {
+      return this.request(`/assessment?sessionId=${assessmentId}`)
+    }
+    return this.request('/assessment')
   }
 
   // JD Extraction (Firecrawl)
