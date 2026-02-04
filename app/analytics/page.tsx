@@ -43,80 +43,17 @@ export default function AnalyticsPage() {
       setIsLoading(true)
       setError(null)
       
-      // Mock analytics data - in real app, this would come from API
-      setAnalytics({
-        overview: {
-          totalResumes: 12,
-          totalScans: 45,
-          totalJobs: 89,
-          totalInterviews: 23,
-          averageScore: 78,
-          completionRate: 85
-        },
-        resumeAnalytics: {
-          dailyUploads: [2, 3, 1, 4, 2, 5, 3],
-          averageScores: [75, 78, 82, 79, 85, 88, 82],
-          topImprovements: [
-            { area: "Skills Section", count: 34, percentage: 75 },
-            { area: "Experience Description", count: 28, percentage: 62 },
-            { area: "Format & Layout", count: 22, percentage: 49 },
-            { area: "Keywords", count: 18, percentage: 40 }
-          ]
-        },
-        jobAnalytics: {
-          applications: [5, 8, 12, 7, 15, 9, 11],
-          interviews: [1, 2, 3, 1, 4, 2, 3],
-          responseRates: [20, 25, 25, 14, 27, 22, 27],
-          topCompanies: [
-            { name: "Tech Corp", applications: 8, interviews: 3 },
-            { name: "StartupXYZ", applications: 6, interviews: 2 },
-            { name: "Digital Agency", applications: 5, interviews: 1 },
-            { name: "Enterprise Inc", applications: 4, interviews: 2 }
-          ]
-        },
-        assessmentAnalytics: {
-          completed: [3, 2, 4, 1, 5, 3, 2],
-          averageScores: [82, 78, 85, 80, 88, 84, 86],
-          skillProgress: [
-            { skill: "Technical Skills", current: 85, previous: 78, improvement: 7 },
-            { skill: "Communication", current: 72, previous: 68, improvement: 4 },
-            { skill: "Leadership", current: 68, previous: 62, improvement: 6 },
-            { skill: "Problem Solving", current: 90, previous: 85, improvement: 5 }
-          ]
-        },
-        timeline: [
-          {
-            date: "2024-01-28",
-            type: "resume_upload",
-            title: "Uploaded Resume v3",
-            description: "Updated technical skills section",
-            score: 88
-          },
-          {
-            date: "2024-01-27",
-            type: "job_application",
-            title: "Applied to Senior Developer",
-            description: "Tech Corp - San Francisco",
-            status: "interview_scheduled"
-          },
-          {
-            date: "2024-01-26",
-            type: "assessment",
-            title: "Completed Skills Assessment",
-            description: "Score: 92% - Excellent performance",
-            score: 92
-          },
-          {
-            date: "2024-01-25",
-            type: "interview",
-            title: "Interview with StartupXYZ",
-            description: "Technical round - Positive feedback",
-            status: "completed"
-          }
-        ]
-      })
+      // Fetch real user activity data
+      const response = await fetch('/api/analytics/user-activity')
+      const data = await response.json()
+      
+      if (data.success) {
+        setAnalytics(data.data)
+      } else {
+        setError(data.error || 'Failed to load analytics')
+      }
     } catch (error) {
-      console.error('Analytics error:', error)
+      console.error('Failed to load analytics:', error)
       setError('Failed to load analytics')
     } finally {
       setIsLoading(false)

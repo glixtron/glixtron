@@ -40,6 +40,10 @@ export default function SettingsPage() {
     animations: true
   })
 
+  const [isLoading, setIsLoading] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<string | null>(null)
+  const [resetStatus, setResetStatus] = useState<string | null>(null)
+
   const handleNotificationToggle = async (key: string) => {
     const newValue = !notifications[key as keyof typeof notifications]
     setNotifications(prev => ({
@@ -49,7 +53,7 @@ export default function SettingsPage() {
     
     // Save to backend
     try {
-      await fetch('/api/settings/notifications', {
+      const response = await fetch('/api/settings/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,8 +62,15 @@ export default function SettingsPage() {
           [key]: newValue
         })
       })
+      
+      if (response.ok) {
+        setSaveStatus('Notification setting saved successfully!')
+      } else {
+        setSaveStatus('Failed to save setting')
+      }
     } catch (error) {
       console.error('Failed to save notification settings:', error)
+      setSaveStatus('Failed to save setting')
     }
   }
 
@@ -72,7 +83,7 @@ export default function SettingsPage() {
     
     // Save to backend
     try {
-      await fetch('/api/settings/privacy', {
+      const response = await fetch('/api/settings/privacy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,8 +92,15 @@ export default function SettingsPage() {
           [key]: newValue
         })
       })
+      
+      if (response.ok) {
+        setSaveStatus('Privacy setting saved successfully!')
+      } else {
+        setSaveStatus('Failed to save setting')
+      }
     } catch (error) {
       console.error('Failed to save privacy settings:', error)
+      setSaveStatus('Failed to save setting')
     }
   }
 
@@ -95,7 +113,7 @@ export default function SettingsPage() {
     
     // Save to backend
     try {
-      await fetch('/api/settings/appearance', {
+      const response = await fetch('/api/settings/appearance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,12 +122,22 @@ export default function SettingsPage() {
           [key]: newValue
         })
       })
+      
+      if (response.ok) {
+        setSaveStatus('Appearance setting saved successfully!')
+      } else {
+        setSaveStatus('Failed to save setting')
+      }
     } catch (error) {
       console.error('Failed to save appearance settings:', error)
+      setSaveStatus('Failed to save setting')
     }
   }
 
   const handleSaveAll = async () => {
+    setIsLoading(true)
+    setSaveStatus(null)
+    
     try {
       const response = await fetch('/api/settings/save-all', {
         method: 'POST',
@@ -124,45 +152,61 @@ export default function SettingsPage() {
       })
       
       if (response.ok) {
-        alert('Settings saved successfully!')
+        setSaveStatus('All settings saved successfully!')
+        setTimeout(() => setSaveStatus(null), 3000)
       } else {
-        alert('Failed to save settings')
+        setSaveStatus('Failed to save settings')
       }
     } catch (error) {
-      console.error('Failed to save settings:', error)
-      alert('Failed to save settings')
+      console.error('Failed to save all settings:', error)
+      setSaveStatus('Failed to save settings')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const handleReset = async () => {
     if (confirm('Are you sure you want to reset all settings to default?')) {
-      setNotifications({
-        email: true,
-        push: false,
-        sms: true,
-        marketing: false
-      })
-      
-      setPrivacy({
-        profileVisible: true,
-        shareData: false,
-        analytics: true
-      })
-      
-      setAppearance({
-        darkMode: true,
-        compactView: false,
-        animations: true
-      })
+      setIsLoading(true)
+      setResetStatus(null)
       
       try {
-        await fetch('/api/settings/reset', {
-          method: 'POST'
+        const response = await fetch('/api/settings/reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
         })
-        alert('Settings reset successfully!')
+        
+        if (response.ok) {
+          // Reset local state
+          setNotifications({
+            email: true,
+            push: false,
+            sms: true,
+            marketing: false
+          })
+          setPrivacy({
+            profileVisible: true,
+            shareData: false,
+            analytics: true
+          })
+          setAppearance({
+            darkMode: true,
+            compactView: false,
+            animations: true
+          })
+          
+          setResetStatus('All settings reset successfully!')
+          setTimeout(() => setResetStatus(null), 3000)
+        } else {
+          setResetStatus('Failed to reset settings')
+        }
       } catch (error) {
         console.error('Failed to reset settings:', error)
-        alert('Failed to reset settings')
+        setResetStatus('Failed to reset settings')
+      } finally {
+        setIsLoading(false)
       }
     }
   }

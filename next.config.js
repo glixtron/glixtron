@@ -21,13 +21,13 @@ const nextConfig = {
   // Standalone output for Vercel
   output: 'standalone',
   
-  // Root page redirect to achieve 100% success rate
+  // Root page redirect to home
   async redirects() {
     return [
       {
         source: '/',
-        destination: '/landing',
-        permanent: false, // Use 302 for temporary redirect during development
+        destination: '/home',
+        permanent: true,
       },
     ]
   },
