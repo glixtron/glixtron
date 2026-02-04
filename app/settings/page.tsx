@@ -40,25 +40,131 @@ export default function SettingsPage() {
     animations: true
   })
 
-  const handleNotificationToggle = (key: string) => {
+  const handleNotificationToggle = async (key: string) => {
+    const newValue = !notifications[key as keyof typeof notifications]
     setNotifications(prev => ({
       ...prev,
-      [key]: !prev[key as keyof typeof notifications]
+      [key]: newValue
     }))
+    
+    // Save to backend
+    try {
+      await fetch('/api/settings/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          [key]: newValue
+        })
+      })
+    } catch (error) {
+      console.error('Failed to save notification settings:', error)
+    }
   }
 
-  const handlePrivacyToggle = (key: string) => {
+  const handlePrivacyToggle = async (key: string) => {
+    const newValue = !privacy[key as keyof typeof privacy]
     setPrivacy(prev => ({
       ...prev,
-      [key]: !prev[key as keyof typeof privacy]
+      [key]: newValue
     }))
+    
+    // Save to backend
+    try {
+      await fetch('/api/settings/privacy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          [key]: newValue
+        })
+      })
+    } catch (error) {
+      console.error('Failed to save privacy settings:', error)
+    }
   }
 
-  const handleAppearanceToggle = (key: string) => {
+  const handleAppearanceToggle = async (key: string) => {
+    const newValue = !appearance[key as keyof typeof appearance]
     setAppearance(prev => ({
       ...prev,
-      [key]: !prev[key as keyof typeof appearance]
+      [key]: newValue
     }))
+    
+    // Save to backend
+    try {
+      await fetch('/api/settings/appearance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          [key]: newValue
+        })
+      })
+    } catch (error) {
+      console.error('Failed to save appearance settings:', error)
+    }
+  }
+
+  const handleSaveAll = async () => {
+    try {
+      const response = await fetch('/api/settings/save-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          notifications,
+          privacy,
+          appearance
+        })
+      })
+      
+      if (response.ok) {
+        alert('Settings saved successfully!')
+      } else {
+        alert('Failed to save settings')
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+      alert('Failed to save settings')
+    }
+  }
+
+  const handleReset = async () => {
+    if (confirm('Are you sure you want to reset all settings to default?')) {
+      setNotifications({
+        email: true,
+        push: false,
+        sms: true,
+        marketing: false
+      })
+      
+      setPrivacy({
+        profileVisible: true,
+        shareData: false,
+        analytics: true
+      })
+      
+      setAppearance({
+        darkMode: true,
+        compactView: false,
+        animations: true
+      })
+      
+      try {
+        await fetch('/api/settings/reset', {
+          method: 'POST'
+        })
+        alert('Settings reset successfully!')
+      } catch (error) {
+        console.error('Failed to reset settings:', error)
+        alert('Failed to reset settings')
+      }
+    }
   }
 
   return (
@@ -355,6 +461,24 @@ export default function SettingsPage() {
             actionText="Get Help"
           />
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-center space-x-4">
+        <button
+          onClick={handleSaveAll}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+        >
+          <Settings className="w-4 h-4" />
+          <span>Save All Settings</span>
+        </button>
+        <button
+          onClick={handleReset}
+          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+        >
+          <HelpCircle className="w-4 h-4" />
+          <span>Reset to Default</span>
+        </button>
       </div>
     </div>
   )

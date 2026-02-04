@@ -157,8 +157,15 @@ export class IntegratedCareerGuidance {
       const resume = await advancedResumeParser.parseResume(resumeText)
       
       // Step 2: Generate personalized assessment questions
-      const careerAimAnalysis = await personalizedAssessmentEngine.analyzeCareerAims(careerGoals, resume)
-      const personalizedQuestions = await personalizedAssessmentEngine.generatePersonalizedQuestions(resume, careerAimAnalysis)
+      const resumeAnalysis = {
+        strengths: resume.skills.technical.map(s => s.skill),
+        improvements: [],
+        overallScore: 75,
+        marketReadiness: 'Medium'
+      }
+      
+      const careerAimAnalysis = await personalizedAssessmentEngine.analyzeCareerAims(careerGoals, resumeAnalysis)
+      const personalizedQuestions = await personalizedAssessmentEngine.generatePersonalizedQuestions(resumeAnalysis, careerAimAnalysis)
       
       // Step 3: Analyze skill gaps
       const skillGapAnalysis = await this.analyzeSkillGaps(resume, careerAimAnalysis, targetJD)
