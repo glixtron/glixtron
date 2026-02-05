@@ -1,16 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { integratedCareerGuidance } from '@/lib/integrated-career-guidance'
+import { ScienceStreamDetector } from '@/lib/science-stream-detector'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { resumeText, careerGoals, jobDescriptionUrl, jobDescriptionText } = body
+    const { resumeText, careerGoals, jobDescriptionUrl, jobDescriptionText, selectedStream } = body
 
     if (!resumeText || !careerGoals) {
       return NextResponse.json(
         { success: false, error: 'Resume text and career goals are required' },
         { status: 400 }
       )
+    }
+
+    // Initialize stream detector
+    const streamDetector = new ScienceStreamDetector()
+    
+    // Detect or use selected science stream
+    let detectedStream
+    if (selectedStream) {
+      detectedStream = {
+        primaryStream: selectedStream,
+        secondaryStreams: [],
+        confidence: 1.0,
+        keyIndicators: ['user_selected']
+      }
+    } else {
+      detectedStream = await streamDetector.detectScienceStream(resumeText, careerGoals)
     }
 
     // Extract job description if URL or text is provided
@@ -26,16 +43,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Generate comprehensive career guidance
+    // Generate comprehensive career guidance with stream context
     const careerGuidance = await integratedCareerGuidance.generateComprehensiveCareerGuidance(
       resumeText,
       careerGoals,
-      targetJD || undefined
+      targetJD || undefined,
+      detectedStream
     )
 
     return NextResponse.json({
       success: true,
-      data: careerGuidance,
+      data: {
+        ...careerGuidance,
+        detectedStream
+      },
       message: 'Comprehensive career guidance generated successfully'
     })
   } catch (error) {

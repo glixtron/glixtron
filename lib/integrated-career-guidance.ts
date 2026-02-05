@@ -1,14 +1,16 @@
 /**
- * Integrated Career Guidance System
- * Combines resume scanning, personalized assessment, and DeepSeek AI for comprehensive career planning
+ * Integrated Career Guidance System - Science Optimized
+ * Combines science-specific ATS, NLP, and AI for comprehensive career planning
  */
 
-import { advancedResumeParser, ParsedResume } from './advanced-resume-parser'
-import { personalizedAssessmentEngine } from './personalized-assessment-engine'
-import { advancedJDExtractor, ExtractedJD } from './advanced-jd-extractor'
+import { ScienceATSParser, ScienceResumeParse } from './science-ats-parser'
+import { ScienceNLPProcessor, ScienceNLPAnalysis } from './science-nlp-processor'
+import { ScienceStream, detectScienceStream } from './science-streams-config'
+import { DetectedStream } from './science-stream-detector'
+import { ScienceGapAnalyzer, UserProfile, GapAnalysis } from './science-gap-analyzer'
 
 interface CareerGuidanceProfile {
-  resume: ParsedResume
+  resume: any
   assessment: any
   careerGoals: string
   targetRoles: string[]
@@ -150,39 +152,58 @@ export class IntegratedCareerGuidance {
   async generateComprehensiveCareerGuidance(
     resumeText: string,
     careerGoals: string,
-    targetJD?: ExtractedJD
+    targetJD?: any,
+    detectedStream?: DetectedStream
   ): Promise<CareerGuidanceProfile> {
     try {
-      // Step 1: Parse resume with advanced technology
-      const resume = await advancedResumeParser.parseResume(resumeText)
+      // Initialize science-optimized components
+      const scienceATSParser = new ScienceATSParser()
+      const scienceNLPProcessor = new ScienceNLPProcessor()
+      const gapAnalyzer = new ScienceGapAnalyzer()
       
-      // Step 2: Generate REAL personalized assessment using AI
-      const resumeAnalysis = this.generateRealResumeAnalysis(resume)
+      // Step 1: Parse resume with science-optimized ATS
+      const resume = await scienceATSParser.parseScienceResume(resumeText)
       
-      const careerAimAnalysis = await this.analyzeCareerAimsWithAI(careerGoals, resumeAnalysis)
-      const personalizedQuestions = await personalizedAssessmentEngine.generatePersonalizedQuestions(resumeAnalysis, careerAimAnalysis)
+      // Step 2: Process career goals with science NLP
+      const goalAnalysis = await scienceNLPProcessor.processScienceText(careerGoals)
       
-      // Step 3: Analyze skill gaps with real data
-      const skillGapAnalysis = await this.analyzeSkillGaps(resume, careerAimAnalysis, targetJD)
+      // Step 3: Create user profile for gap analysis
+      const userProfile: UserProfile = {
+        skills: resume.skills.technical?.map(s => s.skill) || [],
+        experience: resume.experience?.map(e => e.description) || [],
+        education: resume.education?.map(e => e.field) || [],
+        publications: resume.publications?.map(p => p.title) || [],
+        research: resume.research?.map(r => r.title) || [],
+        certifications: resume.certifications?.map(c => c.name) || []
+      }
       
-      // Step 4: Generate REAL personalized roadmap using AI
-      const personalizedRoadmap = await this.generateDeepSeekRoadmap(resume, careerAimAnalysis, skillGapAnalysis)
+      // Step 4: Perform comprehensive gap analysis
+      const gapAnalysis = await gapAnalyzer.performGapAnalysis(userProfile, detectedStream || {
+        primaryStream: 'General Science',
+        secondaryStreams: ['Physics', 'Chemistry', 'Biology', 'Mathematics'],
+        confidence: 0.5,
+        keyIndicators: ['default']
+      })
       
-      // Step 5: Generate REAL market insights
-      const marketInsights = await this.generateMarketInsights(careerAimAnalysis.targetRoles, resume)
+      // Step 5: Generate personalized roadmap
+      const personalizedRoadmap = await this.generateScienceRoadmap(resume, goalAnalysis, gapAnalysis, detectedStream)
       
-      // Step 6: Generate REAL recommendations
-      const recommendations = await this.generateRecommendations(resume, skillGapAnalysis, marketInsights)
+      // Step 6: Generate market insights
+      const marketInsights = await this.generateScienceMarketInsights(detectedStream, gapAnalysis)
       
+      // Step 7: Generate comprehensive recommendations
+      const recommendations = await this.generateScienceRecommendations(gapAnalysis, marketInsights, detectedStream)
+
       return {
-        resume,
+        resume: this.convertScienceResumeToParsedResume(resume),
         assessment: {
-          careerAimAnalysis,
-          personalizedQuestions
+          careerAimAnalysis: goalAnalysis,
+          personalizedQuestions: this.generatePersonalizedQuestions(resume, goalAnalysis),
+          detectedStream
         },
         careerGoals,
-        targetRoles: careerAimAnalysis.targetRoles || [],
-        skillGapAnalysis,
+        targetRoles: gapAnalysis.pathwayAnalysis.map(p => p.role),
+        skillGapAnalysis: this.convertGapAnalysisToSkillGap(gapAnalysis),
         personalizedRoadmap,
         marketInsights,
         recommendations
@@ -1133,6 +1154,301 @@ Focus on:
     }
 
     return roleSkills[targetRole] || roleSkills['Software Engineer']
+  }
+
+  // New science-optimized methods
+  private async generateScienceRoadmap(
+    resume: ScienceResumeParse, 
+    goalAnalysis: ScienceNLPAnalysis, 
+    gapAnalysis: GapAnalysis, 
+    detectedStream?: DetectedStream
+  ): Promise<PersonalizedRoadmap> {
+    const bestPath = gapAnalysis.pathwayAnalysis[0]
+    return {
+      phases: [
+        {
+          phase: 'Skill Development',
+          duration: '3 months',
+          objectives: [`Focus on: ${gapAnalysis.identifiedGaps.slice(0, 3).join(', ')}`],
+          skills: gapAnalysis.skillAssessment.technicalSkills.slice(0, 3).map(skill => ({
+            skill: skill.skill,
+            currentLevel: skill.level,
+            targetLevel: 80,
+            resources: gapAnalysis.recommendations
+          })),
+          projects: [
+            {
+              name: 'Science Research Project',
+              description: 'Apply learned skills in practical research',
+              technologies: gapAnalysis.identifiedGaps.slice(0, 2),
+              duration: '8 weeks',
+              complexity: 'Intermediate',
+              portfolio: true
+            }
+          ],
+          milestones: ['Complete skill gap training', 'Submit research project'],
+          assessments: [
+            { type: 'Skill Evaluation', weight: 0.4, passingScore: 80 },
+            { type: 'Project Review', weight: 0.6, passingScore: 75 }
+          ]
+        },
+        {
+          phase: 'Practical Experience',
+          duration: '6 months',
+          objectives: ['Apply skills through projects and internships'],
+          skills: [],
+          projects: [
+            {
+              name: 'Industry Collaboration',
+              description: 'Work with industry partners',
+              technologies: ['Professional Tools'],
+              duration: '12 weeks',
+              complexity: 'Advanced',
+              portfolio: true
+            }
+          ],
+          milestones: ['Gain practical experience', 'Build professional network'],
+          assessments: [
+            { type: 'Performance Review', weight: 0.5, passingScore: 85 },
+            { type: 'Network Assessment', weight: 0.5, passingScore: 70 }
+          ]
+        },
+        {
+          phase: 'Career Advancement',
+          duration: '9 months',
+          objectives: [`Target role: ${bestPath?.role || 'Senior Scientist'}`],
+          skills: [],
+          projects: [
+            {
+              name: 'Job Application Campaign',
+              description: 'Strategic job search and applications',
+              technologies: ['Resume Building', 'Interview Skills'],
+              duration: '8 weeks',
+              complexity: 'Intermediate',
+              portfolio: false
+            }
+          ],
+          milestones: ['Achieve target role', 'Secure position'],
+          assessments: [
+            { type: 'Job Success Metrics', weight: 0.6, passingScore: 90 },
+            { type: 'Career Satisfaction', weight: 0.4, passingScore: 80 }
+          ]
+        }
+      ],
+      successMetrics: {
+        technical: [
+          { metric: 'Complete skill gap training', target: '100%', timeline: '3 months' }
+        ],
+        behavioral: [
+          { metric: 'Gain practical experience', target: '2 projects', timeline: '6 months' }
+        ],
+        career: [
+          { metric: 'Achieve target role', target: 'Job offer', timeline: '9 months' }
+        ]
+      },
+      checkpoints: [
+        { phase: 'Skill Development', completed: false, date: '3 months' },
+        { phase: 'Practical Experience', completed: false, date: '6 months' },
+        { phase: 'Career Advancement', completed: false, date: '9 months' }
+      ]
+    }
+  }
+
+  private async generateScienceMarketInsights(
+    detectedStream?: DetectedStream, 
+    gapAnalysis?: GapAnalysis
+  ): Promise<MarketInsights> {
+    const stream = detectedStream?.primaryStream || 'General Science'
+    const bestPath = gapAnalysis?.pathwayAnalysis[0]
+    
+    return {
+      demandLevel: 'high' as const,
+      salaryRange: {
+        min: bestPath?.salaryPotential?.entry || 70000,
+        max: bestPath?.salaryPotential?.senior || 140000,
+        average: bestPath?.salaryPotential?.mid || 100000
+      },
+      growthRate: 0.15,
+      topCompanies: this.getTopCompaniesByStream(stream),
+      trendingSkills: gapAnalysis?.identifiedGaps.slice(0, 5) || [],
+      marketTrends: [
+        'Increased demand for data science skills',
+        'Growth in biotechnology sector',
+        'AI integration in scientific research'
+      ],
+      competition: 'medium' as const,
+      locationDemand: [
+        { location: 'Boston', demand: 95, salary: 110000 },
+        { location: 'San Francisco', demand: 92, salary: 125000 },
+        { location: 'San Diego', demand: 88, salary: 105000 },
+        { location: 'New York', demand: 85, salary: 115000 },
+        { location: 'Seattle', demand: 82, salary: 108000 }
+      ]
+    }
+  }
+
+  private async generateScienceRecommendations(
+    gapAnalysis: GapAnalysis, 
+    marketInsights: MarketInsights, 
+    detectedStream?: DetectedStream
+  ): Promise<CareerRecommendations> {
+    return {
+      immediate: [
+        {
+          action: 'Complete skill gap assessment',
+          priority: 'high' as const,
+          timeline: '1 week',
+          impact: 'High - Identifies critical development areas'
+        },
+        {
+          action: 'Update resume with science-specific keywords',
+          priority: 'high' as const,
+          timeline: '2 days',
+          impact: 'Medium - Improves ATS matching'
+        },
+        {
+          action: 'Join professional science organizations',
+          priority: 'medium' as const,
+          timeline: '1 month',
+          impact: 'High - Expands professional network'
+        }
+      ],
+      shortTerm: [
+        {
+          action: 'Complete priority skill development courses',
+          priority: 'high' as const,
+          timeline: '3 months',
+          impact: 'High - Addresses critical skill gaps'
+        },
+        {
+          action: 'Apply for internships or research positions',
+          priority: 'medium' as const,
+          timeline: '2 months',
+          impact: 'High - Gains practical experience'
+        }
+      ],
+      longTerm: [
+        {
+          action: 'Develop expertise in emerging technologies',
+          priority: 'medium' as const,
+          timeline: '1 year',
+          impact: 'High - Future-proofs career'
+        },
+        {
+          action: 'Consider advanced degrees if needed',
+          priority: 'low' as const,
+          timeline: '2 years',
+          impact: 'High - Opens senior opportunities'
+        },
+        {
+          action: 'Build research publication portfolio',
+          priority: 'medium' as const,
+          timeline: '18 months',
+          impact: 'High - Establishes expertise'
+        }
+      ],
+      skillFocus: gapAnalysis.recommendations.slice(0, 5),
+      roleTransitions: [
+        {
+          from: 'Junior Scientist',
+          to: 'Senior Scientist',
+          timeline: '2-3 years',
+          requirements: ['Advanced skills', 'Leadership experience', 'Publications']
+        }
+      ]
+    }
+  }
+
+  private convertScienceResumeToParsedResume(resume: ScienceResumeParse): any {
+    return {
+      personalInfo: resume.personalInfo,
+      education: resume.education,
+      experience: resume.experience,
+      skills: {
+        technical: resume.skills.technical,
+        soft: resume.skills.soft || [],
+        tools: []
+      },
+      publications: resume.publications,
+      research: resume.research,
+      overallScore: resume.overallScore,
+      marketReadiness: resume.marketReadiness
+    }
+  }
+
+  private generatePersonalizedQuestions(resume: ScienceResumeParse, goalAnalysis: ScienceNLPAnalysis): string[] {
+    return [
+      `What specific area of ${goalAnalysis.detectedStream || 'science'} interests you most?`,
+      'What laboratory or research experience do you have?',
+      'Are you interested in academic research or industry roles?',
+      'What specific technical skills would you like to develop?',
+      'What are your long-term career aspirations in science?'
+    ]
+  }
+
+  private convertGapAnalysisToSkillGap(gapAnalysis: GapAnalysis): SkillGapAnalysis {
+    return {
+      currentSkills: gapAnalysis.skillAssessment.technicalSkills.map(skill => ({
+        skill: skill.skill,
+        level: skill.level,
+        category: 'technical' as const
+      })),
+      requiredSkills: gapAnalysis.pathwayAnalysis[0]?.skillGaps.map(gap => ({
+        skill: gap.skill,
+        level: gap.requiredLevel,
+        category: 'technical' as const,
+        priority: gap.priority as 'high' | 'medium' | 'low'
+      })) || [],
+      gaps: gapAnalysis.pathwayAnalysis[0]?.skillGaps.map(gap => ({
+        skill: gap.skill,
+        currentLevel: gap.currentLevel,
+        targetLevel: gap.requiredLevel,
+        gap: gap.requiredLevel - gap.currentLevel,
+        category: 'technical' as const,
+        priority: gap.priority as 'high' | 'medium' | 'low',
+        learningPath: [{
+          step: 1,
+          title: `Learn ${gap.skill}`,
+          description: `Master ${gap.skill} through recommended resources`,
+          estimatedTime: gap.estimatedTime,
+          resources: gap.learningResources.map(resource => ({
+          type: 'course' as const,
+          title: resource,
+          provider: 'Online Platform',
+          duration: '4 weeks',
+          difficulty: 'intermediate' as const,
+          cost: 'Free',
+          rating: 4.5
+        })),
+          completionCriteria: `Demonstrate proficiency in ${gap.skill}`,
+          milestones: [`Complete ${gap.skill} course`, `Apply ${gap.skill} in project`],
+          prerequisites: [`Basic understanding of ${gap.skill}`]
+        }]
+      })) || [],
+      overallReadiness: gapAnalysis.overallMatchScore,
+      timeToReadiness: gapAnalysis.timeline,
+      criticalGaps: gapAnalysis.identifiedGaps.slice(0, 3)
+    }
+  }
+
+  private getTopCompaniesByStream(stream: string): string[] {
+    const companies: Record<string, string[]> = {
+      'Physics': ['NASA', 'SpaceX', 'Tesla', 'Google', 'Apple', 'Intel'],
+      'Mathematics': ['Google', 'Goldman Sachs', 'Amazon', 'Microsoft', 'Meta'],
+      'Biology': ['Genentech', 'Moderna', 'Pfizer', 'Johnson & Johnson', 'Thermo Fisher'],
+      'Chemistry': ['DuPont', '3M', 'BASF', 'Procter & Gamble', 'ExxonMobil']
+    }
+    return companies[stream] || ['Google', 'Microsoft', 'Apple', 'Amazon', 'Meta']
+  }
+
+  private getCertificationsByStream(stream?: string): string[] {
+    const certifications: Record<string, string[]> = {
+      'Physics': ['Certified Physics Professional', 'Data Science Certificate'],
+      'Mathematics': ['Actuarial Certification', 'Quantitative Finance Certificate'],
+      'Biology': ['Certified Biotechnology Professional', 'Clinical Research Certification'],
+      'Chemistry': ['Certified Chemistry Professional', 'Laboratory Safety Certification']
+    }
+    return certifications[stream || 'General Science'] || ['Data Science Certificate', 'Project Management Certification']
   }
 }
 
