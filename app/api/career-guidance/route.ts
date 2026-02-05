@@ -22,22 +22,55 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { action, ...data } = body
+    const { action, goals, profile, ...data } = body
+
+    // Enhanced parameter validation
+    if (!action) {
+      return NextResponse.json({
+        success: false,
+        error: 'Action parameter is required',
+        availableActions: ['generate-guidance', 'get-science-streams', 'get-job-types', 'analyze-skills', 'query']
+      }, { status: 400 })
+    }
 
     switch (action) {
       case 'generate-guidance':
-        return await handleGenerateGuidance(data)
+        if (!goals || typeof goals !== 'string' || goals.trim().length === 0) {
+          return NextResponse.json({
+            success: false,
+            error: 'Goals parameter is required and must be a non-empty string'
+          }, { status: 400 })
+        }
+        return await handleGenerateGuidance({ goals, profile: profile || {}, ...data })
 
       case 'get-science-streams':
         return await handleGetScienceStreams()
 
       case 'get-job-types':
+        if (!data.stream) {
+          return NextResponse.json({
+            success: false,
+            error: 'Stream parameter is required for job types'
+          }, { status: 400 })
+        }
         return await handleGetJobTypes(data.stream)
 
       case 'analyze-skills':
+        if (!data.skills || !Array.isArray(data.skills)) {
+          return NextResponse.json({
+            success: false,
+            error: 'Skills parameter is required and must be an array'
+          }, { status: 400 })
+        }
         return await handleAnalyzeSkills(data)
 
       case 'query':
+        if (!data.query || typeof data.query !== 'string' || data.query.trim().length === 0) {
+          return NextResponse.json({
+            success: false,
+            error: 'Query parameter is required and must be a non-empty string'
+          }, { status: 400 })
+        }
         return await handleCareerQuery(data)
 
       default:
@@ -137,7 +170,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Handle career guidance generation
+ * Handle career guidance generation with Molecular Biology expert persona
  */
 async function handleGenerateGuidance(data: any) {
   try {
@@ -154,7 +187,14 @@ async function handleGenerateGuidance(data: any) {
       assessmentResults: data.assessmentResults
     }
 
-    const result = await aiCareerGuidance.generateCareerGuidance(guidanceRequest)
+    // Enhanced error handling with timeout
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('AI request timeout')), 50000) // 50 second timeout
+    })
+
+    const resultPromise = aiCareerGuidance.generateCareerGuidance(guidanceRequest)
+    
+    const result = await Promise.race([resultPromise, timeoutPromise]) as any
     
     return NextResponse.json({
       success: true,
@@ -164,10 +204,22 @@ async function handleGenerateGuidance(data: any) {
 
   } catch (error: any) {
     console.error('Guidance generation error:', error)
+    
+    // Return a helpful error message
+    let errorMessage = 'Failed to generate career guidance'
+    
+    if (error.message === 'AI request timeout') {
+      errorMessage = 'AI request timed out. Please try again with a shorter query.'
+    } else if (error.message.includes('API key')) {
+      errorMessage = 'AI service configuration error. Please contact support.'
+    } else if (error.message.includes('404')) {
+      errorMessage = 'AI endpoint not found. Please check your configuration.'
+    }
+    
     return NextResponse.json({
       success: false,
-      error: 'Failed to generate career guidance',
-      message: error.message
+      error: errorMessage,
+      details: error.message
     }, { status: 500 })
   }
 }

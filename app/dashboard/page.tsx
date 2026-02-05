@@ -1,299 +1,359 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useSession } from 'next-auth/react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import StatCard from '@/components/StatCard'
-import ActionCard from '@/components/ActionCard'
-import ChartCard from '@/components/ChartCard'
-import SkeletonLoader from '@/components/SkeletonLoader'
-import RoadmapWidget from '@/components/RoadmapWidget'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { 
-  TrendingUp, 
-  Users, 
+  User, 
   FileText, 
   Briefcase, 
-  Target,
-  ArrowRight,
+  TrendingUp, 
+  BookOpen, 
+  Settings, 
   BarChart3,
-  Activity,
+  Target,
+  Zap,
   Award,
-  Sparkles,
-  Brain,
-  Zap
+  Download,
+  Upload,
+  Search,
+  Globe,
+  Shield,
+  Clock
 } from 'lucide-react'
 
-// Static components that load instantly
-function StaticHeader() {
-  return (
-    <div className="mb-8">
-      <h1 className="text-3xl font-bold text-white mb-2">Career Dashboard</h1>
-      <p className="text-gray-400">Track your professional growth and AI-powered insights</p>
-    </div>
-  )
-}
-
-function StaticActionCards() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <ActionCard
-        title="Resume Scanner"
-        description="AI-powered resume analysis"
-        icon={FileText}
-        action={() => {
-          window.location.href = '/resume-scanner'
-        }}
-        actionText="Scan Resume"
-        className="from-blue-500 to-blue-600"
-      />
-      <ActionCard
-        title="Career Guidance"
-        description="Personalized AI career advice"
-        icon={Brain}
-        action={() => {
-          window.location.href = '/career-guidance'
-        }}
-        actionText="Get Advice"
-        className="from-purple-500 to-purple-600"
-      />
-      <ActionCard
-        title="Job Matching"
-        description="Find your perfect role"
-        icon={Target}
-        action={() => {
-          window.location.href = '/job-matching'
-        }}
-        actionText="Find Jobs"
-        className="from-emerald-500 to-emerald-600"
-      />
-    </div>
-  )
-}
-
-// Dynamic components that stream in with PPR
-async function DynamicStats() {
-  // This component will be server-rendered and stream in
-  const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/dashboard/stats`, {
-    cache: 'no-store' // Ensure fresh data
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to load stats')
-  }
-  
-  const data = await response.json()
-  const stats = data.success ? data.data : {
-    marketReadiness: { value: 75, trend: { value: '+5%', isPositive: true } },
-    careerProgress: { value: 68, trend: { value: '+12%', isPositive: true } },
-    skillGaps: { value: 3, trend: { value: '-2', isPositive: true } },
-    aiInteractions: { value: 24, trend: { value: '+8', isPositive: true } }
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <StatCard
-        title="Market Readiness"
-        value={stats.marketReadiness.value}
-        trend={stats.marketReadiness.trend}
-        icon={TrendingUp}
-        className="bg-blue-500/10 border-blue-500/30"
-      />
-      <StatCard
-        title="Career Progress"
-        value={stats.careerProgress.value}
-        trend={stats.careerProgress.trend}
-        icon={BarChart3}
-        className="bg-emerald-500/10 border-emerald-500/30"
-      />
-      <StatCard
-        title="Skill Gaps"
-        value={stats.skillGaps.value}
-        trend={stats.skillGaps.trend}
-        icon={Target}
-        className="bg-yellow-500/10 border-yellow-500/30"
-      />
-      <StatCard
-        title="AI Interactions"
-        value={stats.aiInteractions.value}
-        trend={stats.aiInteractions.trend}
-        icon={Brain}
-        className="bg-purple-500/10 border-purple-500/30"
-      />
-    </div>
-  )
-}
-
-async function DynamicActivity() {
-  // This component will be server-rendered and stream in
-  const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/dashboard/activity`, {
-    cache: 'no-store' // Ensure fresh data
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to load activity')
-  }
-  
-  const data = await response.json()
-  const activities = data.success ? data.data.activities : [
-    { id: 1, type: 'resume', title: 'Resume analyzed', time: '2 hours ago' },
-    { id: 2, type: 'career', title: 'Career guidance received', time: '1 day ago' },
-    { id: 3, type: 'job', title: 'Job match found', time: '2 days ago' }
-  ]
-
-  return (
-    <ChartCard
-      title="Recent Activity"
-      description="Your latest career development activities"
-    >
-      <div className="space-y-4">
-        {activities.map((activity: any) => (
-          <div key={activity.id} className="flex items-center space-x-3 p-3 bg-slate-800/50 rounded-lg">
-            <div className="flex-shrink-0 text-blue-400">
-              {activity.type === 'resume' && <FileText className="w-4 h-4" />}
-              {activity.type === 'career' && <Brain className="w-4 h-4" />}
-              {activity.type === 'job' && <Target className="w-4 h-4" />}
-            </div>
-            <div className="flex-1">
-              <p className="text-white font-medium">{activity.title}</p>
-              <p className="text-gray-400 text-sm">{activity.time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </ChartCard>
-  )
-}
-
-async function DynamicProgressChart() {
-  // Simulate chart data generation
-  return (
-    <ChartCard
-      title="Progress Overview"
-      description="Your career development metrics over time"
-    >
-      <div className="h-64 flex items-center justify-center bg-slate-800/50 rounded-lg">
-        <div className="text-center">
-          <Sparkles className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-          <p className="text-white font-medium">Progress Chart</p>
-          <p className="text-gray-400 text-sm">Interactive chart visualization</p>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Market Readiness:</span>
-              <span className="text-green-400">+15%</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Skill Development:</span>
-              <span className="text-blue-400">+23%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </ChartCard>
-  )
-}
-
-// Main dashboard with PPR
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
   const router = useRouter()
-  
-  // Redirect to login if not authenticated
+  const { data: session, status } = useSession()
+  const [stats, setStats] = useState({
+    resumeScans: 0,
+    jobApplications: 0,
+    interviews: 0,
+    offers: 0
+  })
+
+  useEffect(() => {
+    // Check if user is authenticated
+    if (status === 'unauthenticated') {
+      router.push('/login')
+      return
+    }
+  }, [router, status])
+
   if (status === 'loading') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block mb-6">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+          <p className="text-slate-400">Loading dashboard...</p>
+        </div>
       </div>
     )
   }
 
-  if (!session) {
-    router.push('/login')
-    return null
-  }
+  const menuItems = [
+    {
+      title: 'Resume Scanner',
+      description: 'Analyze and optimize your resume',
+      icon: FileText,
+      href: '/resume-scanner',
+      color: 'from-blue-500 to-blue-600',
+      badge: 'AI Powered'
+    },
+    {
+      title: 'Job Search',
+      description: 'Find and analyze job opportunities',
+      icon: Search,
+      href: '/job-search',
+      color: 'from-green-500 to-green-600',
+      badge: 'Smart Matching'
+    },
+    {
+      title: 'Career Assessment',
+      description: 'Discover your career DNA',
+      icon: Target,
+      href: '/assessment',
+      color: 'from-purple-500 to-purple-600',
+      badge: 'Personalized'
+    },
+    {
+      title: 'Skill Development',
+      description: 'Track and improve your skills',
+      icon: BookOpen,
+      href: '/skills',
+      color: 'from-orange-500 to-orange-600',
+      badge: 'Growth Focused'
+    },
+    {
+      title: 'Analytics',
+      description: 'Track your job search progress',
+      icon: BarChart3,
+      href: '/analytics',
+      color: 'from-pink-500 to-pink-600',
+      badge: 'Data Driven'
+    },
+    {
+      title: 'Profile Settings',
+      description: 'Manage your account and preferences',
+      icon: Settings,
+      href: '/profile',
+      color: 'from-gray-500 to-gray-600',
+      badge: 'Customizable'
+    }
+  ]
+
+  const quickActions = [
+    {
+      title: 'Upload Resume',
+      description: 'Quick resume analysis',
+      icon: Upload,
+      href: '/resume-scanner',
+      color: 'bg-blue-500 hover:bg-blue-600'
+    },
+    {
+      title: 'Extract Job',
+      description: 'Analyze job from URL',
+      icon: Globe,
+      href: '/job-extractor',
+      color: 'bg-green-500 hover:bg-green-600'
+    },
+    {
+      title: 'Match Resume',
+      description: 'Compare resume to job',
+      icon: Target,
+      href: '/resume-matcher',
+      color: 'bg-purple-500 hover:bg-purple-600'
+    }
+  ]
+
+  const recentActivity = [
+    {
+      title: 'Resume analyzed for Senior Developer role',
+      time: '2 hours ago',
+      type: 'resume',
+      score: 85
+    },
+    {
+      title: 'Job extracted from LinkedIn',
+      time: '5 hours ago',
+      type: 'job',
+      company: 'Tech Corp'
+    },
+    {
+      title: 'Profile updated with new skills',
+      time: '1 day ago',
+      type: 'profile'
+    }
+  ]
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
-        {/* Static Shell - Loads instantly */}
-        <StaticHeader />
-        <StaticActionCards />
-        
-        {/* Dynamic Content - Stream in when ready */}
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">
+                Welcome back, {session?.user?.name || 'User'}! 👋
+              </h1>
+              <p className="text-slate-300">
+                Your career development dashboard - Track progress and discover opportunities
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/profile"
+                className="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-white transition-colors"
+              >
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+              <Link
+                href="/settings"
+                className="flex items-center space-x-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-white transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <FileText className="h-8 w-8 text-blue-400" />
+              <span className="text-2xl font-bold text-white">{stats.resumeScans}</span>
+            </div>
+            <h3 className="text-white font-semibold mb-1">Resume Scans</h3>
+            <p className="text-slate-400 text-sm">Total analyses performed</p>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <Briefcase className="h-8 w-8 text-green-400" />
+              <span className="text-2xl font-bold text-white">{stats.jobApplications}</span>
+            </div>
+            <h3 className="text-white font-semibold mb-1">Applications</h3>
+            <p className="text-slate-400 text-sm">Jobs applied to</p>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="h-8 w-8 text-purple-400" />
+              <span className="text-2xl font-bold text-white">{stats.interviews}</span>
+            </div>
+            <h3 className="text-white font-semibold mb-1">Interviews</h3>
+            <p className="text-slate-400 text-sm">Interviews scheduled</p>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <Award className="h-8 w-8 text-orange-400" />
+              <span className="text-2xl font-bold text-white">{stats.offers}</span>
+            </div>
+            <h3 className="text-white font-semibold mb-1">Offers</h3>
+            <p className="text-slate-400 text-sm">Job offers received</p>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Zap className="h-6 w-6 mr-2 text-yellow-400" />
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {quickActions.map((action, index) => (
+              <Link
+                key={index}
+                href={action.href}
+                className={`${action.color} rounded-xl p-6 text-white transition-all transform hover:scale-105 hover:shadow-xl`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <action.icon className="h-8 w-8" />
+                  <span className="text-sm opacity-75">Quick Start</span>
+                </div>
+                <h3 className="text-xl font-bold mb-2">{action.title}</h3>
+                <p className="text-sm opacity-90">{action.description}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Menu */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <Target className="h-6 w-6 mr-2 text-blue-400" />
+            Career Tools
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {menuItems.map((item, index) => (
+              <Link
+                key={index}
+                href={item.href}
+                className="group bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-blue-500/50 transition-all hover:shadow-xl"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-lg bg-gradient-to-r ${item.color}`}>
+                    <item.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="px-3 py-1 bg-slate-700 rounded-full text-xs text-slate-300 group-hover:bg-blue-500/20 group-hover:text-blue-300 transition-colors">
+                    {item.badge}
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                  {item.title}
+                </h3>
+                <p className="text-slate-400 text-sm">{item.description}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Stats Grid - Dynamic */}
-            <Suspense fallback={<DashboardStatsSkeleton />}>
-              <DynamicStats />
-            </Suspense>
-            
-            {/* Progress Chart - Dynamic */}
-            <Suspense fallback={<ChartSkeleton />}>
-              <DynamicProgressChart />
-            </Suspense>
-          </div>
-          
-          <div className="space-y-8">
-            {/* Roadmap Widget - Simplified loading */}
-            <Suspense fallback={<SkeletonLoader type="card" />}>
-              <RoadmapWidget />
-            </Suspense>
-            
-            {/* Recent Activity - Simplified loading */}
-            <Suspense fallback={<ActivitySkeleton />}>
-              <DynamicActivity />
-            </Suspense>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Skeleton components for PPR loading states
-function DashboardStatsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-slate-700 rounded w-20 mb-2"></div>
-            <div className="h-8 bg-slate-700 rounded w-16 mb-2"></div>
-            <div className="h-3 bg-slate-700 rounded w-24"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ChartSkeleton() {
-  return (
-    <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-6">
-      <div className="animate-pulse">
-        <div className="h-5 bg-slate-700 rounded w-32 mb-2"></div>
-        <div className="h-4 bg-slate-700 rounded w-48 mb-6"></div>
-        <div className="h-64 bg-slate-700 rounded-lg"></div>
-      </div>
-    </div>
-  )
-}
-
-function ActivitySkeleton() {
-  return (
-    <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-6">
-      <div className="animate-pulse">
-        <div className="h-5 bg-slate-700 rounded w-32 mb-2"></div>
-        <div className="h-4 bg-slate-700 rounded w-48 mb-6"></div>
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="flex items-center space-x-3 p-3 bg-slate-800/50 rounded-lg">
-              <div className="h-4 w-4 bg-slate-700 rounded"></div>
-              <div className="flex-1">
-                <div className="h-4 bg-slate-700 rounded w-32 mb-2"></div>
-                <div className="h-3 bg-slate-700 rounded w-24"></div>
+          <div className="lg:col-span-2">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <Clock className="h-6 w-6 mr-2 text-green-400" />
+              Recent Activity
+            </h2>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+              <div className="space-y-4">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start space-x-4 pb-4 border-b border-slate-700 last:border-0">
+                    <div className={`p-2 rounded-lg ${
+                      activity.type === 'resume' ? 'bg-blue-500/20' :
+                      activity.type === 'job' ? 'bg-green-500/20' :
+                      'bg-purple-500/20'
+                    }`}>
+                      {
+                        activity.type === 'resume' ? <FileText className="h-4 w-4 text-blue-400" /> :
+                        activity.type === 'job' ? <Briefcase className="h-4 w-4 text-green-400" /> :
+                        <User className="h-4 w-4 text-purple-400" />
+                      }
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-white font-medium">{activity.title}</h4>
+                      <div className="flex items-center space-x-4 mt-1">
+                        <span className="text-slate-400 text-sm">{activity.time}</span>
+                        {activity.score && (
+                          <span className="px-2 py-1 bg-green-500/20 rounded text-xs text-green-400">
+                            {activity.score}% match
+                          </span>
+                        )}
+                        {activity.company && (
+                          <span className="text-slate-400 text-sm">{activity.company}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <Shield className="h-6 w-6 mr-2 text-blue-400" />
+              Quick Tips
+            </h2>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <Target className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Complete Your Profile</h4>
+                    <p className="text-slate-400 text-sm">Add skills and experience for better matches</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <FileText className="h-4 w-4 text-green-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Update Resume Regularly</h4>
+                    <p className="text-slate-400 text-sm">Keep your resume current with latest skills</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <BarChart3 className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Track Applications</h4>
+                    <p className="text-slate-400 text-sm">Monitor your job search progress</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

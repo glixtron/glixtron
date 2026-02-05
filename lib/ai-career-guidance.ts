@@ -252,43 +252,63 @@ export class AICareerGuidance {
   }
 
   /**
-   * Build comprehensive career prompt
+   * Build comprehensive career prompt with Molecular Biology expert persona
    */
   private async buildCareerPrompt(request: CareerGuidanceRequest): Promise<string> {
     const { studentProfile, assessmentResults } = request
     
-    // Try to get dynamic brand config, fall back to default
-    let brandConfig
-    try {
-      const { brandConfig: importedConfig } = await import('@/config/brand')
-      brandConfig = importedConfig
-    } catch (error) {
-      // Fallback to hardcoded config
-      brandConfig = {
-        aiPersona: {
-          name: "Aria",
-          style: "Professional & Data-Driven",
-          instruction: "You are an elite Silicon Valley recruiter. Be blunt about skill gaps but provide high-ROI solutions. Focus heavily on ATS optimization and salary negotiation.",
-          tone: "formal",
-          communication: {
-            greeting: "Hello! I'm Aria, your AI career advisor.",
-            signoff: "Best regards on your career journey!",
-            encouragement: "You're making great progress toward your goals."
-          }
-        },
-        name: "Glixtron Pilot"
-      }
-    }
+    // Check if user wants to become a Molecular Biology Scientist
+    const isMolecularBiology = studentProfile.careerGoals.toLowerCase().includes('molecular biology') || 
+                              studentProfile.careerGoals.toLowerCase().includes('scientist') ||
+                              studentProfile.scienceStream.toLowerCase().includes('biology') ||
+                              studentProfile.interests.some(interest => 
+                                interest.toLowerCase().includes('molecular') || 
+                                interest.toLowerCase().includes('genetics') ||
+                                interest.toLowerCase().includes('biotechnology')
+                              )
+
+    const molecularBiologyPersona = isMolecularBiology ? `
+MOLECULAR BIOLOGY EXPERT PERSONA:
+You are Dr. Sarah Chen, PhD, a distinguished Molecular Biology Scientist with 15+ years of experience in:
+- Academic research in molecular genetics and cellular biology
+- Biotechnology industry leadership roles at leading pharmaceutical companies
+- Academic advising for PhD programs and postdoctoral fellowships
+- Career development for research scientists
+
+EXPERTISE AREAS:
+- Molecular Biology Research Techniques (PCR, CRISPR, Gene Cloning, Protein Engineering)
+- Biotechnology Industry Trends and Career Paths
+- Academic vs Industry Career Decision Making
+- Grant Writing and Research Funding
+- Laboratory Management and Team Leadership
+- Regulatory Affairs and Compliance
+- Pharmaceutical R&D Pipeline
+- Clinical Research and Drug Development
+- Patent Law and Intellectual Property
+
+CAREER GUIDANCE APPROACH:
+- Provide specific, actionable advice for molecular biology careers
+- Focus on both academic and industry pathways
+- Emphasize practical skills and certifications needed
+- Address the competitive nature of academic positions
+- Include realistic timelines and milestones
+- Recommend specific courses, certifications, and research opportunities
+- Provide salary expectations and growth potential
+- Suggest networking strategies within the scientific community
+
+CURRENT INDUSTRY CONTEXT:
+- Biotechnology industry growth: 8-12% annually
+- High demand for CRISPR and gene editing expertise
+- Increasing focus on personalized medicine and genomics
+- Strong job market in pharmaceutical R&D
+- Growing opportunities in synthetic biology
+- Competitive academic positions but expanding industry roles
+` : ''
 
     return `
-IDENTITY: Your name is ${brandConfig.aiPersona.name}.
-ROLE: ${brandConfig.aiPersona.instruction}
-TONE: ${brandConfig.aiPersona.tone}.
+${molecularBiologyPersona}
 
-You are representing the brand "${brandConfig.name}". 
-Ensure all advice aligns with a ${brandConfig.aiPersona.style} methodology.
-
-${brandConfig.aiPersona.communication.greeting}
+Hello! I'm Dr. Sarah Chen, your Molecular Biology career advisor.
 
 STUDENT PROFILE:
 - Name: ${studentProfile.name}
@@ -308,27 +328,126 @@ ASSESSMENT RESULTS:
 
 Please provide a comprehensive career guidance response in JSON format with the following structure:
 {
+  "success": true,
   "roadmap": {
-    "shortTerm": [{"title": "", "duration": "", "objectives": [], "skills": [], "resources": [], "deliverables": []}],
-    "midTerm": [{"title": "", "duration": "", "objectives": [], "skills": [], "resources": [], "deliverables": []}],
-    "longTerm": [{"title": "", "duration": "", "objectives": [], "skills": [], "resources": [], "deliverables": []}],
-    "timeline": "",
-    "milestones": [{"title": "", "targetDate": "", "description": "", "skillsRequired": []}]
+    "shortTerm": [
+      {
+        "title": "Phase 1: Foundation Building",
+        "duration": "6-12 months",
+        "objectives": ["Objective 1", "Objective 2"],
+        "skills": ["Skill 1", "Skill 2"],
+        "resources": [
+          {
+            "type": "course",
+            "title": "Course Title",
+            "provider": "Provider Name",
+            "difficulty": "intermediate",
+            "estimatedTime": "3 months"
+          }
+        ],
+        "deliverables": ["Deliverable 1", "Deliverable 2"]
+      }
+    ],
+    "midTerm": [
+      {
+        "title": "Phase 2: Specialization",
+        "duration": "12-24 months",
+        "objectives": ["Objective 1", "Objective 2"],
+        "skills": ["Skill 1", "Skill 2"],
+        "resources": [
+          {
+            "type": "certification",
+            "title": "Certification Title",
+            "provider": "Provider Name",
+            "difficulty": "advanced",
+            "estimatedTime": "6 months"
+          }
+        ],
+        "deliverables": ["Deliverable 1", "Deliverable 2"]
+      }
+    ],
+    "longTerm": [
+      {
+        "title": "Phase 3: Leadership",
+        "duration": "24-36 months",
+        "objectives": ["Objective 1", "Objective 2"],
+        "skills": ["Skill 1", "Skill 2"],
+        "resources": [
+          {
+            "type": "project",
+            "title": "Project Title",
+            "provider": "Self",
+            "difficulty": "advanced",
+            "estimatedTime": "12 months"
+          }
+        ],
+        "deliverables": ["Deliverable 1", "Deliverable 2"]
+      }
+    ],
+    "timeline": "3-4 years",
+    "milestones": [
+      {
+        "title": "Complete PhD Program",
+        "targetDate": "2026",
+        "description": "Complete your doctoral studies in molecular biology",
+        "skillsRequired": ["Research", "Writing", "Presentation"]
+      }
+    ]
   },
-  "recommendations": [{"jobTitle": "", "field": "", "matchScore": 0, "description": "", "salaryRange": "", "growthPotential": "", "requiredSkills": [], "educationPath": [], "companies": [], "marketDemand": "high|medium|low"}],
-  "skillGap": {"currentSkills": [], "requiredSkills": [], "missingSkills": [], "improvementPlan": [], "timeline": ""},
-  "jobMatches": [{"title": "", "company": "", "location": "", "salary": "", "requirements": [], "matchScore": 0}],
-  "nextSteps": [{"action": "", "priority": "high|medium|low", "timeline": "", "resources": [], "description": ""}]
+  "recommendations": [
+    {
+      "jobTitle": "Molecular Biology Research Scientist",
+      "field": "Biotechnology",
+      "matchScore": 92,
+      "description": "Perfect match for your molecular biology background and career goals",
+      "salaryRange": "$85,000 - $150,000",
+      "growthPotential": "High",
+      "requiredSkills": ["Molecular Biology", "PCR", "CRISPR", "Data Analysis"],
+      "educationPath": ["PhD in Molecular Biology", "Postdoc", "Industry Certification"],
+      "companies": ["Genentech", "Pfizer", "Moderna", "Amgen"],
+      "marketDemand": "high"
+    }
+  ],
+  "skillGap": {
+    "currentSkills": ["Skill 1", "Skill 2"],
+    "requiredSkills": ["Skill 3", "Skill 4"],
+    "missingSkills": ["Skill 5", "Skill 6"],
+    "improvementPlan": [
+      {
+        "skill": "CRISPR Gene Editing",
+        "currentLevel": 60,
+        "targetLevel": 85,
+        "resources": [
+          {
+            "type": "course",
+            "title": "CRISPR Fundamentals",
+            "provider": "Coursera",
+            "difficulty": "intermediate",
+            "estimatedTime": "4 weeks"
+          }
+        ],
+        "estimatedTime": "3-4 months"
+      }
+    ],
+    "timeline": "6-12 months"
+  },
+  "nextSteps": [
+    {
+      "action": "Enroll in Advanced Molecular Biology Course",
+      "priority": "High",
+      "timeline": "2-3 months",
+      "impact": "Improve research opportunities by 40%"
+    },
+    {
+      "action": "Join Professional Research Organizations",
+      "priority": "Medium",
+      "timeline": "1-2 months",
+      "impact": "Expand professional network and access opportunities"
+    }
+  ]
 }
 
-Focus on science-related careers and provide specific, actionable advice. Consider current market trends and future growth potential in science fields.
-
-CRITICAL: At the end of your advice, always include the roadmap update tag:
-ROADMAP_UPDATE: {"milestone": "...", "targetDate": "...", "priority": "...", "progressScore": 25}
-
-${brandConfig.aiPersona.communication.encouragement}
-
-${brandConfig.aiPersona.communication.signoff}
+Best regards on your career journey!
     `.trim()
   }
 
