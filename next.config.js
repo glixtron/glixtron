@@ -21,12 +21,12 @@ const nextConfig = {
   // Standalone output for Vercel
   output: 'standalone',
   
-  // Root page redirect to home
+  // Root page redirect to dashboard (NOT home to avoid middleware loop)
   async redirects() {
     return [
       {
         source: '/',
-        destination: '/home',
+        destination: '/dashboard',
         permanent: true,
       },
     ]
