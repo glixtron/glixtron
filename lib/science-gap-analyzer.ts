@@ -113,11 +113,17 @@ export class ScienceGapAnalyzer {
   }
 
   private getStreamData(stream: string): StreamData {
+    console.log(`🔍 Getting stream data for: "${stream}"`);
+    console.log(`🗺️  Available streams:`, Array.from(this.streamData.keys()));
+    
     const data = this.streamData.get(stream)
     if (!data) {
+      console.log(`⚠️  Stream "${stream}" not found, falling back to Physics/Mathematics`);
       // Fallback to physics/mathematics for unknown streams
       return physicsMathematicsStream
     }
+    
+    console.log(`✅ Found stream data for: "${stream}"`);
     return data
   }
 
@@ -243,7 +249,7 @@ export class ScienceGapAnalyzer {
     streamData.atsKeywords.forEach(keyword => {
       const userHasKeyword = userSkills.some(skill => 
         skill.includes(keyword.toLowerCase()) || 
-        keyword.toLowerCase().includes(skill)
+        skill === keyword.toLowerCase()
       )
       
       if (!userHasKeyword) {
