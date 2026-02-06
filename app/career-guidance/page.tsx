@@ -21,7 +21,10 @@ import {
   Zap,
   Award,
   Calendar,
-  Globe
+  Globe,
+  Search,
+  Shield,
+  MapPin
 } from 'lucide-react'
 
 export default function IntegratedCareerGuidancePage() {
@@ -35,7 +38,9 @@ export default function IntegratedCareerGuidancePage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [results, setResults] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'input' | 'roadmap' | 'skills' | 'insights'>('input')
+  const [activeTab, setActiveTab] = useState<'input' | 'roadmap' | 'skills' | 'insights' | 'glixai'>('input')
+  const [glixaiChat, setGlixaiChat] = useState(false)
+  const [glixaiAnalysis, setGlixaiAnalysis] = useState<any>(null)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -151,6 +156,19 @@ export default function IntegratedCareerGuidancePage() {
               }`}
             >
               Insights
+            </button>
+            <button
+              onClick={() => setActiveTab('glixai')}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'glixai' 
+                  ? 'bg-gradient-to-r from-cyan-600 to-purple-600 text-white' 
+                  : 'bg-slate-800 text-gray-400 hover:bg-slate-700'
+              }`}
+            >
+              <span className="flex items-center">
+                <Brain className="w-4 h-4 mr-2" />
+                GlixAI
+              </span>
             </button>
           </>
         )}
@@ -494,6 +512,182 @@ export default function IntegratedCareerGuidancePage() {
                       ))}
                     </ul>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* GlixAI Tab */}
+          {activeTab === 'glixai' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-600 bg-clip-text text-transparent mb-4">
+                  GlixAI Autonomous Career Intelligence
+                </h2>
+                <p className="text-gray-400 max-w-2xl mx-auto">
+                  Experience the next generation of career guidance with AI-powered analysis, 
+                  real-time insights, and personalized recommendations powered by advanced machine learning.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* GlixAI Resume Analysis */}
+                <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-cyan-500/20">
+                  <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                    <Brain className="w-6 h-6 mr-3 text-cyan-400" />
+                    Advanced Resume Analysis
+                  </h3>
+                  <p className="text-gray-400 mb-4">
+                    Get deep insights into your resume with automation risk analysis, salary projections, and future-proofing scores.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (!resumeText) return
+                      try {
+                        const response = await fetch('/api/glixai/resume', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ resumeText })
+                        })
+                        const result = await response.json()
+                        if (result.success) {
+                          setGlixaiAnalysis(result.data)
+                        }
+                      } catch (error) {
+                        console.error('GlixAI analysis error:', error)
+                      }
+                    }}
+                    disabled={!resumeText || isAnalyzing}
+                    className="w-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center"
+                  >
+                    {isAnalyzing ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</>
+                    ) : (
+                      <><Zap className="w-4 h-4 mr-2" /> Analyze with GlixAI</>
+                    )}
+                  </button>
+                </div>
+
+                {/* GlixAI Job Search */}
+                <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20">
+                  <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                    <Briefcase className="w-6 h-6 mr-3 text-purple-400" />
+                    Intelligent Job Matching
+                  </h3>
+                  <p className="text-gray-400 mb-4">
+                    Find jobs that match your skills with AI-powered matching, automation risk assessment, and growth potential analysis.
+                  </p>
+                  <button
+                    onClick={() => setGlixaiChat(true)}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Search Jobs with AI
+                  </button>
+                </div>
+              </div>
+
+              {/* GlixAI Analysis Results */}
+              {glixaiAnalysis && (
+                <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-green-500/20">
+                  <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                    <TrendingUp className="w-6 h-6 mr-3 text-green-400" />
+                    GlixAI Analysis Results
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-400">Match Score</span>
+                        <Target className="w-4 h-4 text-green-500" />
+                      </div>
+                      <div className="text-2xl font-bold text-green-500">{glixaiAnalysis.score}%</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-400">Stream</span>
+                        <Brain className="w-4 h-4 text-cyan-500" />
+                      </div>
+                      <div className="text-lg font-semibold text-cyan-500">{glixaiAnalysis.streamData?.title}</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-400">Skill Gaps</span>
+                        <AlertCircle className="w-4 h-4 text-orange-500" />
+                      </div>
+                      <div className="text-2xl font-bold text-orange-500">{glixaiAnalysis.gaps?.length || 0}</div>
+                    </div>
+                  </div>
+
+                  {glixaiAnalysis.glixAI_insights && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                        <h4 className="font-semibold mb-3 flex items-center text-blue-400">
+                          <Shield className="w-4 h-4 mr-2" />
+                          Automation Risk
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm">Risk Level:</span>
+                            <span className={`text-sm font-semibold ${
+                              glixaiAnalysis.glixAI_insights.automation_risk.level === 'Low' ? 'text-green-400' :
+                              glixaiAnalysis.glixAI_insights.automation_risk.level === 'Medium' ? 'text-yellow-400' : 'text-red-400'
+                            }`}>
+                              {glixaiAnalysis.glixAI_insights.automation_risk.level}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Risk Score:</span>
+                            <span className="text-sm font-semibold">{glixaiAnalysis.glixAI_insights.automation_risk.score}%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                        <h4 className="font-semibold mb-3 flex items-center text-green-400">
+                          <TrendingUp className="w-4 h-4 mr-2" />
+                          Salary Potential
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm">Current:</span>
+                            <span className="text-sm font-semibold">
+                              ${glixaiAnalysis.glixAI_insights.shadow_salary?.current?.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Potential:</span>
+                            <span className="text-sm font-semibold">
+                              ${glixaiAnalysis.glixAI_insights.shadow_salary?.potential?.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* GlixAI Features */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg p-4 border border-cyan-500/20">
+                  <Brain className="w-8 h-8 text-cyan-400 mb-3" />
+                  <h4 className="font-semibold text-white mb-2">AI Chat Assistant</h4>
+                  <p className="text-sm text-gray-400">Get instant career advice and guidance</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
+                  <FileText className="w-8 h-8 text-purple-400 mb-3" />
+                  <h4 className="font-semibold text-white mb-2">Resume Analysis</h4>
+                  <p className="text-sm text-gray-400">Deep insights with automation risk assessment</p>
+                </div>
+                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                  <Search className="w-8 h-8 text-green-400 mb-3" />
+                  <h4 className="font-semibold text-white mb-2">Smart Job Search</h4>
+                  <p className="text-sm text-gray-400">AI-powered job matching and insights</p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-lg p-4 border border-orange-500/20">
+                  <MapPin className="w-8 h-8 text-orange-400 mb-3" />
+                  <h4 className="font-semibold text-white mb-2">Career Roadmap</h4>
+                  <p className="text-sm text-gray-400">Personalized learning paths and timelines</p>
                 </div>
               </div>
             </div>

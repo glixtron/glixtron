@@ -1,0 +1,143 @@
+{
+  "brand": {
+    "name": "GlixAI",
+    "tagline": "Autonomous Career Intelligence",
+    "theme": "dark-science",
+    "description": "An advanced autonomous AI-powered career platform with a dark futuristic/sci-fi aesthetic."
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Orbitron, sans-serif",
+      "body": "Rajdhani, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap",
+    "usage_rules": {
+      "headings": "Uppercase, tracking-widest, font-bold or font-black. Use for H1, H2, H3.",
+      "body": "Clean, high-legibility. Use for paragraphs, inputs, labels.",
+      "mono": "Use for code snippets, data values, system logs, stats."
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": "#00f2ff",
+      "primary_foreground": "#000000",
+      "secondary": "#7000ff",
+      "secondary_foreground": "#ffffff",
+      "background": "#050505",
+      "surface": "#0a0a0a",
+      "surface_highlight": "#141414",
+      "border": "#1f1f1f",
+      "border_active": "#333333",
+      "success": "#00ff9d",
+      "error": "#ff0055",
+      "warning": "#ffd700",
+      "text_main": "#ffffff",
+      "text_muted": "#94a3b8"
+    },
+    "gradients": {
+      "hero_glow": "radial-gradient(circle at center, rgba(0, 242, 255, 0.15) 0%, rgba(5, 5, 5, 0) 70%)",
+      "text_gradient": "linear-gradient(to right, #00f2ff, #7000ff)",
+      "border_gradient": "linear-gradient(45deg, rgba(0, 242, 255, 0.5), rgba(112, 0, 255, 0.5))"
+    }
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "neon_glow": "0 0 10px rgba(0, 242, 255, 0.3), 0 0 20px rgba(0, 242, 255, 0.1)",
+      "panel_shadow": "0 4px 24px -1px rgba(0, 0, 0, 0.5)"
+    },
+    "borders": {
+      "tech_border": "1px solid rgba(0, 242, 255, 0.2)",
+      "glass_border": "1px solid rgba(255, 255, 255, 0.08)"
+    },
+    "effects": {
+      "glassmorphism": "bg-black/40 backdrop-blur-xl border border-white/5",
+      "scanlines": "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 242, 255, 0.03) 3px)"
+    },
+    "shapes": {
+      "chamfered": "clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)"
+    }
+  },
+  "layout_strategies": {
+    "containers": {
+      "main_container": "max-w-7xl mx-auto px-6 sm:px-8 lg:px-12",
+      "dashboard_grid": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6",
+      "chat_layout": "flex flex-col h-[calc(100vh-4rem)] max-w-4xl mx-auto"
+    },
+    "spacing": {
+      "section_gap": "py-24 md:py-32",
+      "component_gap": "gap-6"
+    }
+  },
+  "component_rules": {
+    "Button": {
+      "styles": "font-headings font-bold uppercase tracking-wider transition-all duration-300 relative overflow-hidden",
+      "variants": {
+        "default": "bg-primary text-primary-foreground hover:shadow-[0_0_20px_rgba(0,242,255,0.4)] hover:brightness-110",
+        "outline": "border border-primary/50 text-primary hover:bg-primary/10 hover:border-primary",
+        "ghost": "text-muted-foreground hover:text-primary hover:bg-primary/5",
+        "neon": "bg-transparent border border-primary text-primary hover:bg-primary hover:text-black shadow-[0_0_10px_rgba(0,242,255,0.2)]"
+      },
+      "radius": "rounded-none"
+    },
+    "Card": {
+      "styles": "bg-surface border border-white/5 shadow-2xl overflow-hidden",
+      "variants": {
+        "glass": "bg-black/60 backdrop-blur-md border-white/10",
+        "tech": "bg-black/80 border-primary/20 relative before:absolute before:top-0 before:left-0 before:w-full before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-primary/50 before:to-transparent"
+      }
+    },
+    "Input": {
+      "styles": "bg-black/50 border-white/10 focus:border-primary focus:ring-1 focus:ring-primary/50 font-body text-white placeholder:text-gray-600 rounded-none h-12"
+    },
+    "Badge": {
+      "styles": "rounded-none font-mono text-xs uppercase tracking-widest border-none",
+      "variants": {
+        "outline": "border border-primary/30 text-primary bg-primary/5"
+      }
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "animations": {
+      "fade_in": "animate-in fade-in zoom-in-95 duration-500",
+      "slide_up": "animate-in slide-in-from-bottom-4 fade-in duration-500",
+      "pulse_slow": "animate-pulse duration-[3s]"
+    }
+  },
+  "image_assets": {
+    "backgrounds": [
+      {
+        "url": "https://images.unsplash.com/photo-1762279388956-1c098163a2a8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxjeWJlcnB1bmslMjB0ZWNobm9sb2d5JTIwYWJzdHJhY3QlMjBibHVlJTIwY3lhbiUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzcwMzU2MzcxfDA&ixlib=rb-4.1.0&q=85",
+        "category": "hero_bg",
+        "description": "Abstract neon lines forming a digital landscape"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1762279389006-43963a0cee55?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwzfHxjeWJlcnB1bmslMjB0ZWNobm9sb2d5JTIwYWJzdHJhY3QlMjBibHVlJTIwY3lhbiUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzcwMzU2MzcxfDA&ixlib=rb-4.1.0&q=85",
+        "category": "abstract_texture",
+        "description": "Abstract neon lines on a dark background"
+      }
+    ]
+  },
+  "accessibility": {
+    "contrast_check": "Ensure text on neon backgrounds is typically black (#000000) for readability. White text on dark backgrounds must be > 4.5:1.",
+    "reduced_motion": "Respect prefers-reduced-motion for all heavy animations."
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add the Google Fonts import to index.css immediately.",
+    "2. CONFIGURE TAILWIND: Update tailwind.config.js to include the custom colors (primary: #00f2ff, etc) and fonts (Orbitron, Rajdhani).",
+    "3. OVERRIDE SHADCN: Modify components/ui to remove 'rounded-md' and replace with 'rounded-none' or custom clip-paths.",
+    "4. DARK MODE DEFAULT: Force dark mode. Do not implement light mode toggles unless explicitly requested.",
+    "5. USE GLASSMORPHISM: For sidebar, headers, and floating cards, use the 'glassmorphism' styles defined in visual_enhancers.",
+    "6. CHAT INTERFACE: Make the chat feel like a terminal/command center. Use monospace fonts for AI responses if technical.",
+    "7. NO GRADIENT TEXT ON INPUTS: Keep inputs readable (white text on dark bg).",
+    "8. TEST IDs: Add data-testid to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Don't make generic centered layouts.",
+    "Use glass-morphism effects with backdrop filters.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Never use AI assistant Emoji characters."
+  ]
+}

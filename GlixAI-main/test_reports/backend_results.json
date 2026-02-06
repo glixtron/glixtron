@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-02-06T06:19:56.183325",
+  "base_url": "https://portal-crawler-1.preview.emergentagent.com",
+  "total_tests": 20,
+  "passed_tests": 17,
+  "failed_tests": 3,
+  "success_rate": 85.0,
+  "test_details": {
+    "Root API Endpoint": {
+      "passed": true,
+      "details": ""
+    },
+    "Brand Config": {
+      "passed": true,
+      "details": ""
+    },
+    "Get Science Streams": {
+      "passed": true,
+      "details": ""
+    },
+    "Stream Match": {
+      "passed": true,
+      "details": ""
+    },
+    "Automation Risk Analysis": {
+      "passed": true,
+      "details": ""
+    },
+    "Shadow Salary Analysis": {
+      "passed": true,
+      "details": ""
+    },
+    "Future Proofing Analysis": {
+      "passed": true,
+      "details": ""
+    },
+    "Generate Sprint": {
+      "passed": true,
+      "details": ""
+    },
+    "Generate Gap Sprints": {
+      "passed": true,
+      "details": ""
+    },
+    "EQ/SQ Analysis": {
+      "passed": true,
+      "details": ""
+    },
+    "Generate Passport": {
+      "passed": true,
+      "details": ""
+    },
+    "Get Passport": {
+      "passed": true,
+      "details": ""
+    },
+    "Chat Send Message": {
+      "passed": true,
+      "details": ""
+    },
+    "Chat History": {
+      "passed": true,
+      "details": ""
+    },
+    "Chat Sessions": {
+      "passed": true,
+      "details": ""
+    },
+    "Job Search with Analytics": {
+      "passed": true,
+      "details": ""
+    },
+    "Resume Text Analysis with EQ/SQ": {
+      "passed": true,
+      "details": ""
+    },
+    "Roadmap Generation with Sprints": {
+      "passed": false,
+      "details": "Request timeout"
+    },
+    "Skills Roles with Analytics": {
+      "passed": false,
+      "details": "Request timeout"
+    },
+    "Skill Expansion (Science Terms)": {
+      "passed": false,
+      "details": "Request timeout"
+    }
+  },
+  "failures": [
+    {
+      "test": "Roadmap Generation with Sprints",
+      "error": "Request timeout"
+    },
+    {
+      "test": "Skills Roles with Analytics",
+      "error": "Request timeout"
+    },
+    {
+      "test": "Skill Expansion (Science Terms)",
+      "error": "Request timeout"
+    }
+  ]
+}
