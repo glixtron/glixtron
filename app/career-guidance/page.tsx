@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Brain, Target, TrendingUp, Loader2 } from 'lucide-react'
+import { Brain, Target, TrendingUp, Loader2, BarChart3 } from 'lucide-react'
 
 type ApiOk = { success: true; data: unknown }
 type ApiErr = { success?: false; error?: string; details?: unknown }
