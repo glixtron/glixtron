@@ -40,6 +40,7 @@ export default function CareerGuidance() {
 
       if (parsed && typeof parsed === 'object' && 'success' in parsed && parsed.success) {
         setResponse((parsed as ApiOk).data)
+        setActiveTab('roadmap')
         return
       }
 
@@ -48,6 +49,36 @@ export default function CareerGuidance() {
       setError(e instanceof Error ? e.message : 'Analysis failed')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const downloadRoadmapPDF = async () => {
+    try {
+      const res = await fetch('/api/glix/roadmap-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          resumeText, 
+          streamType, 
+          analysisId: Date.now() 
+        })
+      })
+
+      const data = await res.json()
+      
+      if (data.success) {
+        // Create download link
+        const link = document.createElement('a')
+        link.href = data.data.download_url
+        link.download = data.data.filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } else {
+        setError('Failed to generate PDF')
+      }
+    } catch (e) {
+      setError('PDF download failed')
     }
   }
 
@@ -144,51 +175,370 @@ export default function CareerGuidance() {
         {/* Results Section */}
         {response && (
           <div className="space-y-6">
-            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-              <h3 className="text-xl font-semibold text-white mb-4">GlixAI Analysis Results</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-slate-900 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-white mb-2">Analysis Results</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Match Score</span>
-                      <span className="text-2xl font-bold text-green-400">{data?.score || 0}%</span>
+            {/* Navigation Tabs */}
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <button
+                onClick={() => setActiveTab('input')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'input' 
+                    ? 'bg-slate-700 text-white' 
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                }`}
+              >
+                Input
+              </button>
+              <button
+                onClick={() => setActiveTab('roadmap')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'roadmap' 
+                    ? 'bg-slate-700 text-white' 
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                }`}
+              >
+                Roadmap
+              </button>
+              <button
+                onClick={() => setActiveTab('gaps')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'gaps' 
+                    ? 'bg-slate-700 text-white' 
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                }`}
+              >
+                Skills Gap
+              </button>
+              <button
+                onClick={() => setActiveTab('recommendations')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'recommendations' 
+                    ? 'bg-slate-700 text-white' 
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                }`}
+              >
+                Recommendations
+              </button>
+              <button
+                onClick={() => setActiveTab('jobs')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'jobs' 
+                    ? 'bg-slate-700 text-white' 
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                }`}
+              >
+                Jobs
+              </button>
+              <button
+                onClick={() => setActiveTab('insights')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeTab === 'insights' 
+                    ? 'bg-slate-700 text-white' 
+                    : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                }`}
+              >
+                Insights
+              </button>
+            </div>
+
+            {/* Input Tab */}
+            {activeTab === 'input' && (
+              <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                <h3 className="text-xl font-semibold text-white mb-4">Input Analysis</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-2">Resume Text</h4>
+                    <p className="text-gray-300 text-sm">{resumeText.substring(0, 200)}...</p>
+                  </div>
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-2">Career Goals</h4>
+                    <p className="text-gray-300 text-sm">{careerGoals.substring(0, 200)}...</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Roadmap Tab */}
+            {activeTab === 'roadmap' && (
+              <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold text-white flex items-center">
+                    <TrendingUp className="w-6 h-6 mr-3 text-green-400" />
+                    Step-by-Step Career Roadmap
+                  </h3>
+                  {data?.career_roadmap?.downloadable_pdf?.available && (
+                    <button
+                      onClick={downloadRoadmapPDF}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Download PDF
+                    </button>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-4">Current Level</h4>
+                    <div className="text-center py-4">
+                      <div className="text-3xl font-bold text-blue-400 mb-2">{data?.career_roadmap?.current_level || 'Foundation'}</div>
+                      <div className="text-sm text-gray-400">Timeline: {data?.career_roadmap?.timeline_months || 6} months</div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-300">Detected Stream</span>
-                      <span className="text-lg font-medium text-blue-400">{data?.stream?.title || 'General'}</span>
+                  </div>
+                  
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-4">Milestones</h4>
+                    <div className="space-y-3">
+                      {data?.career_roadmap?.milestones?.slice(0, 4).map((milestone: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-slate-800 rounded">
+                          <div>
+                            <div className="font-medium text-white">{milestone.title}</div>
+                            <div className="text-sm text-gray-400">{milestone.description}</div>
+                          </div>
+                          <div className="text-sm font-medium text-green-400">Month {milestone.month}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-slate-900 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-white mb-2">GlixAI Insights</h4>
-                  {data?.glixAI_insights && (
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-slate-800 rounded">
-                        <span className="text-gray-300">Automation Risk</span>
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-900 text-red-400">
-                          {data.glixAI_insights.automation_risk?.level || 'Unknown'}
-                        </span>
+                <div className="mt-6">
+                  <h4 className="text-lg font-medium text-white mb-4">Step-by-Step Guidance</h4>
+                  <div className="space-y-4">
+                    {data?.career_roadmap?.next_steps?.map((step: any, index: number) => (
+                      <div key={index} className="bg-slate-900 rounded-lg p-4 border-l-4 border-blue-500">
+                        <div className="flex items-center mb-2">
+                          <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold mr-3">
+                            {step.step}
+                          </div>
+                          <h5 className="text-lg font-medium text-white">{step.title}</h5>
+                        </div>
+                        <p className="text-gray-300 mb-3">{step.description}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-sm text-gray-400 mb-1">Duration</div>
+                            <div className="font-medium text-white">{step.duration_months} months</div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-400 mb-1">Skills to Acquire</div>
+                            <div className="flex flex-wrap gap-1">
+                              {step.skills_to_acquire?.map((skill: string, skillIndex: number) => (
+                                <span key={skillIndex} className="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <div className="text-sm text-gray-400 mb-2">Resources</div>
+                          <div className="flex flex-wrap gap-2">
+                            {step.resources?.map((resource: string, resourceIndex: number) => (
+                              <span key={resourceIndex} className="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">
+                                {resource}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center p-3 bg-slate-800 rounded">
-                        <span className="text-gray-300">Salary Potential</span>
-                        <span className="text-lg font-medium text-green-400">
-                          ${data?.glixAI_insights?.shadow_salary?.potential?.toLocaleString() || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-slate-800 rounded">
-                        <span className="text-gray-300">Future-Proof Score</span>
-                        <span className="text-lg font-medium text-blue-400">
-                          {data?.glixAI_insights?.future_proofing?.score || 0}%
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Skills Gap Tab */}
+            {activeTab === 'gaps' && (
+              <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <BarChart3 className="w-6 h-6 mr-3 text-blue-400" />
+                  Detailed Skills Gap Analysis
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-2">Critical Gaps</h4>
+                    <div className="text-2xl font-bold text-red-400 mb-2">{data?.gap_analysis?.critical_gaps?.length || 0}</div>
+                    <div className="space-y-2">
+                      {data?.gap_analysis?.critical_gaps?.slice(0, 3).map((gap: any, index: number) => (
+                        <div key={index} className="p-2 bg-red-900/20 rounded border border-red-700">
+                          <div className="font-medium text-white">{gap.skill}</div>
+                          <div className="text-sm text-gray-400">{gap.description}</div>
+                          <div className="text-xs text-red-400 mt-1">Time: {gap.estimated_time_to_close}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-2">Moderate Gaps</h4>
+                    <div className="text-2xl font-bold text-yellow-400 mb-2">{data?.gap_analysis?.moderate_gaps?.length || 0}</div>
+                    <div className="space-y-2">
+                      {data?.gap_analysis?.moderate_gaps?.slice(0, 3).map((gap: any, index: number) => (
+                        <div key={index} className="p-2 bg-yellow-900/20 rounded border border-yellow-700">
+                          <div className="font-medium text-white">{gap.skill}</div>
+                          <div className="text-sm text-gray-400">{gap.description}</div>
+                          <div className="text-xs text-yellow-400 mt-1">Time: {gap.estimated_time_to_close}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-2">Low Priority Gaps</h4>
+                    <div className="text-2xl font-bold text-green-400 mb-2">{data?.gap_analysis?.low_gaps?.length || 0}</div>
+                    <div className="space-y-2">
+                      {data?.gap_analysis?.low_gaps?.slice(0, 3).map((gap: any, index: number) => (
+                        <div key={index} className="p-2 bg-green-900/20 rounded border border-green-700">
+                          <div className="font-medium text-white">{gap.skill}</div>
+                          <div className="text-sm text-gray-400">{gap.description}</div>
+                          <div className="text-xs text-green-400 mt-1">Time: {gap.estimated_time_to_close}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <h4 className="text-lg font-medium text-white mb-4">All Gaps Detailed</h4>
+                  <div className="space-y-2">
+                    {data?.gap_analysis?.detailed_gaps?.map((gap: any, index: number) => (
+                      <div key={index} className="bg-slate-900 rounded-lg p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="font-medium text-white mb-1">{gap.skill}</div>
+                            <div className="text-sm text-gray-400 mb-2">{gap.description}</div>
+                          </div>
+                          <div className="ml-4 text-right">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              gap.priority === 'high' ? 'bg-red-900 text-red-400' :
+                              gap.priority === 'medium' ? 'bg-yellow-900 text-yellow-400' :
+                              'bg-green-900 text-green-400'
+                            }`}>
+                              {gap.priority.toUpperCase()}
+                            </span>
+                            <div className="text-xs text-gray-400 mt-1">{gap.estimated_time_to_close}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Recommendations Tab */}
+            {activeTab === 'recommendations' && (
+              <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                <h3 className="text-xl font-semibold text-white mb-4">Personalized Recommendations</h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-4">Immediate Actions</h4>
+                    <div className="space-y-3">
+                      {data?.recommendations?.immediate_actions?.map((action: any, index: number) => (
+                        <div key={index} className="p-3 bg-blue-900/20 rounded border border-blue-700">
+                          <div className="font-medium text-white">{action.title || action}</div>
+                          <div className="text-sm text-gray-400">{action.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-slate-900 rounded-lg p-4">
+                    <h4 className="text-lg font-medium text-white mb-4">Long-term Goals</h4>
+                    <div className="space-y-3">
+                      {data?.recommendations?.long_term_goals?.map((goal: any, index: number) => (
+                        <div key={index} className="p-3 bg-purple-900/20 rounded border border-purple-700">
+                          <div className="font-medium text-white">{goal.title || goal}</div>
+                          <div className="text-sm text-gray-400">{goal.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <h4 className="text-lg font-medium text-white mb-4">Skill Development Plan</h4>
+                  <div className="space-y-4">
+                    {data?.recommendations?.skill_development?.map((skill: any, index: number) => (
+                      <div key={index} className="bg-slate-900 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h5 className="font-medium text-white mb-1">{skill.title}</h5>
+                            <p className="text-sm text-gray-400 mb-2">{skill.description}</p>
+                          </div>
+                          <div className="text-sm font-medium text-blue-400">{skill.estimated_duration}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-400 mb-2">Recommended Resources</div>
+                          <div className="flex flex-wrap gap-2">
+                            {skill.resources?.map((resource: string, resourceIndex: number) => (
+                              <span key={resourceIndex} className="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">
+                                {resource}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Jobs Tab */}
+            {activeTab === 'jobs' && (
+              <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                <h3 className="text-xl font-semibold text-white mb-4">Job Recommendations</h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {data?.job_recommendations?.map((job: any, index: number) => (
+                    <div key={index} className="bg-slate-900 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <h4 className="text-lg font-medium text-white">{job.title}</h4>
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          job.match_percentage >= 90 ? 'bg-green-900 text-green-400' :
+                          job.match_percentage >= 80 ? 'bg-blue-900 text-blue-400' :
+                          'bg-yellow-900 text-yellow-400'
+                        }`}>
+                          {job.match_percentage}% Match
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">Salary Range</span>
+                          <span className="font-medium text-green-400">{job.salary_range}</span>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">Growth Potential</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            job.growth_potential === 'Very High' ? 'bg-green-900 text-green-400' :
+                            job.growth_potential === 'High' ? 'bg-blue-900 text-blue-400' :
+                            'bg-yellow-900 text-yellow-400'
+                          }`}>
+                            {job.growth_potential}
+                          </span>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-400 mb-2">Required Skills</div>
+                          <div className="flex flex-wrap gap-2">
+                            {job.required_skills?.map((skill: string, skillIndex: number) => (
+                              <span key={skillIndex} className="px-2 py-1 bg-purple-900 text-purple-300 rounded text-xs">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
