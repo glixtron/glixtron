@@ -297,10 +297,8 @@ export default function IntegratedCareerGuidancePage() {
                   )}
                 </div>
               </div>
-            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
-  )
-}
+  );
