@@ -214,7 +214,7 @@ export default function CareerGuidance() {
         </div>
 
         {/* Results Section */}
-        {response && (
+        {response && typeof response === 'object' && (
           <div className="space-y-6">
             {/* Navigation Tabs */}
             <div className="flex flex-wrap justify-center gap-2 mb-6">
@@ -580,16 +580,6 @@ export default function CareerGuidance() {
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Raw Data */}
-        {response && (
-          <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
-            <h3 className="text-xl font-semibold text-white mb-4">Raw API Response</h3>
-            <pre className="text-xs p-4 rounded bg-gray-900 border border-white/10 overflow-auto">
-              {JSON.stringify(response, null, 2)}
-            </pre>
           </div>
         )}
       </div>
