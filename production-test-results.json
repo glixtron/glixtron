@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-02-06T14:37:31.045Z",
+  "summary": {
+    "successful": 0,
+    "total": 12
+  },
+  "results": [
+    {
+      "name": "Health Check",
+      "path": "/api/health",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "GlixAI Health",
+      "path": "/api/glix/analyze",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "JD Extractor Health",
+      "path": "/api/extract-jd",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "GlixAI Analysis",
+      "path": "/api/glix/analyze",
+      "method": "POST",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "JD Extraction",
+      "path": "/api/extract-jd",
+      "method": "POST",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "PDF Generation",
+      "path": "/api/glix/roadmap-pdf",
+      "method": "POST",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "Career Guidance",
+      "path": "/api/career-guidance",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "Resume Analysis",
+      "path": "/api/resume/analyze",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "JD Resume Match",
+      "path": "/api/jd-resume-match",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "Auth Config",
+      "path": "/api/auth/[...nextauth]",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "User Profile",
+      "path": "/api/user/profile",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    },
+    {
+      "name": "User Assessment",
+      "path": "/api/user/assessment",
+      "method": "GET",
+      "status": "ERROR",
+      "success": false,
+      "error": "fetch failed"
+    }
+  ]
+}

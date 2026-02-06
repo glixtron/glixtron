@@ -157,72 +157,149 @@ async function extractJobInfoWithGemini(content: string, geminiAI: any) {
   }
 }
 
-// Basic job information extraction (replace with AI in production)
+// Basic job information extraction (enhanced with GlixAI patterns)
 function extractJobInfo(content: string) {
   const lines = content.split('\n');
   
-  // Extract job title (common patterns)
-  const jobTitle = extractField(content, [
-    /job title[:\s]+(.+)/i,
-    /position[:\s]+(.+)/i,
-    /role[:\s]+(.+)/i,
-    /^(senior|junior|lead|principal|staff|intern).+/i
-  ]) || 'Job Title Not Found';
-
-  // Extract company name
-  const companyName = extractField(content, [
-    /company[:\s]+(.+)/i,
-    /at\s+([A-Z][a-zA-Z\s&]+)/i,
-    /([A-Z][a-zA-Z\s]+)\s+is hiring/i
-  ]) || 'Company Not Found';
-
-  // Extract skills (common tech keywords)
+  // Enhanced skill keywords from GlixAI job hunter
   const skillKeywords = [
-    'React', 'JavaScript', 'TypeScript', 'Node.js', 'Python', 'Java', 'C++',
-    'AWS', 'Azure', 'Google Cloud', 'Docker', 'Kubernetes',
-    'MongoDB', 'PostgreSQL', 'MySQL', 'Redis',
-    'Git', 'CI/CD', 'Agile', 'Scrum', 'REST API',
-    'Machine Learning', 'AI', 'Data Science', 'DevOps'
+    // Frontend
+    'React', 'TypeScript', 'JavaScript', 'Next.js', 'Vue.js', 'Angular', 'HTML', 'CSS', 'Tailwind', 'SASS',
+    // Backend
+    'Node.js', 'Python', 'Java', 'Go', 'Rust', 'PHP', 'Ruby', 'C++', 'C#', 'Express', 'FastAPI', 'Django',
+    // Database
+    'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Elasticsearch', 'Cassandra', 'DynamoDB',
+    // Cloud & DevOps
+    'AWS', 'Azure', 'Google Cloud', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'CI/CD', 'Jenkins', 'GitLab CI',
+    // AI/ML
+    'Machine Learning', 'AI', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Scikit-learn', 'Pandas', 'NumPy',
+    'LLM', 'LangChain', 'Vector Databases', 'MLOps',
+    // Mobile
+    'React Native', 'Flutter', 'Swift', 'Kotlin', 'iOS', 'Android',
+    // Tools & Others
+    'Git', 'REST API', 'GraphQL', 'Microservices', 'Agile', 'Scrum', 'TDD', 'Unit Testing'
   ];
   
   const foundSkills = skillKeywords.filter(skill => 
     content.toLowerCase().includes(skill.toLowerCase())
   );
 
-  // Extract experience level
-  const experienceLevel = extractField(content, [
-    /experience[:\s]+(.+)/i,
-    /(\d+\+?\s*years?)/i,
-    /(senior|junior|lead|principal|staff|intern|entry-level)/i
-  ]) || 'Not Specified';
+  // Enhanced job title extraction
+  const jobTitlePatterns = [
+    /(?:job\s+title|position|role)[:\s]+(.+)/i,
+    /(?:senior|junior|lead|principal|staff|intern|entry-level|mid-level|sr\.|jr\.)\s+(.+)/i,
+    /(?:software|frontend|backend|full[-\s]?stack|data|machine\s+learning|ai|devops|cloud|mobile)\s+(?:engineer|developer|architect|scientist|manager)/i,
+    /^(?:senior|junior|lead|principal|staff|intern|entry-level|mid-level)\s+.+/i
+  ];
 
-  // Extract salary
-  const salary = extractField(content, [
-    /\$[\d,]+k?[-\s]*[\d,]*k?/i,
-    /salary[:\s]+(.+)/i,
-    /compensation[:\s]+(.+)/i
-  ]) || 'Not Specified';
+  const jobTitle = extractFieldWithPatterns(content, jobTitlePatterns) || 'Job Title Not Found';
 
-  // Extract responsibilities (first few lines that look like responsibilities)
+  // Enhanced company extraction
+  const companyPatterns = [
+    /(?:company|at)\s+([A-Z][a-zA-Z\s&]+(?:Inc|LLC|Corp|Ltd|Technologies|Solutions)?)/i,
+    /([A-Z][a-zA-Z\s&]+(?:Inc|LLC|Corp|Ltd|Technologies|Solutions))\s+is\s+hiring/i,
+    /(?:join|work\s+at)\s+([A-Z][a-zA-Z\s&]+)/i
+  ];
+
+  const companyName = extractFieldWithPatterns(content, companyPatterns) || 'Company Not Found';
+
+  // Enhanced experience level extraction
+  const experiencePatterns = [
+    /(?:experience|years?\s+(?:of\s+)?experience?)[:\s]*(\d+\+?\s*(?:years?|yrs?))/i,
+    /(\d+\+?\s*(?:years?|yrs?))\s+(?:of\s+)?experience/i,
+    /(senior|junior|lead|principal|staff|intern|entry-level|mid-level)/i
+  ];
+
+  const experienceLevel = extractFieldWithPatterns(content, experiencePatterns) || 'Not Specified';
+
+  // Enhanced salary extraction
+  const salaryPatterns = [
+    /\$[\d,]+k?[-\s]*[\d,]*k?\s*(?:\/\s*year|annually|per\s+annum)?/i,
+    /(?:salary|compensation|pay)[:\s]*\$?[\d,]+k?[-\s]*[\d,]*k?/i,
+    /(?:range|from|to)\s+\$?[\d,]+k?\s*(?:to|-)\s*\$?[\d,]+k?/i
+  ];
+
+  const salary = extractFieldWithPatterns(content, salaryPatterns) || 'Not Specified';
+
+  // Enhanced location extraction
+  const locationPatterns = [
+    /(?:location|based\s+in|office)[:\s]*([A-Z][a-zA-Z\s,]+(?:\s*[A-Z]{2})?)/i,
+    /\b([A-Z][a-zA-Z\s]+,\s*[A-Z]{2})\b/,
+    /(?:remote|work\s+from\s+home|wfh)/i,
+    /(?:hybrid|flexible)/i
+  ];
+
+  const location = extractFieldWithPatterns(content, locationPatterns) || 'Not Specified';
+
+  // Remote work detection
+  const remoteWork = /(?:remote|work\s+from\s+home|wfh|virtual|distributed)/i.test(content);
+  const hybridWork = /(?:hybrid|flexible|partial\s+remote)/i.test(content);
+
+  // Enhanced employment type extraction
+  const employmentPatterns = [
+    /(?:employment\s+type|type|contract)[:\s]*(full[-\s]?time|part[-\s]?time|contract|temporary|internship|freelance|consultant)/i,
+    /(full[-\s]?time|part[-\s]?time|contract|temporary|internship|freelance|consultant)\s+(?:position|role|job)/i
+  ];
+
+  const employmentType = extractFieldWithPatterns(content, employmentPatterns) || 'Not Specified';
+
+  // Enhanced responsibilities extraction
+  const responsibilityKeywords = [
+    'develop', 'design', 'implement', 'create', 'build', 'manage', 'lead', 'coordinate',
+    'optimize', 'improve', 'maintain', 'support', 'collaborate', 'work with', 'responsible for'
+  ];
+
   const responsibilities = lines
     .filter(line => 
       line.length > 20 && 
-      (line.includes('develop') || line.includes('design') || line.includes('manage') || 
-       line.includes('implement') || line.includes('create') || line.includes('work'))
+      responsibilityKeywords.some(keyword => line.toLowerCase().includes(keyword))
+    )
+    .slice(0, 8)
+    .map(line => line.replace(/^[-•*·▪]\s*/, '').trim())
+    .filter(line => line.length > 10);
+
+  // Enhanced requirements extraction
+  const requirementKeywords = [
+    'requirement', 'qualification', 'skill', 'experience', 'degree', 'certification',
+    'must have', 'required', 'needed', 'essential'
+  ];
+
+  const requirements = lines
+    .filter(line => 
+      line.length > 15 && 
+      requirementKeywords.some(keyword => line.toLowerCase().includes(keyword))
+    )
+    .slice(0, 6)
+    .map(line => line.replace(/^[-•*·▪]\s*/, '').trim())
+    .filter(line => line.length > 10);
+
+  // Benefits extraction
+  const benefitKeywords = [
+    'benefit', 'insurance', 'health', 'dental', 'vision', '401k', 'retirement',
+    'vacation', 'pto', 'paid time off', 'stock', 'equity', 'bonus', 'flexible'
+  ];
+
+  const benefits = lines
+    .filter(line => 
+      line.length > 10 && 
+      benefitKeywords.some(keyword => line.toLowerCase().includes(keyword))
     )
     .slice(0, 5)
-    .map(line => line.replace(/^[-•*]\s*/, '').trim());
+    .map(line => line.replace(/^[-•*·▪]\s*/, '').trim())
+    .filter(line => line.length > 8);
 
   return {
     jobTitle: jobTitle,
     companyName: companyName,
-    keySkills: foundSkills,
+    keySkills: Array.from(new Set(foundSkills)), // Remove duplicates
     experienceLevel: experienceLevel,
     salaryRange: salary,
+    location: location,
+    remote: remoteWork ? 'Yes' : (hybridWork ? 'Hybrid' : 'Not Specified'),
+    employmentType: employmentType,
     responsibilities: responsibilities.length > 0 ? responsibilities : ['Responsibilities not clearly specified'],
-    location: extractField(content, [/location[:\s]+(.+)/i, /\b([A-Z][a-zA-Z\s]+,\s*[A-Z]{2})\b/]) || 'Not Specified',
-    remote: /remote|work from home|wfh/i.test(content) ? 'Yes' : 'Not Specified',
-    employmentType: extractField(content, [/employment type[:\s]+(.+)/i, /(full-time|part-time|contract|temporary)/i]) || 'Not Specified'
+    requirements: requirements.length > 0 ? requirements : [],
+    benefits: benefits.length > 0 ? benefits : []
   };
 }
 
@@ -231,6 +308,21 @@ function extractField(content: string, patterns: RegExp[]): string {
     const match = content.match(pattern);
     if (match && match[1]) {
       return match[1].trim();
+    }
+  }
+  return '';
+}
+
+function extractFieldWithPatterns(content: string, patterns: RegExp[]): string {
+  for (const pattern of patterns) {
+    const match = content.match(pattern);
+    if (match) {
+      // For patterns without capture groups, return the full match
+      if (match[1]) {
+        return match[1].trim();
+      } else if (match[0]) {
+        return match[0].trim();
+      }
     }
   }
   return '';

@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-02-06T14:35:23.314Z",
+  "summary": {
+    "endpoints": {
+      "successful": 0,
+      "total": 9
+    },
+    "pages": {
+      "successful": 0,
+      "total": 12
+    }
+  },
+  "details": {
+    "endpoints": [
+      {
+        "name": "Health Check",
+        "path": "/api/health",
+        "method": "GET",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "GlixAI Health",
+        "path": "/api/glix/analyze",
+        "method": "GET",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "JD Extractor Health",
+        "path": "/api/extract-jd",
+        "method": "GET",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "GlixAI Analysis",
+        "path": "/api/glix/analyze",
+        "method": "POST",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "JD Extraction",
+        "path": "/api/extract-jd",
+        "method": "POST",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "PDF Generation",
+        "path": "/api/glix/roadmap-pdf",
+        "method": "POST",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "Career Guidance Health",
+        "path": "/api/career-guidance",
+        "method": "GET",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "Resume Analysis Health",
+        "path": "/api/resume/analyze",
+        "method": "GET",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "name": "JD Resume Match Health",
+        "path": "/api/jd-resume-match",
+        "method": "GET",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      }
+    ],
+    "pages": [
+      {
+        "page": "/",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/career-guidance",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/job-extractor",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/resume-scanner",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/jd-resume-match",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/job-matching",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/glixai",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/dashboard",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/login",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/register",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/profile",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      },
+      {
+        "page": "/settings",
+        "status": "ERROR",
+        "success": false,
+        "error": "fetch failed"
+      }
+    ]
+  }
+}
