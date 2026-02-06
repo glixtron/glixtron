@@ -24,7 +24,8 @@ import {
   Globe,
   Search,
   Shield,
-  MapPin
+  MapPin,
+  MessageCircle
 } from 'lucide-react'
 
 export default function IntegratedCareerGuidancePage() {
@@ -41,11 +42,130 @@ export default function IntegratedCareerGuidancePage() {
   const [activeTab, setActiveTab] = useState<'input' | 'roadmap' | 'skills' | 'insights' | 'glixai'>('input')
   const [glixaiChat, setGlixaiChat] = useState(false)
   const [glixaiAnalysis, setGlixaiAnalysis] = useState<any>(null)
+  const [glixaiJobs, setGlixaiJobs] = useState<any[]>([])
+  const [glixaiRoadmap, setGlixaiRoadmap] = useState<any>(null)
+  const [glixaiChatMessages, setGlixaiChatMessages] = useState<any[]>([])
+  const [glixaiChatInput, setGlixaiChatInput] = useState('')
+  const [glixaiJobQuery, setGlixaiJobQuery] = useState('')
+  const [glixaiJobLocation, setGlixaiJobLocation] = useState('')
+  const [glixaiTargetRole, setGlixaiTargetRole] = useState('')
+  const [glixaiCurrentSkills, setGlixaiCurrentSkills] = useState('')
+  const [glixaiLoading, setGlixaiLoading] = useState(false)
+  const [showGlixaiChatModal, setShowGlixaiChatModal] = useState(false)
+  const [showGlixaiJobModal, setShowGlixaiJobModal] = useState(false)
+  const [showGlixaiRoadmapModal, setShowGlixaiRoadmapModal] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
     if (!session) router.push('/login')
   }, [session, status, router])
+
+  // GlixAI Functions
+  const handleGlixaiResumeAnalysis = async () => {
+    if (!resumeText) return
+    setGlixaiLoading(true)
+    try {
+      const response = await fetch('/api/glixai/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeText })
+      })
+      const result = await response.json()
+      if (result.success) {
+        setGlixaiAnalysis(result.data)
+      }
+    } catch (error) {
+      console.error('GlixAI analysis error:', error)
+    } finally {
+      setGlixaiLoading(false)
+    }
+  }
+
+  const handleGlixaiChat = async () => {
+    if (!glixaiChatInput.trim()) return
+    setGlixaiLoading(true)
+    
+    const userMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: glixaiChatInput,
+      timestamp: new Date().toISOString()
+    }
+    
+    setGlixaiChatMessages(prev => [...prev, userMessage])
+    const currentInput = glixaiChatInput
+    setGlixaiChatInput('')
+    
+    try {
+      const response = await fetch('/api/glixai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: currentInput,
+          session_id: Date.now().toString()
+        })
+      })
+      const result = await response.json()
+      if (result.success) {
+        setGlixaiChatMessages(prev => [...prev, result.data])
+      }
+    } catch (error) {
+      console.error('GlixAI chat error:', error)
+    } finally {
+      setGlixaiLoading(false)
+    }
+  }
+
+  const handleGlixaiJobSearch = async () => {
+    if (!glixaiJobQuery.trim()) return
+    setGlixaiLoading(true)
+    try {
+      const response = await fetch('/api/glixai/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: glixaiJobQuery,
+          location: glixaiJobLocation,
+          stream: 'general'
+        })
+      })
+      const result = await response.json()
+      if (result.success) {
+        setGlixaiJobs(result.data.jobs)
+        setShowGlixaiJobModal(true)
+      }
+    } catch (error) {
+      console.error('GlixAI job search error:', error)
+    } finally {
+      setGlixaiLoading(false)
+    }
+  }
+
+  const handleGlixaiRoadmap = async () => {
+    if (!glixaiTargetRole.trim() || !glixaiCurrentSkills.trim()) return
+    setGlixaiLoading(true)
+    try {
+      const skills = glixaiCurrentSkills.split(',').map(s => s.trim())
+      const response = await fetch('/api/glixai/roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentSkills: skills,
+          targetRole: glixaiTargetRole,
+          stream: 'general'
+        })
+      })
+      const result = await response.json()
+      if (result.success) {
+        setGlixaiRoadmap(result.data)
+        setShowGlixaiRoadmapModal(true)
+      }
+    } catch (error) {
+      console.error('GlixAI roadmap error:', error)
+    } finally {
+      setGlixaiLoading(false)
+    }
+  }
 
   if (status === 'loading') {
     return (
@@ -541,26 +661,11 @@ export default function IntegratedCareerGuidancePage() {
                     Get deep insights into your resume with automation risk analysis, salary projections, and future-proofing scores.
                   </p>
                   <button
-                    onClick={async () => {
-                      if (!resumeText) return
-                      try {
-                        const response = await fetch('/api/glixai/resume', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ resumeText })
-                        })
-                        const result = await response.json()
-                        if (result.success) {
-                          setGlixaiAnalysis(result.data)
-                        }
-                      } catch (error) {
-                        console.error('GlixAI analysis error:', error)
-                      }
-                    }}
-                    disabled={!resumeText || isAnalyzing}
+                    onClick={handleGlixaiResumeAnalysis}
+                    disabled={!resumeText || glixaiLoading}
                     className="w-full bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center"
                   >
-                    {isAnalyzing ? (
+                    {glixaiLoading ? (
                       <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</>
                     ) : (
                       <><Zap className="w-4 h-4 mr-2" /> Analyze with GlixAI</>
@@ -577,18 +682,126 @@ export default function IntegratedCareerGuidancePage() {
                   <p className="text-gray-400 mb-4">
                     Find jobs that match your skills with AI-powered matching, automation risk assessment, and growth potential analysis.
                   </p>
-                  <button
-                    onClick={() => setGlixaiChat(true)}
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center"
-                  >
-                    <Search className="w-4 h-4 mr-2" />
-                    Search Jobs with AI
-                  </button>
+                  <div className="space-y-3">
+                    <input
+                      value={glixaiJobQuery}
+                      onChange={(e) => setGlixaiJobQuery(e.target.value)}
+                      placeholder="Job title, skills, or keywords..."
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                    />
+                    <input
+                      value={glixaiJobLocation}
+                      onChange={(e) => setGlixaiJobLocation(e.target.value)}
+                      placeholder="Location (optional)"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
+                    />
+                    <button
+                      onClick={handleGlixaiJobSearch}
+                      disabled={!glixaiJobQuery.trim() || glixaiLoading}
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center"
+                    >
+                      {glixaiLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Searching...</>
+                      ) : (
+                        <><Search className="w-4 h-4 mr-2" /> Search Jobs with AI</>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* GlixAI Analysis Results */}
-              {glixaiAnalysis && (
+              {/* GlixAI Chat Assistant */}
+              <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-green-500/20">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <MessageCircle className="w-6 h-6 mr-3 text-green-400" />
+                  AI Chat Assistant
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  Get instant career advice and guidance from our AI assistant.
+                </p>
+                <div className="space-y-3">
+                  <div className="h-48 overflow-y-auto bg-slate-800 rounded-lg p-3 space-y-2">
+                    {glixaiChatMessages.length === 0 ? (
+                      <div className="text-center text-gray-400 py-8">
+                        <Brain className="w-8 h-8 mx-auto mb-2 text-gray-600" />
+                        <p className="text-sm">Start a conversation with your AI career assistant</p>
+                      </div>
+                    ) : (
+                      glixaiChatMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`p-2 rounded-lg text-sm ${
+                            message.role === 'user'
+                              ? 'bg-cyan-500/20 border border-cyan-500/30 ml-4'
+                              : 'bg-slate-700 border border-slate-600 mr-4'
+                          }`}
+                        >
+                          <p>{message.content}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex space-x-2">
+                    <input
+                      value={glixaiChatInput}
+                      onChange={(e) => setGlixaiChatInput(e.target.value)}
+                      placeholder="Ask about career guidance, resume analysis, job search..."
+                      className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500"
+                      onKeyPress={(e) => e.key === 'Enter' && handleGlixaiChat()}
+                    />
+                    <button
+                      onClick={handleGlixaiChat}
+                      disabled={!glixaiChatInput.trim() || glixaiLoading}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg transition-all flex items-center"
+                    >
+                      {glixaiLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <MessageCircle className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* GlixAI Roadmap Generator */}
+              <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-orange-500/20">
+                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <MapPin className="w-6 h-6 mr-3 text-orange-400" />
+                  Career Roadmap Generator
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  Generate a personalized career roadmap with learning paths and timelines.
+                </p>
+                <div className="space-y-3">
+                  <input
+                    value={glixaiTargetRole}
+                    onChange={(e) => setGlixaiTargetRole(e.target.value)}
+                    placeholder="Target role (e.g., Data Scientist)"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
+                  />
+                  <input
+                    value={glixaiCurrentSkills}
+                    onChange={(e) => setGlixaiCurrentSkills(e.target.value)}
+                    placeholder="Current skills (comma-separated)"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    onClick={handleGlixaiRoadmap}
+                    disabled={!glixaiTargetRole.trim() || !glixaiCurrentSkills.trim() || glixaiLoading}
+                    className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:opacity-50 text-white font-medium py-3 px-4 rounded-lg transition-all flex items-center justify-center"
+                  >
+                    {glixaiLoading ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+                    ) : (
+                      <><MapPin className="w-4 h-4 mr-2" /> Generate Roadmap</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+              {/* GlixAI Analysis Results */
+              </div>              {glixaiAnalysis && (
                 <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg p-6 border border-green-500/20">
                   <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
                     <TrendingUp className="w-6 h-6 mr-3 text-green-400" />
