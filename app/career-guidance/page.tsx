@@ -13,6 +13,7 @@ export default function CareerGuidance() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [response, setResponse] = useState<unknown>(null)
+  const [activeTab, setActiveTab] = useState('input')
 
   const analyze = async () => {
     if (!resumeText.trim() || !careerGoals.trim()) {
@@ -25,28 +26,60 @@ export default function CareerGuidance() {
     setResponse(null)
 
     try {
+      console.log('🔍 Starting analysis with:', { resumeText: resumeText.substring(0, 100) + '...', streamType })
+      
       const res = await fetch('/api/glix/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText, streamType })
       })
 
+      console.log('📡 Response status:', res.status, res.statusText)
+
       const text = await res.text()
-      const parsed: ApiOk | ApiErr = text ? JSON.parse(text) : { success: false, error: 'Empty response' }
+      console.log('📄 Raw response:', text.substring(0, 500) + '...')
+      
+      let parsed: ApiOk | ApiErr
+      try {
+        parsed = text ? JSON.parse(text) : { success: false, error: 'Empty response from server' }
+      } catch (parseError) {
+        console.error('❌ JSON Parse Error:', parseError)
+        throw new Error('Server returned invalid response format')
+      }
+
+      console.log('📊 Parsed response:', parsed)
 
       if (!res.ok) {
-        throw new Error(parsed && typeof parsed === 'object' && 'error' in parsed && parsed.error ? String(parsed.error) : `HTTP ${res.status}`)
+        const errorMessage = parsed && typeof parsed === 'object' && 'error' in parsed && parsed.error 
+          ? String(parsed.error) 
+          : `HTTP ${res.status}: ${res.statusText}`
+        console.error('❌ API Error:', errorMessage)
+        throw new Error(errorMessage)
       }
 
       if (parsed && typeof parsed === 'object' && 'success' in parsed && parsed.success) {
+        console.log('✅ Analysis successful!')
         setResponse((parsed as ApiOk).data)
         setActiveTab('roadmap')
         return
       }
 
-      throw new Error((parsed as ApiErr).error || 'Analysis failed')
+      const fallbackError = (parsed as ApiErr).error || 'Analysis failed - unknown error'
+      console.error('❌ Analysis failed:', fallbackError)
+      throw new Error(fallbackError)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Analysis failed')
+      console.error('💥 Complete error:', e)
+      const errorMessage = e instanceof Error ? e.message : 'Analysis failed due to unknown error'
+      setError(errorMessage)
+      
+      // Show user-friendly error message
+      if (errorMessage.includes('500') || errorMessage.includes('Internal Server Error')) {
+        setError('Server error occurred. This might be due to missing environment variables. Please try again later.')
+      } else if (errorMessage.includes('fetch')) {
+        setError('Network error. Please check your internet connection and try again.')
+      } else {
+        setError(errorMessage)
+      }
     } finally {
       setLoading(false)
     }
@@ -54,6 +87,8 @@ export default function CareerGuidance() {
 
   const downloadRoadmapPDF = async () => {
     try {
+      console.log('📄 Starting PDF download...')
+      
       const res = await fetch('/api/glix/roadmap-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,7 +99,10 @@ export default function CareerGuidance() {
         })
       })
 
+      console.log('📄 PDF Response status:', res.status, res.statusText)
+
       const data = await res.json()
+      console.log('📄 PDF Response data:', data)
       
       if (data.success) {
         // Create download link
@@ -74,11 +112,14 @@ export default function CareerGuidance() {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+        console.log('✅ PDF download successful!')
       } else {
-        setError('Failed to generate PDF')
+        console.error('❌ PDF generation failed:', data.error)
+        setError('Failed to generate PDF: ' + (data.error || 'Unknown error'))
       }
     } catch (e) {
-      setError('PDF download failed')
+      console.error('💥 PDF download error:', e)
+      setError('PDF download failed: ' + (e instanceof Error ? e.message : 'Unknown error'))
     }
   }
 
