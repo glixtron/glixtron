@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AdvancedScienceMatcher } from '/Users/macbookpro/Desktop/glixtron-pilot/lib/engine/matcher'
-import { SkillDictionary, expandAbbreviations } from '/Users/macbookpro/Desktop/glixtron-pilot/lib/engine/utils/dictionary'
-import { PCMStream } from '/Users/macbookpro/Desktop/glixtron-pilot/lib/engine/streams/pcm'
-import { PCBStream } from '/Users/macbookpro/Desktop/glixtron-pilot/lib/engine/streams/pcb'
-import { PCMBStream } from '/Users/macbookpro/Desktop/glixtron-pilot/lib/engine/streams/pcmb'
+import { AdvancedScienceMatcher } from '../../../../lib/engine/matcher'
+import { SkillDictionary, expandAbbreviations } from '../../../../lib/engine/utils/dictionary'
+import { PCMStream } from '../../../../lib/engine/streams/pcm'
+import { PCBStream } from '../../../../lib/engine/streams/pcb'
+import { PCMBStream } from '../../../../lib/engine/streams/pcmb'
 
 // GlixAI Master Stream Registry
 const streamRegistry = {
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Get the selected stream data
     const streamKey = streamType as keyof typeof streamRegistry
-    const selectedStream = streamRegistry[streamKey] || streamRegistry.general
+    const selectedStream = streamRegistry[streamKey] || streamRegistry.general;
     
     // Initialize GlixAI Advanced Matcher
     const matcher = new AdvancedScienceMatcher()
